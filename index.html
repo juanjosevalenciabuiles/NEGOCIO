@@ -41,6 +41,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .btn-primary{background:var(--green);color:#fff}.btn-primary:hover{background:var(--green-dark)}
 .btn-secondary{background:transparent;border:0.5px solid var(--border2);color:var(--text)}.btn-secondary:hover{background:var(--bg)}
 .btn-confirm{background:var(--purple-light);color:var(--purple-text);border:0.5px solid #AFA9EC}.btn-confirm:hover{background:#CECBF6}
+.btn-danger{background:transparent;border:0.5px solid #F0997B;color:var(--red)}.btn-danger:hover{background:var(--red-light)}
 .btn-sm{padding:5px 10px;font-size:12px}
 .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -69,19 +70,18 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 .close-btn{background:none;border:none;cursor:pointer;color:var(--text2);font-size:20px;padding:2px;line-height:1;border-radius:6px}.close-btn:hover{background:var(--bg)}
 .empty{text-align:center;padding:2.5rem 1rem;color:var(--text3)}.empty i{font-size:36px;display:block;margin-bottom:10px;opacity:.35}.empty p{font-size:14px}
 .filter-bar{display:flex;align-items:center;gap:7px;background:var(--bg);border-radius:var(--radius);padding:10px 12px;margin-bottom:1rem;flex-wrap:wrap;border:0.5px solid var(--border)}
+.filter-bar select,.filter-bar input[type=date]{width:auto;padding:5px 9px;font-size:12px}
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:5px 11px;border-radius:20px;border:0.5px solid var(--border2);cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s}
 .chip.active{background:var(--green);color:#fff;border-color:var(--green)}.chip:hover:not(.active){border-color:var(--green);color:var(--green)}
 .hist-item{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:0.5px solid var(--border)}.hist-item:last-child{border-bottom:none}
 .hist-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
-.hist-dot.entrega{background:var(--amber-light);color:var(--amber-text)}.hist-dot.pago{background:var(--green-light);color:var(--green-text)}.hist-dot.pendiente{background:var(--purple-light);color:var(--purple-text)}
+.hist-dot.entrega{background:var(--amber-light);color:var(--amber-text)}
+.hist-dot.pago{background:var(--green-light);color:var(--green-text)}
+.hist-dot.pendiente{background:var(--purple-light);color:var(--purple-text)}
 .hist-info{flex:1;min-width:0}.hist-nombre{font-size:13px;font-weight:600}.hist-sub{font-size:12px;color:var(--text2);margin-top:2px}
 .hist-val{font-size:13px;font-weight:600;white-space:nowrap;text-align:right}
 .resumen-chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
 .resumen-chip{font-size:12px;padding:4px 10px;border-radius:20px;border:0.5px solid var(--border);display:inline-flex;align-items:center;gap:5px;color:var(--text2)}
-.step{display:flex;align-items:flex-start;gap:12px;margin-bottom:1.25rem}
-.step-num{width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
-.step-txt{font-size:13px;color:var(--text2);line-height:1.7}.step-txt strong{color:var(--text)}
-.code-block{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;font-family:'Courier New',monospace;font-size:11px;color:var(--text);white-space:pre;overflow-x:auto;margin:8px 0;line-height:1.6}
 .alert{padding:11px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:1rem;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
 .alert-info{background:var(--blue-light);color:var(--blue-text);border:0.5px solid #b5d4f4}
 .alert-warning{background:var(--amber-light);color:var(--amber-text);border:0.5px solid #FAC775}
@@ -90,18 +90,15 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 .confirm-card.confirmado{border-color:#5DCAA5;background:var(--green-light)}
 .confirm-card.pendiente-conf{border-color:#AFA9EC}
 .confirm-info{flex:1;min-width:0}.confirm-nombre{font-size:13px;font-weight:600}.confirm-sub{font-size:12px;color:var(--text2);margin-top:2px}
-/* Recarga rápida */
-.recarga-form{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem}
 .cliente-search{position:relative}
 .autocomplete-list{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--radius);z-index:50;max-height:220px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.1)}
 .autocomplete-item{padding:10px 12px;cursor:pointer;font-size:13px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px}
-.autocomplete-item:last-child{border-bottom:none}
-.autocomplete-item:hover{background:var(--bg)}
-.autocomplete-item .cod{font-family:monospace;font-size:11px;color:var(--text2);background:var(--bg);padding:2px 6px;border-radius:4px}
-.cliente-seleccionado{background:var(--green-light);border:0.5px solid #5DCAA5;border-radius:var(--radius);padding:10px 14px;margin-top:8px;display:none;align-items:center;gap:10px}
-.cliente-seleccionado .nombre{font-size:13px;font-weight:600;color:var(--green-text);flex:1}
-.recarga-inputs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:1rem}
-@media(max-width:580px){.recarga-inputs{grid-template-columns:1fr}}
+.autocomplete-item:last-child{border-bottom:none}.autocomplete-item:hover{background:var(--bg)}
+.cliente-sel-box{background:var(--green-light);border:0.5px solid #5DCAA5;border-radius:var(--radius);padding:10px 14px;margin-top:8px;display:none;align-items:center;gap:10px}
+.step{display:flex;align-items:flex-start;gap:12px;margin-bottom:1.25rem}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.step-txt{font-size:13px;color:var(--text2);line-height:1.7}.step-txt strong{color:var(--text)}
+.code-block{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;font-family:'Courier New',monospace;font-size:11px;color:var(--text);white-space:pre;overflow-x:auto;margin:8px 0;line-height:1.6}
 </style>
 </head>
 <body>
@@ -122,15 +119,13 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 <!-- DASHBOARD -->
 <div class="section active" id="sec-dashboard">
   <div class="filter-bar">
-    <i class="ti ti-calendar" style="color:var(--text2)"></i><label style="font-size:12px;color:var(--text2);font-weight:500">Período:</label>
+    <i class="ti ti-calendar" style="color:var(--text2)"></i>
     <button class="chip active" onclick="setChip(this,'hoy')">Hoy</button>
     <button class="chip" onclick="setChip(this,'semana')">Esta semana</button>
     <button class="chip" onclick="setChip(this,'mes')">Este mes</button>
     <button class="chip" onclick="setChip(this,'custom')">Personalizado</button>
     <span id="custom-dates" style="display:none;gap:6px;align-items:center">
-      <input type="date" id="d-desde" onchange="renderDash()" style="width:auto;padding:5px 9px;font-size:12px">
-      <span style="font-size:12px;color:var(--text2)">→</span>
-      <input type="date" id="d-hasta" onchange="renderDash()" style="width:auto;padding:5px 9px;font-size:12px">
+      <input type="date" id="d-desde" onchange="renderDash()"><span style="font-size:12px;color:var(--text2)">→</span><input type="date" id="d-hasta" onchange="renderDash()">
     </span>
   </div>
   <div class="cards-grid">
@@ -147,30 +142,32 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 <!-- RECARGAS -->
 <div class="section" id="sec-recargas">
   <div class="panel">
-    <div class="panel-head"><span class="panel-title"><i class="ti ti-device-mobile"></i> Nueva recarga</span></div>
-    <div class="alert alert-info"><i class="ti ti-info-circle" style="flex-shrink:0"></i><span>Busca el cliente por nombre o código, ingresa el valor y registra. Solo los campos esenciales.</span></div>
-
-    <!-- Búsqueda cliente -->
+    <div class="panel-head"><span class="panel-title"><i class="ti ti-device-mobile"></i> Registrar movimiento</span></div>
     <div class="form-group" style="margin-bottom:1rem">
-      <label class="form-label">Buscar cliente por nombre o código</label>
+      <label class="form-label">Buscar cliente por nombre, código o WhatsApp</label>
       <div class="cliente-search">
-        <input type="text" id="buscar-cliente-recarga" placeholder="Escribe nombre o código..." oninput="buscarClienteRecarga()" autocomplete="off">
-        <div class="autocomplete-list" id="autocomplete-list" style="display:none"></div>
+        <input type="text" id="buscar-cli" placeholder="Escribe para buscar..." oninput="buscarCli()" autocomplete="off">
+        <div class="autocomplete-list" id="auto-list" style="display:none"></div>
       </div>
-      <div class="cliente-seleccionado" id="cliente-seleccionado-box">
+      <div class="cliente-sel-box" id="cli-sel-box">
         <div style="flex:1">
-          <div class="nombre" id="cli-sel-nombre">—</div>
+          <div style="font-size:13px;font-weight:600;color:var(--green-text)" id="cli-sel-nombre"></div>
           <div style="font-size:11px;color:var(--green-text);margin-top:2px" id="cli-sel-info"></div>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="limpiarClienteSeleccionado()"><i class="ti ti-x"></i></button>
+        <button class="btn btn-secondary btn-sm" onclick="limpiarCli()"><i class="ti ti-x"></i></button>
       </div>
     </div>
-
-    <!-- Inputs de recarga -->
-    <div class="recarga-inputs">
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Tipo *</label>
+        <select id="rec-tipo" onchange="toggleConfirmRec()">
+          <option value="entrega">Entrega de saldo</option>
+          <option value="pago">Pago recibido del cliente</option>
+        </select>
+      </div>
       <div class="form-group">
         <label class="form-label">Valor ($) *</label>
-        <input type="number" id="rec-valor" placeholder="0" min="0" style="font-size:18px;font-weight:600;text-align:center">
+        <input type="number" id="rec-valor" placeholder="0" min="0">
       </div>
       <div class="form-group">
         <label class="form-label">Fecha</label>
@@ -180,35 +177,26 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
         <label class="form-label">No. transacción</label>
         <input type="text" id="rec-trans" placeholder="Opcional">
       </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Nota</label>
+        <input type="text" id="rec-nota" placeholder="Opcional">
+      </div>
+      <div class="form-group" id="rec-confirm-grp" style="grid-column:1/-1;display:none">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;background:var(--green-light);padding:10px 12px;border-radius:var(--radius);color:var(--green-text)">
+          <input type="checkbox" id="rec-confirmado" style="width:auto;margin:0"> Ya confirmé que el dinero llegó a mi cuenta bancaria
+        </label>
+      </div>
     </div>
-    <div class="form-group" style="margin-top:12px">
-      <label class="form-label">Nota</label>
-      <input type="text" id="rec-nota" placeholder="Opcional">
-    </div>
-
-    <div style="margin-top:1.25rem;display:flex;gap:10px;align-items:center">
-      <button class="btn btn-primary" style="flex:1;justify-content:center;padding:12px" onclick="registrarRecarga()">
-        <i class="ti ti-arrow-up"></i> Registrar entrega de saldo
+    <div style="margin-top:1.25rem">
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:14px" onclick="registrarMov()">
+        <i class="ti ti-device-floppy"></i> Registrar
       </button>
-      <button class="btn btn-secondary" style="flex:1;justify-content:center;padding:12px" onclick="registrarPago()">
-        <i class="ti ti-cash"></i> Registrar pago recibido
-      </button>
     </div>
-
-    <!-- Checkbox confirmación (solo aparece al registrar pago) -->
-    <div id="pago-confirm-box" style="display:none;margin-top:10px">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;background:var(--green-light);padding:10px 12px;border-radius:var(--radius);color:var(--green-text)">
-        <input type="checkbox" id="pago-confirmado" style="width:auto;margin:0"> Ya confirmé que el dinero llegó a mi cuenta bancaria
-      </label>
-    </div>
-
     <div id="rec-msg" style="display:none;margin-top:12px;padding:10px 14px;border-radius:var(--radius);font-size:13px;font-weight:500"></div>
   </div>
-
-  <!-- Últimas recargas del día -->
   <div class="panel">
     <div class="panel-head"><span class="panel-title"><i class="ti ti-clock"></i> Movimientos de hoy</span></div>
-    <div id="recargas-hoy"><div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos hoy</p></div></div>
+    <div id="movs-hoy"><div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos hoy</p></div></div>
   </div>
 </div>
 
@@ -217,18 +205,20 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <div class="panel">
     <div class="panel-head">
       <span class="panel-title"><i class="ti ti-users"></i> Clientes</span>
-      <button class="btn btn-primary" onclick="openModal('modal-cliente')"><i class="ti ti-plus"></i> Nuevo cliente</button>
+      <button class="btn btn-primary" onclick="abrirModalCliente()"><i class="ti ti-plus"></i> Nuevo cliente</button>
     </div>
     <div class="filter-bar">
       <i class="ti ti-filter" style="color:var(--text2)"></i>
-      <select onchange="renderClientes()" id="filtro-cuenta" style="width:auto;padding:5px 9px;font-size:12px"><option value="">Todas las cuentas</option><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select>
-      <select onchange="renderClientes()" id="filtro-prov" style="width:auto;padding:5px 9px;font-size:12px"><option value="">Megared + Multiproducto</option><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select>
-      <select onchange="renderClientes()" id="filtro-est-cli" style="width:auto;padding:5px 9px;font-size:12px"><option value="">Todos los estados</option><option value="mora">En mora</option><option value="pendiente">Pendiente</option><option value="pagado">Pagado</option></select>
-      <input id="filtro-buscar" placeholder="Buscar..." onkeyup="renderClientes()" style="width:140px;padding:5px 9px;font-size:12px">
+      <select onchange="renderClientes()" id="f-cuenta" style="width:auto"><option value="">Todas las cuentas</option><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select>
+      <select onchange="renderClientes()" id="f-prov" style="width:auto"><option value="">Megared + Multiproducto</option><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select>
+      <select onchange="renderClientes()" id="f-est" style="width:auto"><option value="">Todos los estados</option><option value="mora">En mora</option><option value="pendiente">Pendiente</option><option value="pagado">Pagado</option></select>
+      <input id="f-buscar" placeholder="Buscar..." onkeyup="renderClientes()" style="width:140px;padding:5px 9px;font-size:12px">
     </div>
     <div class="table-wrap">
-      <table><thead><tr><th>Cliente</th><th>Código</th><th>Cuenta</th><th>Proveedor</th><th>Deuda ant.</th><th>Entregado</th><th>Pagado</th><th>Pendiente</th><th>Estado</th><th></th></tr></thead>
-      <tbody id="tbody-clientes"><tr><td colspan="10"><div class="empty"><i class="ti ti-users"></i><p>Sin clientes.</p></div></td></tr></tbody></table>
+      <table>
+        <thead><tr><th>Cliente</th><th>WhatsApp</th><th>Código</th><th>Cuenta</th><th>Proveedor</th><th>Pendiente</th><th>Estado</th><th></th></tr></thead>
+        <tbody id="tbody-clientes"><tr><td colspan="8"><div class="empty"><i class="ti ti-users"></i><p>Sin clientes.</p></div></td></tr></tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -245,33 +235,31 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
       <button class="chip" onclick="setChipHist(this,'todo')">Todo</button>
       <button class="chip" onclick="setChipHist(this,'custom')">Personalizado</button>
       <span id="hist-custom" style="display:none;gap:6px;align-items:center">
-        <input type="date" id="h-desde" onchange="renderHistorial()" style="width:auto;padding:5px 9px;font-size:12px">
-        <span style="font-size:12px;color:var(--text2)">→</span>
-        <input type="date" id="h-hasta" onchange="renderHistorial()" style="width:auto;padding:5px 9px;font-size:12px">
+        <input type="date" id="h-desde" onchange="renderHistorial()"><span style="font-size:12px">→</span><input type="date" id="h-hasta" onchange="renderHistorial()">
       </span>
     </div>
     <div class="filter-bar" style="margin-top:-6px">
       <i class="ti ti-adjustments" style="color:var(--text2)"></i>
-      <select id="filtro-cuenta-h" onchange="renderHistorial()" style="width:auto;padding:5px 9px;font-size:12px"><option value="">Todas las cuentas</option><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select>
-      <select id="filtro-prov-h" onchange="renderHistorial()" style="width:auto;padding:5px 9px;font-size:12px"><option value="">Megared + Multiproducto</option><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select>
-      <select id="filtro-tipo-h" onchange="renderHistorial()" style="width:auto;padding:5px 9px;font-size:12px"><option value="">Entregas + Pagos</option><option value="entrega">Solo entregas</option><option value="pago">Solo pagos</option></select>
-      <input id="filtro-cli-h" placeholder="Buscar cliente..." onkeyup="renderHistorial()" style="width:140px;padding:5px 9px;font-size:12px">
+      <select id="h-cuenta" onchange="renderHistorial()" style="width:auto"><option value="">Todas las cuentas</option><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select>
+      <select id="h-prov" onchange="renderHistorial()" style="width:auto"><option value="">Megared + Multiproducto</option><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select>
+      <select id="h-tipo" onchange="renderHistorial()" style="width:auto"><option value="">Entregas + Pagos</option><option value="entrega">Solo entregas</option><option value="pago">Solo pagos</option></select>
+      <input id="h-buscar" placeholder="Buscar cliente..." onkeyup="renderHistorial()" style="width:140px;padding:5px 9px;font-size:12px">
     </div>
     <div class="resumen-chips" id="hist-resumen"></div>
-    <div id="historial-lista"><div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div></div>
+    <div id="hist-lista"><div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div></div>
   </div>
 </div>
 
-<!-- CONFIRMAR PAGOS -->
+<!-- CONFIRMAR -->
 <div class="section" id="sec-confirmaciones">
   <div class="panel">
-    <div class="panel-head"><span class="panel-title"><i class="ti ti-circle-check"></i> Confirmar pagos bancarios</span></div>
-    <div class="alert alert-warning"><i class="ti ti-info-circle" style="flex-shrink:0"></i><span>Cuando un cliente avise que consignó, regístralo en Recargas. Aquí aparecerán los pagos pendientes de verificar en tu banco.</span></div>
-    <div id="confirm-pendientes"><div class="empty"><i class="ti ti-circle-check"></i><p>No hay pagos pendientes de confirmar</p></div></div>
+    <div class="panel-head"><span class="panel-title"><i class="ti ti-clock"></i> Pagos por confirmar</span></div>
+    <div class="alert alert-warning"><i class="ti ti-info-circle" style="flex-shrink:0"></i><span>Cuando un cliente avise que consignó, regístralo en Recargas sin marcar el checkbox. Aquí aparecerá para que lo confirmes cuando verifiques en tu banco.</span></div>
+    <div id="conf-pendientes"><div class="empty"><i class="ti ti-circle-check"></i><p>No hay pagos pendientes de confirmar</p></div></div>
   </div>
   <div class="panel">
     <div class="panel-head"><span class="panel-title"><i class="ti ti-checks"></i> Pagos confirmados recientes</span></div>
-    <div id="confirm-confirmados"><div class="empty"><i class="ti ti-inbox"></i><p>Sin pagos confirmados aún</p></div></div>
+    <div id="conf-confirmados"><div class="empty"><i class="ti ti-inbox"></i><p>Sin pagos confirmados aún</p></div></div>
   </div>
 </div>
 
@@ -280,77 +268,83 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <div class="panel">
     <div class="panel-head"><span class="panel-title"><i class="ti ti-database"></i> Conectar Supabase</span></div>
     <div class="alert alert-info"><i class="ti ti-info-circle" style="flex-shrink:0"></i><span>Supabase es gratuito. Datos en la nube, accesible desde cualquier dispositivo.</span></div>
-    <div style="margin:1.25rem 0">
-      <div class="step"><div class="step-num">1</div><div class="step-txt">Ve a <strong>supabase.com</strong>, crea cuenta y proyecto.</div></div>
-      <div class="step"><div class="step-num">2</div><div class="step-txt">En <strong>SQL Editor</strong> ejecuta este código:</div></div>
-      <div class="code-block" id="sql-block">drop table if exists movimientos_recarga cascade;
-drop table if exists clientes_recarga cascade;
-
-create table clientes_recarga (
-  id uuid default gen_random_uuid() primary key,
-  nombre text not null, telefono text,
-  plataforma text, proveedor text,
-  codigo_cliente text,
-  nombre_whatsapp text,
-  deuda_anterior numeric default 0,
-  cupo_maximo numeric default 0,
-  creado_en timestamptz default now()
-);
-create table movimientos_recarga (
-  id uuid default gen_random_uuid() primary key,
-  cliente_id uuid references clientes_recarga(id) on delete cascade,
-  tipo text check (tipo in ('entrega','pago')),
-  valor numeric not null, fecha date default current_date,
-  hora time, codigo_transaccion text,
-  codigo_cliente text, codigo_cuenta text,
-  comprobante text, nota text,
-  confirmado boolean default false,
-  confirmado_en timestamptz,
-  creado_en timestamptz default now()
-);
-alter table clientes_recarga add column if not exists nombre_whatsapp text;
-alter table clientes_recarga disable row level security;
-alter table movimientos_recarga disable row level security;</div>
-      <button class="btn btn-secondary btn-sm" id="btn-sql" onclick="copiarSQL()" style="margin-top:6px"><i class="ti ti-copy"></i> Copiar SQL</button>
-      <div class="step" style="margin-top:1.5rem"><div class="step-num">3</div><div class="step-txt">Ve a <strong>Project Settings → API</strong>. Copia la <strong>Project URL</strong> y la clave <strong>anon public</strong>.</div></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-group" style="grid-column:1/-1"><label class="form-label">URL del proyecto</label><input id="sb-url" placeholder="https://xxxxxxxxxxxx.supabase.co" type="url"></div>
+    <div class="form-grid" style="margin-bottom:1rem">
+      <div class="form-group" style="grid-column:1/-1"><label class="form-label">URL del proyecto (sin barra al final)</label><input id="sb-url" placeholder="https://xxxxxxxxxxxx.supabase.co" type="url"></div>
       <div class="form-group" style="grid-column:1/-1"><label class="form-label">Clave anon public</label><input id="sb-key" placeholder="eyJhbGci..."></div>
     </div>
-    <div style="margin-top:1rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <button class="btn btn-primary" onclick="guardarConfig()"><i class="ti ti-plug"></i> Guardar y conectar</button>
-      <button class="btn btn-secondary" onclick="probarConexion()"><i class="ti ti-refresh"></i> Probar</button>
+      <button class="btn btn-secondary" onclick="probarConexion()"><i class="ti ti-refresh"></i> Probar conexión</button>
       <span id="config-msg" style="font-size:12px;color:var(--green);display:none"><i class="ti ti-check"></i> Guardado</span>
     </div>
   </div>
 </div>
 </div>
 
-<!-- MODAL CLIENTE -->
+<!-- MODAL CLIENTE (nuevo y editar) -->
 <div class="modal-bg" id="modal-cliente" style="display:none"><div class="modal">
-  <div class="modal-title">Nuevo cliente <button class="close-btn" onclick="closeModal('modal-cliente')"><i class="ti ti-x"></i></button></div>
+  <div class="modal-title" id="modal-cli-title">Cliente <button class="close-btn" onclick="closeModal('modal-cliente')"><i class="ti ti-x"></i></button></div>
+  <input type="hidden" id="cli-id">
   <div class="form-grid">
-    <div class="form-group"><label class="form-label">Nombre *</label><input id="c-nombre" placeholder="Nombre o razón social"></div>
-    <div class="form-group"><label class="form-label">Teléfono</label><input id="c-tel" placeholder="3001234567" type="tel"></div>
-    <div class="form-group"><label class="form-label">Código cliente (Megared)</label><input id="c-codigo" placeholder="Ej: 029804"></div>
-    <div class="form-group"><label class="form-label">Nombre WhatsApp</label><input id="c-wsp" placeholder="Como aparece en WhatsApp"></div>
-    <div class="form-group"><label class="form-label">Cuenta *</label><select id="c-cuenta"><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select></div>
-    <div class="form-group"><label class="form-label">Proveedor *</label><select id="c-prov"><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select></div>
-    <div class="form-group"><label class="form-label">Deuda anterior ($)</label><input id="c-deuda" type="number" placeholder="0" min="0"></div>
-    <div class="form-group"><label class="form-label">Cupo máximo ($)</label><input id="c-cupo" type="number" placeholder="500000" min="0"></div>
+    <div class="form-group"><label class="form-label">Nombre *</label><input id="cli-nombre" placeholder="Nombre o razón social"></div>
+    <div class="form-group"><label class="form-label">Nombre WhatsApp</label><input id="cli-wsp" placeholder="Como aparece en WhatsApp"></div>
+    <div class="form-group"><label class="form-label">Teléfono</label><input id="cli-tel" placeholder="3001234567" type="tel"></div>
+    <div class="form-group"><label class="form-label">Código cliente (Megared)</label><input id="cli-codigo" placeholder="Ej: 029804"></div>
+    <div class="form-group"><label class="form-label">Cuenta *</label><select id="cli-cuenta"><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select></div>
+    <div class="form-group"><label class="form-label">Proveedor *</label><select id="cli-prov"><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select></div>
+    <div class="form-group"><label class="form-label">Deuda anterior ($)</label><input id="cli-deuda" type="number" placeholder="0" min="0"></div>
+    <div class="form-group"><label class="form-label">Cupo máximo ($)</label><input id="cli-cupo" type="number" placeholder="500000" min="0"></div>
   </div>
   <div class="divider"></div>
-  <div style="display:flex;justify-content:flex-end;gap:8px">
-    <button class="btn btn-secondary" onclick="closeModal('modal-cliente')">Cancelar</button>
-    <button class="btn btn-primary" onclick="guardarCliente()"><i class="ti ti-device-floppy"></i> Guardar</button>
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <button class="btn btn-danger btn-sm" id="btn-eliminar-cli" style="display:none" onclick="confirmarEliminarCliente()"><i class="ti ti-trash"></i> Eliminar</button>
+    <div style="display:flex;gap:8px;margin-left:auto">
+      <button class="btn btn-secondary" onclick="closeModal('modal-cliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarCliente()"><i class="ti ti-device-floppy"></i> Guardar</button>
+    </div>
+  </div>
+</div></div>
+
+<!-- MODAL EDITAR MOVIMIENTO -->
+<div class="modal-bg" id="modal-edit-mov" style="display:none"><div class="modal">
+  <div class="modal-title">Editar movimiento <button class="close-btn" onclick="closeModal('modal-edit-mov')"><i class="ti ti-x"></i></button></div>
+  <input type="hidden" id="em-id">
+  <div class="form-grid">
+    <div class="form-group"><label class="form-label">Tipo</label><select id="em-tipo"><option value="entrega">Entrega de saldo</option><option value="pago">Pago recibido</option></select></div>
+    <div class="form-group"><label class="form-label">Valor ($) *</label><input id="em-valor" type="number" min="0"></div>
+    <div class="form-group"><label class="form-label">Fecha</label><input id="em-fecha" type="date"></div>
+    <div class="form-group"><label class="form-label">No. transacción</label><input id="em-trans"></div>
+    <div class="form-group"><label class="form-label">Comprobante</label><input id="em-comp"></div>
+    <div class="form-group"><label class="form-label">Nota</label><input id="em-nota"></div>
+  </div>
+  <div class="divider"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <button class="btn btn-danger btn-sm" onclick="confirmarEliminarMov()"><i class="ti ti-trash"></i> Eliminar</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-mov')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEditMov()"><i class="ti ti-device-floppy"></i> Guardar</button>
+    </div>
   </div>
 </div></div>
 
 <!-- MODAL HISTORIAL CLIENTE -->
-<div class="modal-bg" id="modal-histcli" style="display:none"><div class="modal">
-  <div class="modal-title" id="histcli-title">Historial <button class="close-btn" onclick="closeModal('modal-histcli')"><i class="ti ti-x"></i></button></div>
-  <div id="histcli-body"></div>
+<div class="modal-bg" id="modal-hist-cli" style="display:none"><div class="modal" style="max-width:600px">
+  <div class="modal-title" id="hist-cli-title">Historial <button class="close-btn" onclick="closeModal('modal-hist-cli')"><i class="ti ti-x"></i></button></div>
+  <div id="hist-cli-body"></div>
+</div></div>
+
+<!-- MODAL CONFIRMAR ELIMINACIÓN -->
+<div class="modal-bg" id="modal-confirmar" style="display:none"><div class="modal" style="max-width:380px">
+  <div class="modal-title" id="conf-title">¿Eliminar? <button class="close-btn" onclick="closeModal('modal-confirmar')"><i class="ti ti-x"></i></button></div>
+  <div id="conf-body" style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem"></div>
+  <div style="background:var(--red-light);border-radius:var(--radius);padding:10px 12px;font-size:12px;color:var(--red-text);margin-bottom:1rem;display:flex;gap:8px">
+    <i class="ti ti-alert-triangle" style="flex-shrink:0;margin-top:1px"></i>
+    <span>Esta acción <strong>no se puede deshacer</strong>.</span>
+  </div>
+  <div style="display:flex;justify-content:flex-end;gap:8px">
+    <button class="btn btn-secondary" onclick="closeModal('modal-confirmar')">Cancelar</button>
+    <button class="btn" id="conf-btn" style="background:var(--red);color:#fff"><i class="ti ti-trash"></i> Sí, eliminar</button>
+  </div>
 </div></div>
 
 <script>
@@ -363,6 +357,81 @@ const fmt=v=>'$'+Number(v||0).toLocaleString('es-CO');
 const hoy=()=>new Date().toISOString().split('T')[0];
 const cuentaLbl=c=>c==='Juanito'?'Juanito (0660)':'Don Martín (6945)';
 
+// ── API ──
+function guardarConfig(){
+  sbUrl=document.getElementById('sb-url').value.trim().replace(/\/+$/,'');
+  sbKey=document.getElementById('sb-key').value.trim();
+  if(!sbUrl||!sbKey){alert('Ingresa la URL y la clave');return;}
+  localStorage.setItem('sb_url',sbUrl);
+  localStorage.setItem('sb_key',sbKey);
+  const msg=document.getElementById('config-msg');
+  msg.style.display='inline';
+  setTimeout(()=>msg.style.display='none',3000);
+  probarConexion();
+}
+
+async function probarConexion(){
+  if(!sbUrl||!sbKey){setConn(false,'Sin configurar');return;}
+  try{
+    const r=await fetch(sbUrl+'/rest/v1/clientes_recarga?select=id&limit=1',{
+      headers:{apikey:sbKey,Authorization:'Bearer '+sbKey}
+    });
+    if(r.ok){setConn(true,'Conectado');cargarDatos();}
+    else setConn(false,'Error de conexión');
+  }catch(e){setConn(false,'Sin conexión');}
+}
+
+function setConn(ok,txt){
+  document.getElementById('connDot').className='dot'+(ok?' on':'');
+  document.getElementById('connTxt').textContent=txt;
+}
+
+async function api(tabla,method='GET',body=null,qs=''){
+  const url=sbUrl+'/rest/v1/'+tabla+(qs?'?'+qs:'');
+  const h={
+    apikey:sbKey,
+    Authorization:'Bearer '+sbKey,
+    'Content-Type':'application/json',
+    Prefer:'return=representation'
+  };
+  const r=await fetch(url,{method,headers:h,body:body?JSON.stringify(body):null});
+  if(!r.ok){const e=await r.text();throw new Error(e);}
+  const txt=await r.text();
+  return txt?JSON.parse(txt):[];
+}
+
+async function cargarDatos(){
+  try{
+    [clientes,movimientos]=await Promise.all([
+      api('clientes_recarga','GET',null,'order=nombre'),
+      api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc')
+    ]);
+    renderDash();
+    renderClientes();
+    renderHistorial();
+    renderConfirmaciones();
+    renderMovsHoy();
+  }catch(e){console.error('Error cargando datos:',e);}
+}
+
+// ── Navegación ──
+function switchTab(t,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sec-'+t).classList.add('active');
+  if(t==='dashboard')renderDash();
+  if(t==='clientes')renderClientes();
+  if(t==='historial')renderHistorial();
+  if(t==='confirmaciones')renderConfirmaciones();
+  if(t==='recargas'){document.getElementById('rec-fecha').value=hoy();renderMovsHoy();}
+}
+
+function openModal(id){document.getElementById(id).style.display='flex';}
+function closeModal(id){document.getElementById(id).style.display='none';}
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.style.display='none';}));
+
+// ── Períodos ──
 function getRango(p,pref=''){
   const n=new Date();let desde,hasta=hoy();
   if(p==='hoy')desde=hoy();
@@ -375,99 +444,22 @@ function getRango(p,pref=''){
 function filtrarF(arr,r,c='fecha'){if(!r)return arr;return arr.filter(m=>m[c]>=r.desde&&m[c]<=r.hasta);}
 function setChip(btn,p){document.querySelectorAll('#sec-dashboard .chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');periodoActivo=p;document.getElementById('custom-dates').style.display=p==='custom'?'flex':'none';renderDash();}
 function setChipHist(btn,p){document.querySelectorAll('#sec-historial .chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');periodoHistActivo=p;document.getElementById('hist-custom').style.display=p==='custom'?'flex':'none';renderHistorial();}
-function switchTab(t,btn){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));btn.classList.add('active');document.getElementById('sec-'+t).classList.add('active');if(t==='dashboard')renderDash();if(t==='clientes')renderClientes();if(t==='historial')renderHistorial();if(t==='confirmaciones')renderConfirmaciones();if(t==='recargas'){document.getElementById('rec-fecha').value=hoy();renderRecargasHoy();}}
-function openModal(id){document.getElementById(id).style.display='flex';}
-function closeModal(id){document.getElementById(id).style.display='none';}
-document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.style.display='none';}));
 
-// ── Búsqueda de cliente en recargas ──
-function buscarClienteRecarga(){
-  const q=document.getElementById('buscar-cliente-recarga').value.toLowerCase().trim();
-  const list=document.getElementById('autocomplete-list');
-  if(!q){list.style.display='none';return;}
-  const filtrados=clientes.filter(c=>c.nombre.toLowerCase().includes(q)||(c.codigo_cliente||'').toLowerCase().includes(q)||(c.nombre_whatsapp||'').toLowerCase().includes(q)).slice(0,8);
-  if(!filtrados.length){list.style.display='none';return;}
-  list.innerHTML=filtrados.map(c=>`<div class="autocomplete-item" onclick="seleccionarCliente('${c.id}')">
-    <div style="flex:1"><div style="font-weight:600;font-size:13px">${c.nombre}</div>${c.nombre_whatsapp?`<div style='font-size:11px;color:#25D366;margin-top:1px'><i class='ti ti-brand-whatsapp'></i> ${c.nombre_whatsapp}</div>`:''}<div style="font-size:11px;color:var(--text2);margin-top:2px">${cuentaLbl(c.plataforma)} · ${c.proveedor}</div></div>
-    ${c.codigo_cliente?`<span class="cod">${c.codigo_cliente}</span>`:''}
-  </div>`).join('');
-  list.style.display='block';
+// ── Lógica saldos ──
+function pendiente(c){
+  const ms=movimientos.filter(m=>m.cliente_id===c.id);
+  return Number(c.deuda_anterior||0)+ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0)-ms.filter(m=>m.tipo==='pago').reduce((a,m)=>a+Number(m.valor),0);
+}
+function estadoCli(c){
+  const p=pendiente(c);
+  if(p<=0)return{txt:'Pagado',cls:'badge-green'};
+  const pg=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');
+  if(!pg.length)return{txt:'Sin pago',cls:'badge-amber'};
+  const dias=Math.floor((new Date()-new Date(pg[0].fecha))/86400000);
+  return dias>7?{txt:'En mora',cls:'badge-red'}:{txt:'Pendiente',cls:'badge-amber'};
 }
 
-function seleccionarCliente(id){
-  clienteSeleccionado=clientes.find(c=>c.id===id);
-  document.getElementById('buscar-cliente-recarga').value='';
-  document.getElementById('autocomplete-list').style.display='none';
-  const box=document.getElementById('cliente-seleccionado-box');
-  box.style.display='flex';
-  document.getElementById('cli-sel-nombre').textContent=clienteSeleccionado.nombre;
-  document.getElementById('cli-sel-info').textContent=`${cuentaLbl(clienteSeleccionado.plataforma)} · ${clienteSeleccionado.proveedor}${clienteSeleccionado.codigo_cliente?' · Cód: '+clienteSeleccionado.codigo_cliente:''}`;
-}
-
-function limpiarClienteSeleccionado(){
-  clienteSeleccionado=null;
-  document.getElementById('cliente-seleccionado-box').style.display='none';
-  document.getElementById('buscar-cliente-recarga').value='';
-}
-
-document.addEventListener('click',e=>{if(!e.target.closest('.cliente-search'))document.getElementById('autocomplete-list').style.display='none';});
-
-async function registrarRecarga(){await registrarMovimiento('entrega');}
-async function registrarPago(){
-  document.getElementById('pago-confirm-box').style.display='block';
-  await registrarMovimiento('pago');
-}
-
-async function registrarMovimiento(tipo){
-  if(!clienteSeleccionado)return mostrarMsgRec('Selecciona un cliente primero','error');
-  const valor=Number(document.getElementById('rec-valor').value);
-  if(!valor||valor<=0)return mostrarMsgRec('Ingresa un valor válido','error');
-  const confirmado=tipo==='pago'&&document.getElementById('pago-confirmado').checked;
-  const payload={cliente_id:clienteSeleccionado.id,tipo,valor,fecha:document.getElementById('rec-fecha').value||hoy(),codigo_transaccion:document.getElementById('rec-trans').value||null,nota:document.getElementById('rec-nota').value||null,codigo_cliente:clienteSeleccionado.codigo_cliente||null,codigo_cuenta:clienteSeleccionado.plataforma==='Juanito'?'032442':'028469',confirmado,confirmado_en:confirmado?new Date().toISOString():null};
-  try{
-    const n=await api('movimientos_recarga','POST',payload);
-    movimientos.unshift(n[0]);
-    mostrarMsgRec(`✓ ${tipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${clienteSeleccionado.nombre}`,'ok');
-    document.getElementById('rec-valor').value='';
-    document.getElementById('rec-trans').value='';
-    document.getElementById('rec-nota').value='';
-    document.getElementById('pago-confirmado').checked=false;
-    document.getElementById('pago-confirm-box').style.display='none';
-    renderRecargasHoy();renderDash();
-  }catch(e){mostrarMsgRec('Error: '+e.message,'error');}
-}
-
-function mostrarMsgRec(txt,tipo){
-  const el=document.getElementById('rec-msg');
-  el.textContent=txt;
-  el.style.display='block';
-  el.style.background=tipo==='ok'?'var(--green-light)':'var(--red-light)';
-  el.style.color=tipo==='ok'?'var(--green-text)':'var(--red-text)';
-  el.style.border=`0.5px solid ${tipo==='ok'?'#5DCAA5':'#F0997B'}`;
-  setTimeout(()=>el.style.display='none',4000);
-}
-
-function renderRecargasHoy(){
-  const hoyStr=hoy();
-  const ms=movimientos.filter(m=>m.fecha===hoyStr).slice(0,15);
-  document.getElementById('recargas-hoy').innerHTML=ms.length?ms.map(m=>{
-    const eP=m.tipo==='pago';const cli=clientes.find(c=>c.id===m.cliente_id);
-    const nc=eP&&!m.confirmado?'<span class="badge badge-purple" style="font-size:10px;margin-left:4px">Sin confirmar</span>':'';
-    return`<div class="hist-item"><div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div><div class="hist-info"><div class="hist-nombre">${cli?cli.nombre:'—'}${nc}</div><div class="hist-sub">${m.tipo}${m.hora?' · '+m.hora.slice(0,5):''}${m.codigo_transaccion?' · #'+m.codigo_transaccion:''}</div></div><div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div></div>`;
-  }).join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos hoy</p></div>';
-}
-
-// ── Config ──
-function guardarConfig(){sbUrl=document.getElementById('sb-url').value.trim().replace(/\/$/,'');sbKey=document.getElementById('sb-key').value.trim();if(!sbUrl||!sbKey){alert('Ingresa la URL y la clave');return;}localStorage.setItem('sb_url',sbUrl);localStorage.setItem('sb_key',sbKey);const msg=document.getElementById('config-msg');msg.style.display='inline';setTimeout(()=>msg.style.display='none',3000);probarConexion();}
-async function probarConexion(){if(!sbUrl||!sbKey){setConn(false,'Sin configurar');return;}try{const r=await fetch(sbUrl+'/rest/v1/clientes_recarga?select=id&limit=1',{headers:{apikey:sbKey,Authorization:'Bearer '+sbKey}});if(r.ok){setConn(true,'Conectado');cargarDatos();}else setConn(false,'Error de conexión');}catch{setConn(false,'Sin conexión');}}
-function setConn(ok,txt){document.getElementById('connDot').className='dot'+(ok?' on':'');document.getElementById('connTxt').textContent=txt;}
-async function api(tabla,method='GET',body=null,qs=''){const url=sbUrl+'/rest/v1/'+tabla+(qs?'?'+qs:'');const h={apikey:sbKey,Authorization:'Bearer '+sbKey,'Content-Type':'application/json',Prefer:'return=representation'};const r=await fetch(url,{method,headers:h,body:body?JSON.stringify(body):null});if(!r.ok)throw new Error(await r.text());return r.json();}
-async function cargarDatos(){try{[clientes,movimientos]=await Promise.all([api('clientes_recarga','GET',null,'order=nombre'),api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc')]);renderDash();renderClientes();renderHistorial();renderConfirmaciones();renderRecargasHoy();}catch(e){console.error(e);}}
-
-// ── Lógica ──
-function pendiente(c){const ms=movimientos.filter(m=>m.cliente_id===c.id);return Number(c.deuda_anterior||0)+ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0)-ms.filter(m=>m.tipo==='pago').reduce((a,m)=>a+Number(m.valor),0);}
-function estadoCli(c){const p=pendiente(c);if(p<=0)return{txt:'Pagado',cls:'badge-green'};const pg=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');if(!pg.length)return{txt:'Sin pago',cls:'badge-amber'};const dias=Math.floor((new Date()-new Date(pg[0].fecha))/86400000);return dias>7?{txt:'En mora',cls:'badge-red'}:{txt:'Pendiente',cls:'badge-amber'};}
-
+// ── Dashboard ──
 function renderDash(){
   const r=getRango(periodoActivo,'d-');
   const mF=filtrarF(movimientos,r);
@@ -482,199 +474,300 @@ function renderDash(){
   document.getElementById('m-sin-conf').textContent=sinConf;
   document.getElementById('m-mora').textContent=mora;
   const at=[];
-  if(sinConf)at.push({nombre:`${sinConf} pago${sinConf>1?'s':''} sin confirmar`,detalle:'Ve a "Confirmar" para verificarlos',txt:'Pendiente',cls:'badge-purple'});
-  clientes.filter(c=>estadoCli(c).cls!=='badge-green').forEach(c=>at.push({nombre:c.nombre,detalle:fmt(pendiente(c))+' pendiente · '+cuentaLbl(c.plataforma),...estadoCli(c)}));
-  document.getElementById('atencion-list').innerHTML=at.length?at.map(a=>`<div class="hist-item"><div class="hist-dot entrega"><i class="ti ti-user"></i></div><div class="hist-info"><div class="hist-nombre">${a.nombre}</div><div class="hist-sub">${a.detalle}</div></div><span class="badge ${a.cls}">${a.txt}</span></div>`).join(''):'<div class="empty"><i class="ti ti-circle-check"></i><p>Todo al día</p></div>';
-  const todos=mF.slice(0,10);
-  document.getElementById('dash-movs').innerHTML=todos.length?todos.map(m=>{const eP=m.tipo==='pago';const cli=clientes.find(c=>c.id===m.cliente_id);const nc=eP&&!m.confirmado?'<span class="badge badge-purple" style="font-size:10px;margin-left:4px">Sin confirmar</span>':'';return`<div class="hist-item"><div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div><div class="hist-info"><div class="hist-nombre">${cli?cli.nombre:'—'}${nc}</div><div class="hist-sub">${m.tipo} · ${m.fecha}${m.hora?' '+m.hora.slice(0,5):''}${m.codigo_transaccion?' · #'+m.codigo_transaccion:''}</div></div><div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div></div>`;}).join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>';
+  if(sinConf)at.push({nombre:`${sinConf} pago${sinConf>1?'s':''} sin confirmar en banco`,detalle:'Ve a "Confirmar" para verificarlos',txt:'Pendiente',cls:'badge-purple'});
+  clientes.filter(c=>estadoCli(c).cls!=='badge-green').forEach(c=>at.push({nombre:c.nombre+(c.nombre_whatsapp?' ('+c.nombre_whatsapp+')':''),detalle:fmt(pendiente(c))+' pendiente · '+cuentaLbl(c.plataforma),...estadoCli(c)}));
+  document.getElementById('atencion-list').innerHTML=at.length
+    ?at.map(a=>`<div class="hist-item"><div class="hist-dot entrega"><i class="ti ti-user"></i></div><div class="hist-info"><div class="hist-nombre">${a.nombre}</div><div class="hist-sub">${a.detalle}</div></div><span class="badge ${a.cls}">${a.txt}</span></div>`).join('')
+    :'<div class="empty"><i class="ti ti-circle-check"></i><p>Todo al día</p></div>';
+  document.getElementById('dash-movs').innerHTML=mF.length
+    ?mF.slice(0,10).map(m=>{
+      const eP=m.tipo==='pago';
+      const cli=clientes.find(c=>c.id===m.cliente_id);
+      const nc=eP&&!m.confirmado?'<span class="badge badge-purple" style="font-size:10px;margin-left:4px">Sin confirmar</span>':'';
+      return`<div class="hist-item"><div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div><div class="hist-info"><div class="hist-nombre">${cli?cli.nombre:'—'}${nc}</div><div class="hist-sub">${m.tipo} · ${m.fecha}${m.codigo_transaccion?' · #'+m.codigo_transaccion:''}</div></div><div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div></div>`;
+    }).join('')
+    :'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>';
 }
 
+// ── Clientes ──
 function renderClientes(){
-  const cuenta=document.getElementById('filtro-cuenta').value;
-  const prov=document.getElementById('filtro-prov').value;
-  const est=document.getElementById('filtro-est-cli').value;
-  const buscar=document.getElementById('filtro-buscar').value.toLowerCase();
+  const cuenta=document.getElementById('f-cuenta').value;
+  const prov=document.getElementById('f-prov').value;
+  const est=document.getElementById('f-est').value;
+  const buscar=document.getElementById('f-buscar').value.toLowerCase();
   let lista=clientes;
   if(cuenta)lista=lista.filter(c=>c.plataforma===cuenta);
   if(prov)lista=lista.filter(c=>c.proveedor===prov);
   if(est)lista=lista.filter(c=>{const e=estadoCli(c);return est==='mora'?e.cls==='badge-red':est==='pendiente'?e.cls==='badge-amber':e.cls==='badge-green';});
-  if(buscar)lista=lista.filter(c=>c.nombre.toLowerCase().includes(buscar)||(c.codigo_cliente||'').toLowerCase().includes(buscar)||(c.nombre_whatsapp||'').toLowerCase().includes(buscar));
+  if(buscar)lista=lista.filter(c=>c.nombre.toLowerCase().includes(buscar)||(c.codigo_cliente||'').includes(buscar)||(c.nombre_whatsapp||'').toLowerCase().includes(buscar));
   const tb=document.getElementById('tbody-clientes');
   tb.innerHTML=lista.length?lista.map(c=>{
-    const ms=movimientos.filter(m=>m.cliente_id===c.id);
-    const ent=ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0);
-    const pag=ms.filter(m=>m.tipo==='pago').reduce((a,m)=>a+Number(m.valor),0);
-    const pend=Math.max(0,Number(c.deuda_anterior||0)+ent-pag);
+    const pend=Math.max(0,pendiente(c));
     const e=estadoCli(c);
-    return`<tr><td><strong>${c.nombre}</strong>${c.nombre_whatsapp?`<br><span style='font-size:11px;color:var(--text2)'><i class='ti ti-brand-whatsapp' style='color:#25D366'></i> ${c.nombre_whatsapp}</span>`:''}<br><span style="font-size:11px;color:var(--text2)">${c.telefono||''}</span></td><td><span style="font-family:monospace;font-size:12px;color:var(--text2)">${c.codigo_cliente||'—'}</span></td><td><span class="badge badge-blue" style="font-size:10px">${cuentaLbl(c.plataforma)}</span></td><td><span class="badge badge-gray" style="font-size:10px">${c.proveedor||'—'}</span></td><td>${fmt(c.deuda_anterior)}</td><td>${fmt(ent)}</td><td>${fmt(pag)}</td><td><strong style="color:${pend>0?'var(--red)':'var(--green)'}">${fmt(pend)}</strong></td><td><span class="badge ${e.cls}">${e.txt}</span></td><td><div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="verHistCli('${c.id}')" title="Ver historial"><i class="ti ti-history"></i></button><button class="btn btn-secondary btn-sm" onclick="abrirEditCliente('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button></div></td></tr>`;
-  }).join(''):'<tr><td colspan="10"><div class="empty"><i class="ti ti-users"></i><p>Sin resultados.</p></div></td></tr>';
+    return`<tr>
+      <td><strong>${c.nombre}</strong><br><span style="font-size:11px;color:var(--text2)">${c.telefono||''}</span></td>
+      <td style="color:#25D366;font-size:12px">${c.nombre_whatsapp||'—'}</td>
+      <td><span style="font-family:monospace;font-size:12px;color:var(--text2)">${c.codigo_cliente||'—'}</span></td>
+      <td><span class="badge badge-blue" style="font-size:10px">${cuentaLbl(c.plataforma)}</span></td>
+      <td><span class="badge badge-gray" style="font-size:10px">${c.proveedor||'—'}</span></td>
+      <td><strong style="color:${pend>0?'var(--red)':'var(--green)'}">${fmt(pend)}</strong></td>
+      <td><span class="badge ${e.cls}">${e.txt}</span></td>
+      <td><div class="row-actions">
+        <button class="btn btn-secondary btn-sm" onclick="verHistCli('${c.id}')" title="Ver historial"><i class="ti ti-history"></i></button>
+        <button class="btn btn-secondary btn-sm" onclick="abrirEditCliente('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button>
+      </div></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="8"><div class="empty"><i class="ti ti-users"></i><p>Sin resultados.</p></div></td></tr>';
 }
 
+// ── Historial global ──
 function renderHistorial(){
   const r=getRango(periodoHistActivo,'h-');
-  const cuenta=document.getElementById('filtro-cuenta-h').value;
-  const prov=document.getElementById('filtro-prov-h').value;
-  const tipo=document.getElementById('filtro-tipo-h').value;
-  const buscar=document.getElementById('filtro-cli-h').value.toLowerCase();
+  const cuenta=document.getElementById('h-cuenta').value;
+  const prov=document.getElementById('h-prov').value;
+  const tipo=document.getElementById('h-tipo').value;
+  const buscar=document.getElementById('h-buscar').value.toLowerCase();
   let ms=filtrarF(movimientos,r);
   if(tipo)ms=ms.filter(m=>m.tipo===tipo);
-  if(cuenta||prov||buscar){ms=ms.filter(m=>{const cli=clientes.find(c=>c.id===m.cliente_id);if(!cli)return false;if(cuenta&&cli.plataforma!==cuenta)return false;if(prov&&cli.proveedor!==prov)return false;if(buscar&&!cli.nombre.toLowerCase().includes(buscar))return false;return true;});}
+  if(cuenta||prov||buscar){
+    ms=ms.filter(m=>{
+      const cli=clientes.find(c=>c.id===m.cliente_id);
+      if(!cli)return false;
+      if(cuenta&&cli.plataforma!==cuenta)return false;
+      if(prov&&cli.proveedor!==prov)return false;
+      if(buscar&&!cli.nombre.toLowerCase().includes(buscar)&&!(cli.nombre_whatsapp||'').toLowerCase().includes(buscar))return false;
+      return true;
+    });
+  }
   const cobrado=ms.filter(m=>m.tipo==='pago').reduce((a,m)=>a+Number(m.valor),0);
   const entregado=ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0);
-  document.getElementById('hist-resumen').innerHTML=`<span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-arrow-down"></i> Cobrado: ${fmt(cobrado)}</span><span class="resumen-chip" style="color:var(--red-text)"><i class="ti ti-arrow-up"></i> Entregado: ${fmt(entregado)}</span><span class="resumen-chip"><i class="ti ti-list"></i> ${ms.length} movimiento${ms.length!==1?'s':''}</span>`;
-  document.getElementById('historial-lista').innerHTML=ms.length?ms.map(m=>{
-    const eP=m.tipo==='pago';const cli=clientes.find(c=>c.id===m.cliente_id);
+  document.getElementById('hist-resumen').innerHTML=
+    `<span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-arrow-down"></i> Cobrado: ${fmt(cobrado)}</span>
+     <span class="resumen-chip" style="color:var(--red-text)"><i class="ti ti-arrow-up"></i> Entregado: ${fmt(entregado)}</span>
+     <span class="resumen-chip"><i class="ti ti-list"></i> ${ms.length} movimiento${ms.length!==1?'s':''}</span>`;
+  document.getElementById('hist-lista').innerHTML=ms.length?ms.map(m=>{
+    const eP=m.tipo==='pago';
+    const cli=clientes.find(c=>c.id===m.cliente_id);
     const nc=eP&&!m.confirmado?'<span class="badge badge-purple" style="font-size:10px;margin-left:4px">Sin confirmar</span>':'';
-    const sub=[m.fecha,m.hora?m.hora.slice(0,5):null,m.codigo_transaccion?'#'+m.codigo_transaccion:null,m.codigo_cliente?'Cód: '+m.codigo_cliente:null,m.nota].filter(Boolean).join(' · ');
-    const cli2=cli?`<span class="badge badge-blue" style="font-size:10px">${cuentaLbl(cli.plataforma)}</span> <span class="badge badge-gray" style="font-size:10px">${cli.proveedor}</span>`:'';
-    return`<div class="hist-item"><div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div><div class="hist-info"><div class="hist-nombre">${cli?cli.nombre:'—'}${nc}</div><div class="hist-sub">${sub}</div><div style="margin-top:4px;display:flex;gap:5px">${cli2}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div><button class="btn btn-secondary btn-sm" onclick="abrirEditMov('${m.id}')" title="Editar"><i class="ti ti-edit"></i></button></div></div>`;
+    const sub=[m.fecha,m.hora?m.hora.slice(0,5):null,m.codigo_transaccion?'#'+m.codigo_transaccion:null,m.nota].filter(Boolean).join(' · ');
+    return`<div class="hist-item">
+      <div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div>
+      <div class="hist-info">
+        <div class="hist-nombre">${cli?cli.nombre:'—'}${nc}</div>
+        <div class="hist-sub">${sub}</div>
+        <div style="margin-top:4px;display:flex;gap:5px">
+          ${cli?`<span class="badge badge-blue" style="font-size:10px">${cuentaLbl(cli.plataforma)}</span><span class="badge badge-gray" style="font-size:10px">${cli.proveedor}</span>`:''}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+        <div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div>
+        <button class="btn btn-secondary btn-sm" onclick="abrirEditMov('${m.id}')"><i class="ti ti-edit"></i></button>
+      </div>
+    </div>`;
   }).join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>';
 }
 
+// ── Confirmaciones ──
 function renderConfirmaciones(){
   const pendientes=movimientos.filter(m=>m.tipo==='pago'&&!m.confirmado).sort((a,b)=>a.fecha.localeCompare(b.fecha));
   const confirmados=movimientos.filter(m=>m.tipo==='pago'&&m.confirmado).sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,15);
-  document.getElementById('confirm-pendientes').innerHTML=pendientes.length?pendientes.map(m=>{const cli=clientes.find(c=>c.id===m.cliente_id);const sub=[m.fecha,m.hora?m.hora.slice(0,5):null,m.codigo_transaccion?'Trans: '+m.codigo_transaccion:null,m.comprobante?'Comp: #'+m.comprobante:null,m.nota].filter(Boolean).join(' · ');return`<div class="confirm-card pendiente-conf"><div class="hist-dot pendiente"><i class="ti ti-clock"></i></div><div class="confirm-info"><div class="confirm-nombre">${cli?cli.nombre:'—'}</div><div class="confirm-sub">${sub}</div></div><div style="text-align:right"><div class="confirm-val" style="color:var(--green)">${fmt(m.valor)}</div><button class="btn btn-confirm btn-sm" style="margin-top:6px" onclick="confirmarPago('${m.id}')"><i class="ti ti-circle-check"></i> Confirmar</button></div></div>`;}).join(''):'<div class="empty"><i class="ti ti-circle-check"></i><p>No hay pagos pendientes de confirmar</p></div>';
-  document.getElementById('confirm-confirmados').innerHTML=confirmados.length?confirmados.map(m=>{const cli=clientes.find(c=>c.id===m.cliente_id);return`<div class="confirm-card confirmado"><div class="hist-dot pago"><i class="ti ti-check"></i></div><div class="confirm-info"><div class="confirm-nombre">${cli?cli.nombre:'—'}</div><div class="confirm-sub">${m.fecha}${m.codigo_transaccion?' · #'+m.codigo_transaccion:''}</div></div><div class="confirm-val" style="color:var(--green-text)">${fmt(m.valor)}</div></div>`;}).join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin pagos confirmados</p></div>';
+  document.getElementById('conf-pendientes').innerHTML=pendientes.length
+    ?pendientes.map(m=>{
+      const cli=clientes.find(c=>c.id===m.cliente_id);
+      const sub=[m.fecha,m.hora?m.hora.slice(0,5):null,m.codigo_transaccion?'Trans: '+m.codigo_transaccion:null,m.comprobante?'Comp: #'+m.comprobante:null,m.nota].filter(Boolean).join(' · ');
+      return`<div class="confirm-card pendiente-conf">
+        <div class="hist-dot pendiente"><i class="ti ti-clock"></i></div>
+        <div class="confirm-info"><div class="confirm-nombre">${cli?cli.nombre:'—'}</div><div class="confirm-sub">${sub}</div></div>
+        <div style="text-align:right">
+          <div style="font-size:14px;font-weight:700;color:var(--green)">${fmt(m.valor)}</div>
+          <button class="btn btn-confirm btn-sm" style="margin-top:6px" onclick="confirmarPago('${m.id}')"><i class="ti ti-circle-check"></i> Confirmar</button>
+        </div>
+      </div>`;
+    }).join('')
+    :'<div class="empty"><i class="ti ti-circle-check"></i><p>No hay pagos pendientes de confirmar</p></div>';
+  document.getElementById('conf-confirmados').innerHTML=confirmados.length
+    ?confirmados.map(m=>{
+      const cli=clientes.find(c=>c.id===m.cliente_id);
+      return`<div class="confirm-card confirmado">
+        <div class="hist-dot pago"><i class="ti ti-check"></i></div>
+        <div class="confirm-info"><div class="confirm-nombre">${cli?cli.nombre:'—'}</div><div class="confirm-sub">${m.fecha}${m.codigo_transaccion?' · #'+m.codigo_transaccion:''}</div></div>
+        <div style="font-size:14px;font-weight:700;color:var(--green-text)">${fmt(m.valor)}</div>
+      </div>`;
+    }).join('')
+    :'<div class="empty"><i class="ti ti-inbox"></i><p>Sin pagos confirmados</p></div>';
 }
 
-async function confirmarPago(id){try{await api('movimientos_recarga?id=eq.'+id,'PATCH',{confirmado:true,confirmado_en:new Date().toISOString()});const m=movimientos.find(x=>x.id===id);if(m)m.confirmado=true;renderConfirmaciones();renderDash();}catch(e){alert('Error: '+e.message);}}
-
-async function guardarCliente(){
-  const nombre=document.getElementById('c-nombre').value.trim();
-  if(!nombre)return alert('El nombre es obligatorio');
+async function confirmarPago(id){
   try{
-    const n=await api('clientes_recarga','POST',{nombre,telefono:document.getElementById('c-tel').value||null,plataforma:document.getElementById('c-cuenta').value,proveedor:document.getElementById('c-prov').value,codigo_cliente:document.getElementById('c-codigo').value||null,nombre_whatsapp:document.getElementById('c-wsp').value||null,deuda_anterior:Number(document.getElementById('c-deuda').value)||0,cupo_maximo:Number(document.getElementById('c-cupo').value)||0});
-    clientes.push(n[0]);clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));
-    closeModal('modal-cliente');renderClientes();renderDash();
-    ['c-nombre','c-tel','c-codigo','c-wsp','c-deuda','c-cupo'].forEach(i=>document.getElementById(i).value='');
+    await api('movimientos_recarga?id=eq.'+id,'PATCH',{confirmado:true,confirmado_en:new Date().toISOString()});
+    const m=movimientos.find(x=>x.id===id);
+    if(m)m.confirmado=true;
+    renderConfirmaciones();renderDash();
   }catch(e){alert('Error: '+e.message);}
 }
 
-function verHistCli(id){
-  const c=clientes.find(x=>x.id===id);
-  const ms=movimientos.filter(m=>m.cliente_id===id).sort((a,b)=>a.fecha.localeCompare(b.fecha));
-  let saldo=Number(c.deuda_anterior||0);
-  document.getElementById('histcli-title').innerHTML=`${c.nombre} <button class="close-btn" onclick="closeModal('modal-histcli')"><i class="ti ti-x"></i></button>`;
-  const resumen=`<div style="background:var(--bg);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:13px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
-    <span class="badge badge-blue">${cuentaLbl(c.plataforma)}</span>
-    <span class="badge badge-gray">${c.proveedor}</span>
-    ${c.codigo_cliente?`<span style="font-family:monospace;font-size:12px;color:var(--text2)">Cód: ${c.codigo_cliente}</span>`:''}
-    <span style="margin-left:auto;font-weight:600;color:${pendiente(c)>0?'var(--red)':'var(--green)'}">Pendiente: ${fmt(Math.max(0,pendiente(c)))}</span>
-  </div>`;
-  const items=ms.map(m=>{const eP=m.tipo==='pago';if(eP)saldo-=Number(m.valor);else saldo+=Number(m.valor);const nc=eP&&!m.confirmado?'<span class="badge badge-purple" style="font-size:10px;margin-left:4px">Sin confirmar</span>':'';const sub=[m.fecha,m.hora?m.hora.slice(0,5):null,m.codigo_transaccion?'#'+m.codigo_transaccion:null,m.nota].filter(Boolean).join(' · ');return`<div class="hist-item"><div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div><div class="hist-info"><div class="hist-nombre">${eP?'Pago recibido':'Entrega de saldo'}${nc}</div><div class="hist-sub">${sub}</div></div><div style="text-align:right"><div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div><div style="font-size:11px;color:var(--text2)">Saldo: ${fmt(Math.max(0,saldo))}</div></div></div>`;});
-  document.getElementById('histcli-body').innerHTML=resumen+(items.length?items.join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>');
-  document.getElementById('modal-histcli').style.display='flex';
+// ── Movimientos de hoy ──
+function renderMovsHoy(){
+  const ms=movimientos.filter(m=>m.fecha===hoy());
+  document.getElementById('movs-hoy').innerHTML=ms.length
+    ?ms.map(m=>{
+      const eP=m.tipo==='pago';
+      const cli=clientes.find(c=>c.id===m.cliente_id);
+      const nc=eP&&!m.confirmado?'<span class="badge badge-purple" style="font-size:10px;margin-left:4px">Sin confirmar</span>':'';
+      return`<div class="hist-item">
+        <div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div>
+        <div class="hist-info"><div class="hist-nombre">${cli?cli.nombre:'—'}${nc}</div><div class="hist-sub">${m.tipo}${m.codigo_transaccion?' · #'+m.codigo_transaccion:''}</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+          <div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div>
+          <button class="btn btn-secondary btn-sm" onclick="abrirEditMov('${m.id}')"><i class="ti ti-edit"></i></button>
+        </div>
+      </div>`;
+    }).join('')
+    :'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos hoy</p></div>';
 }
 
-function copiarSQL(){navigator.clipboard.writeText(document.getElementById('sql-block').textContent).then(()=>{const b=document.getElementById('btn-sql');b.innerHTML='<i class="ti ti-check"></i> ¡Copiado!';setTimeout(()=>b.innerHTML='<i class="ti ti-copy"></i> Copiar SQL',2500);});}
-
-sbUrl=localStorage.getItem('sb_url')||'';sbKey=localStorage.getItem('sb_key')||'';
-if(sbUrl&&sbKey){document.getElementById('sb-url').value=sbUrl;document.getElementById('sb-key').value=sbKey;probarConexion();}
-</script>
-</body>
-</html>
-<!-- PARCHE: Edición y eliminación -->
-<div class="modal-bg" id="modal-edit-cliente" style="display:none"><div class="modal">
-  <div class="modal-title">Editar cliente <button class="close-btn" onclick="closeModal('modal-edit-cliente')"><i class="ti ti-x"></i></button></div>
-  <input type="hidden" id="ec-id">
-  <div class="form-grid">
-    <div class="form-group"><label class="form-label">Nombre *</label><input id="ec-nombre"></div>
-    <div class="form-group"><label class="form-label">Teléfono</label><input id="ec-tel" type="tel"></div>
-    <div class="form-group"><label class="form-label">Código cliente</label><input id="ec-codigo"></div>
-    <div class="form-group"><label class="form-label">Nombre WhatsApp</label><input id="ec-wsp" placeholder="Como aparece en WhatsApp"></div>
-    <div class="form-group"><label class="form-label">Cuenta</label><select id="ec-cuenta"><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select></div>
-    <div class="form-group"><label class="form-label">Proveedor</label><select id="ec-prov"><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select></div>
-    <div class="form-group"><label class="form-label">Deuda anterior ($)</label><input id="ec-deuda" type="number" min="0"></div>
-    <div class="form-group"><label class="form-label">Cupo máximo ($)</label><input id="ec-cupo" type="number" min="0"></div>
-  </div>
-  <div class="divider"></div>
-  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-    <button class="btn btn-danger btn-sm" onclick="confirmarEliminarCliente()"><i class="ti ti-trash"></i> Eliminar cliente</button>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit-cliente')">Cancelar</button>
-      <button class="btn btn-primary" onclick="guardarEditCliente()"><i class="ti ti-device-floppy"></i> Guardar cambios</button>
+// ── Búsqueda autocomplete en Recargas ──
+function buscarCli(){
+  const q=document.getElementById('buscar-cli').value.toLowerCase().trim();
+  const list=document.getElementById('auto-list');
+  if(!q){list.style.display='none';return;}
+  const res=clientes.filter(c=>c.nombre.toLowerCase().includes(q)||(c.codigo_cliente||'').includes(q)||(c.nombre_whatsapp||'').toLowerCase().includes(q)).slice(0,8);
+  if(!res.length){list.style.display='none';return;}
+  list.innerHTML=res.map(c=>`<div class="autocomplete-item" onclick="selCli('${c.id}')">
+    <div style="flex:1">
+      <div style="font-weight:600">${c.nombre}</div>
+      ${c.nombre_whatsapp?`<div style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</div>`:''}
+      <div style="font-size:11px;color:var(--text2)">${cuentaLbl(c.plataforma)} · ${c.proveedor}</div>
     </div>
-  </div>
-</div></div>
+    ${c.codigo_cliente?`<span style="font-family:monospace;font-size:11px;color:var(--text2);background:var(--bg);padding:2px 6px;border-radius:4px">${c.codigo_cliente}</span>`:''}
+  </div>`).join('');
+  list.style.display='block';
+}
 
-<div class="modal-bg" id="modal-edit-mov" style="display:none"><div class="modal">
-  <div class="modal-title">Editar movimiento <button class="close-btn" onclick="closeModal('modal-edit-mov')"><i class="ti ti-x"></i></button></div>
-  <input type="hidden" id="em-id">
-  <div class="form-grid">
-    <div class="form-group"><label class="form-label">Tipo</label><select id="em-tipo"><option value="entrega">Entrega de saldo</option><option value="pago">Pago del cliente</option></select></div>
-    <div class="form-group"><label class="form-label">Valor ($) *</label><input id="em-valor" type="number" min="0"></div>
-    <div class="form-group"><label class="form-label">Fecha</label><input id="em-fecha" type="date"></div>
-    <div class="form-group"><label class="form-label">No. transacción</label><input id="em-trans"></div>
-    <div class="form-group"><label class="form-label">Comprobante</label><input id="em-comp"></div>
-    <div class="form-group"><label class="form-label">Nota</label><input id="em-nota"></div>
-  </div>
-  <div class="divider"></div>
-  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-    <button class="btn btn-danger btn-sm" onclick="confirmarEliminarMov()"><i class="ti ti-trash"></i> Eliminar movimiento</button>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit-mov')">Cancelar</button>
-      <button class="btn btn-primary" onclick="guardarEditMov()"><i class="ti ti-device-floppy"></i> Guardar cambios</button>
-    </div>
-  </div>
-</div></div>
+function selCli(id){
+  clienteSeleccionado=clientes.find(c=>c.id===id);
+  document.getElementById('buscar-cli').value='';
+  document.getElementById('auto-list').style.display='none';
+  const box=document.getElementById('cli-sel-box');
+  box.style.display='flex';
+  document.getElementById('cli-sel-nombre').textContent=clienteSeleccionado.nombre+(clienteSeleccionado.nombre_whatsapp?' · '+clienteSeleccionado.nombre_whatsapp:'');
+  document.getElementById('cli-sel-info').textContent=cuentaLbl(clienteSeleccionado.plataforma)+' · '+clienteSeleccionado.proveedor+(clienteSeleccionado.codigo_cliente?' · Cód: '+clienteSeleccionado.codigo_cliente:'');
+}
 
-<!-- Modal confirmación eliminación -->
-<div class="modal-bg" id="modal-confirmar" style="display:none"><div class="modal" style="max-width:380px">
-  <div class="modal-title" id="conf-title">¿Eliminar? <button class="close-btn" onclick="closeModal('modal-confirmar')"><i class="ti ti-x"></i></button></div>
-  <div id="conf-body" style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem"></div>
-  <div style="background:var(--red-light);border-radius:var(--radius);padding:10px 12px;font-size:12px;color:var(--red-text);margin-bottom:1rem;display:flex;gap:8px;align-items:flex-start">
-    <i class="ti ti-alert-triangle" style="flex-shrink:0;margin-top:1px"></i>
-    <span>Esta acción <strong>no se puede deshacer</strong>. Los datos se eliminarán permanentemente.</span>
-  </div>
-  <div style="display:flex;justify-content:flex-end;gap:8px">
-    <button class="btn btn-secondary" onclick="closeModal('modal-confirmar')">Cancelar</button>
-    <button class="btn" id="conf-btn" style="background:var(--red);color:#fff"><i class="ti ti-trash"></i> Sí, eliminar</button>
-  </div>
-</div></div>
+function limpiarCli(){
+  clienteSeleccionado=null;
+  document.getElementById('cli-sel-box').style.display='none';
+  document.getElementById('buscar-cli').value='';
+}
 
-<style>
-.btn-danger{background:transparent;border:0.5px solid #F0997B;color:var(--red)}.btn-danger:hover{background:var(--red-light)}
-</style>
+function toggleConfirmRec(){
+  document.getElementById('rec-confirm-grp').style.display=document.getElementById('rec-tipo').value==='pago'?'block':'none';
+}
 
-<script>
-// ── Editar cliente ──
+document.addEventListener('click',e=>{if(!e.target.closest('.cliente-search'))document.getElementById('auto-list').style.display='none';});
+
+// ── Registrar movimiento ──
+async function registrarMov(){
+  if(!clienteSeleccionado)return mostrarMsg('Selecciona un cliente primero','error');
+  const valor=Number(document.getElementById('rec-valor').value);
+  if(!valor||valor<=0)return mostrarMsg('Ingresa un valor válido','error');
+  const tipo=document.getElementById('rec-tipo').value;
+  const confirmado=tipo==='pago'&&document.getElementById('rec-confirmado').checked;
+  const payload={
+    cliente_id:clienteSeleccionado.id,
+    tipo,valor,
+    fecha:document.getElementById('rec-fecha').value||hoy(),
+    codigo_transaccion:document.getElementById('rec-trans').value||null,
+    nota:document.getElementById('rec-nota').value||null,
+    codigo_cliente:clienteSeleccionado.codigo_cliente||null,
+    codigo_cuenta:clienteSeleccionado.plataforma==='Juanito'?'032442':'028469',
+    confirmado,
+    confirmado_en:confirmado?new Date().toISOString():null
+  };
+  try{
+    const n=await api('movimientos_recarga','POST',payload);
+    movimientos.unshift(n[0]);
+    mostrarMsg(`✓ ${tipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${clienteSeleccionado.nombre}`,'ok');
+    document.getElementById('rec-valor').value='';
+    document.getElementById('rec-trans').value='';
+    document.getElementById('rec-nota').value='';
+    document.getElementById('rec-confirmado').checked=false;
+    document.getElementById('rec-confirm-grp').style.display='none';
+    renderMovsHoy();renderDash();renderConfirmaciones();
+  }catch(e){mostrarMsg('Error: '+e.message,'error');}
+}
+
+function mostrarMsg(txt,tipo){
+  const el=document.getElementById('rec-msg');
+  el.textContent=txt;el.style.display='block';
+  el.style.background=tipo==='ok'?'var(--green-light)':'var(--red-light)';
+  el.style.color=tipo==='ok'?'var(--green-text)':'var(--red-text)';
+  el.style.border=`0.5px solid ${tipo==='ok'?'#5DCAA5':'#F0997B'}`;
+  setTimeout(()=>el.style.display='none',4000);
+}
+
+// ── Guardar cliente ──
+function abrirModalCliente(){
+  document.getElementById('modal-cli-title').innerHTML='Nuevo cliente <button class="close-btn" onclick="closeModal(\'modal-cliente\')"><i class="ti ti-x"></i></button>';
+  document.getElementById('cli-id').value='';
+  document.getElementById('btn-eliminar-cli').style.display='none';
+  ['cli-nombre','cli-wsp','cli-tel','cli-codigo'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('cli-deuda').value=0;
+  document.getElementById('cli-cupo').value=0;
+  openModal('modal-cliente');
+}
+
 function abrirEditCliente(id){
   const c=clientes.find(x=>x.id===id);
-  document.getElementById('ec-id').value=c.id;
-  document.getElementById('ec-nombre').value=c.nombre||'';
-  document.getElementById('ec-tel').value=c.telefono||'';
-  document.getElementById('ec-codigo').value=c.codigo_cliente||'';
-  document.getElementById('ec-wsp').value=c.nombre_whatsapp||'';
-  document.getElementById('ec-cuenta').value=c.plataforma||'Juanito';
-  document.getElementById('ec-prov').value=c.proveedor||'Megared';
-  document.getElementById('ec-deuda').value=c.deuda_anterior||0;
-  document.getElementById('ec-cupo').value=c.cupo_maximo||0;
-  openModal('modal-edit-cliente');
+  document.getElementById('modal-cli-title').innerHTML='Editar cliente <button class="close-btn" onclick="closeModal(\'modal-cliente\')"><i class="ti ti-x"></i></button>';
+  document.getElementById('cli-id').value=c.id;
+  document.getElementById('cli-nombre').value=c.nombre||'';
+  document.getElementById('cli-wsp').value=c.nombre_whatsapp||'';
+  document.getElementById('cli-tel').value=c.telefono||'';
+  document.getElementById('cli-codigo').value=c.codigo_cliente||'';
+  document.getElementById('cli-cuenta').value=c.plataforma||'Juanito';
+  document.getElementById('cli-prov').value=c.proveedor||'Megared';
+  document.getElementById('cli-deuda').value=c.deuda_anterior||0;
+  document.getElementById('cli-cupo').value=c.cupo_maximo||0;
+  document.getElementById('btn-eliminar-cli').style.display='inline-flex';
+  openModal('modal-cliente');
 }
-async function guardarEditCliente(){
-  const id=document.getElementById('ec-id').value;
-  const nombre=document.getElementById('ec-nombre').value.trim();
+
+async function guardarCliente(){
+  const nombre=document.getElementById('cli-nombre').value.trim();
   if(!nombre)return alert('El nombre es obligatorio');
-  const patch={nombre,telefono:document.getElementById('ec-tel').value||null,codigo_cliente:document.getElementById('ec-codigo').value||null,nombre_whatsapp:document.getElementById('ec-wsp').value||null,plataforma:document.getElementById('ec-cuenta').value,proveedor:document.getElementById('ec-prov').value,deuda_anterior:Number(document.getElementById('ec-deuda').value)||0,cupo_maximo:Number(document.getElementById('ec-cupo').value)||0};
+  const id=document.getElementById('cli-id').value;
+  const data={nombre,nombre_whatsapp:document.getElementById('cli-wsp').value||null,telefono:document.getElementById('cli-tel').value||null,plataforma:document.getElementById('cli-cuenta').value,proveedor:document.getElementById('cli-prov').value,codigo_cliente:document.getElementById('cli-codigo').value||null,deuda_anterior:Number(document.getElementById('cli-deuda').value)||0,cupo_maximo:Number(document.getElementById('cli-cupo').value)||0};
   try{
-    await api('clientes_recarga?id=eq.'+id,'PATCH',patch);
-    const i=clientes.findIndex(x=>x.id===id);
-    if(i>=0)clientes[i]={...clientes[i],...patch};
+    if(id){
+      await api('clientes_recarga?id=eq.'+id,'PATCH',data);
+      const i=clientes.findIndex(x=>x.id===id);
+      if(i>=0)clientes[i]={...clientes[i],...data};
+    }else{
+      const n=await api('clientes_recarga','POST',data);
+      clientes.push(n[0]);
+    }
     clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));
-    closeModal('modal-edit-cliente');renderClientes();renderDash();
+    closeModal('modal-cliente');renderClientes();renderDash();
   }catch(e){alert('Error: '+e.message);}
 }
+
 function confirmarEliminarCliente(){
-  const id=document.getElementById('ec-id').value;
+  const id=document.getElementById('cli-id').value;
   const c=clientes.find(x=>x.id===id);
   const movs=movimientos.filter(m=>m.cliente_id===id).length;
   document.getElementById('conf-title').innerHTML='¿Eliminar cliente? <button class="close-btn" onclick="closeModal(\'modal-confirmar\')"><i class="ti ti-x"></i></button>';
-  document.getElementById('conf-body').innerHTML=`Vas a eliminar a <strong>${c.nombre}</strong>${movs>0?` y sus <strong>${movs} movimiento${movs>1?'s':''}</strong> asociados`:''}.`;
+  document.getElementById('conf-body').innerHTML=`Vas a eliminar a <strong>${c.nombre}</strong>${movs>0?` y sus <strong>${movs} movimiento${movs>1?'s':''}</strong>`:''}. `;
   document.getElementById('conf-btn').onclick=async()=>{
-    try{await api('clientes_recarga?id=eq.'+id,'DELETE');clientes=clientes.filter(x=>x.id!==id);movimientos=movimientos.filter(m=>m.cliente_id!==id);closeModal('modal-confirmar');closeModal('modal-edit-cliente');renderClientes();renderDash();}catch(e){alert('Error: '+e.message);}
+    try{
+      await api('clientes_recarga?id=eq.'+id,'DELETE');
+      clientes=clientes.filter(x=>x.id!==id);
+      movimientos=movimientos.filter(m=>m.cliente_id!==id);
+      closeModal('modal-confirmar');closeModal('modal-cliente');
+      renderClientes();renderDash();
+    }catch(e){alert('Error: '+e.message);}
   };
-  closeModal('modal-edit-cliente');openModal('modal-confirmar');
+  closeModal('modal-cliente');openModal('modal-confirmar');
 }
 
 // ── Editar movimiento ──
@@ -689,6 +782,7 @@ function abrirEditMov(id){
   document.getElementById('em-nota').value=m.nota||'';
   openModal('modal-edit-mov');
 }
+
 async function guardarEditMov(){
   const id=document.getElementById('em-id').value;
   const valor=Number(document.getElementById('em-valor').value);
@@ -698,18 +792,70 @@ async function guardarEditMov(){
     await api('movimientos_recarga?id=eq.'+id,'PATCH',patch);
     const i=movimientos.findIndex(x=>x.id===id);
     if(i>=0)movimientos[i]={...movimientos[i],...patch};
-    closeModal('modal-edit-mov');renderClientes();renderHistorial();renderDash();renderRecargasHoy();
+    closeModal('modal-edit-mov');
+    renderClientes();renderHistorial();renderDash();renderMovsHoy();
   }catch(e){alert('Error: '+e.message);}
 }
+
 function confirmarEliminarMov(){
   const id=document.getElementById('em-id').value;
   const m=movimientos.find(x=>x.id===id);
   const cli=clientes.find(c=>c.id===m.cliente_id);
   document.getElementById('conf-title').innerHTML='¿Eliminar movimiento? <button class="close-btn" onclick="closeModal(\'modal-confirmar\')"><i class="ti ti-x"></i></button>';
-  document.getElementById('conf-body').innerHTML=`Vas a eliminar el ${m.tipo==='entrega'?'entrega de':'pago de'} <strong>$${Number(m.valor).toLocaleString('es-CO')}</strong> de <strong>${cli?cli.nombre:'—'}</strong> del ${m.fecha}.`;
+  document.getElementById('conf-body').innerHTML=`Vas a eliminar el ${m.tipo==='entrega'?'entrega de':'pago de'} <strong>${fmt(m.valor)}</strong> de <strong>${cli?cli.nombre:'—'}</strong> del ${m.fecha}.`;
   document.getElementById('conf-btn').onclick=async()=>{
-    try{await api('movimientos_recarga?id=eq.'+id,'DELETE');movimientos=movimientos.filter(x=>x.id!==id);closeModal('modal-confirmar');closeModal('modal-edit-mov');renderClientes();renderHistorial();renderDash();renderRecargasHoy();}catch(e){alert('Error: '+e.message);}
+    try{
+      await api('movimientos_recarga?id=eq.'+id,'DELETE');
+      movimientos=movimientos.filter(x=>x.id!==id);
+      closeModal('modal-confirmar');closeModal('modal-edit-mov');
+      renderClientes();renderHistorial();renderDash();renderMovsHoy();
+    }catch(e){alert('Error: '+e.message);}
   };
   closeModal('modal-edit-mov');openModal('modal-confirmar');
 }
+
+// ── Historial de un cliente ──
+function verHistCli(id){
+  const c=clientes.find(x=>x.id===id);
+  const ms=movimientos.filter(m=>m.cliente_id===id).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  let saldo=Number(c.deuda_anterior||0);
+  document.getElementById('hist-cli-title').innerHTML=`${c.nombre} <button class="close-btn" onclick="closeModal('modal-hist-cli')"><i class="ti ti-x"></i></button>`;
+  const resumen=`<div style="background:var(--bg);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px">
+    <span class="badge badge-blue">${cuentaLbl(c.plataforma)}</span>
+    <span class="badge badge-gray">${c.proveedor}</span>
+    ${c.codigo_cliente?`<span style="font-family:monospace;font-size:12px;color:var(--text2)">Cód: ${c.codigo_cliente}</span>`:''}
+    ${c.nombre_whatsapp?`<span style="color:#25D366;font-size:12px"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span>`:''}
+    <span style="margin-left:auto;font-weight:600;color:${pendiente(c)>0?'var(--red)':'var(--green)'}">Pendiente: ${fmt(Math.max(0,pendiente(c)))}</span>
+  </div>`;
+  const items=ms.map(m=>{
+    const eP=m.tipo==='pago';
+    if(eP)saldo-=Number(m.valor);else saldo+=Number(m.valor);
+    const nc=eP&&!m.confirmado?'<span class="badge badge-purple" style="font-size:10px;margin-left:4px">Sin confirmar</span>':'';
+    const sub=[m.fecha,m.hora?m.hora.slice(0,5):null,m.codigo_transaccion?'#'+m.codigo_transaccion:null,m.nota].filter(Boolean).join(' · ');
+    return`<div class="hist-item">
+      <div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div>
+      <div class="hist-info">
+        <div class="hist-nombre">${eP?'Pago recibido':'Entrega de saldo'}${nc}</div>
+        <div class="hist-sub">${sub}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div>
+        <div style="font-size:11px;color:var(--text2)">Saldo: ${fmt(Math.max(0,saldo))}</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('hist-cli-body').innerHTML=resumen+(items.length?items.join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>');
+  openModal('modal-hist-cli');
+}
+
+// ── Init ──
+sbUrl=localStorage.getItem('sb_url')||'';
+sbKey=localStorage.getItem('sb_key')||'';
+if(sbUrl&&sbKey){
+  document.getElementById('sb-url').value=sbUrl;
+  document.getElementById('sb-key').value=sbKey;
+  probarConexion();
+}
 </script>
+</body>
+</html>
