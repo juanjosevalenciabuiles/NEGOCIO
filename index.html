@@ -402,7 +402,13 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     </div>
   </div>
   <div class="form-grid">
-    <div class="form-group"><label class="form-label">Valor ($) *</label><input type="number" id="fab-valor" placeholder="0" min="0" style="font-size:22px;font-weight:700;text-align:center"></div>
+    <div class="form-group"><label class="form-label">Valor ($) *</label>
+      <div style="position:relative">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:18px;font-weight:700;color:var(--text2)">$</span>
+        <input type="text" id="fab-valor-display" placeholder="0" oninput="formatValor(this,'fab-valor')" style="font-size:22px;font-weight:700;text-align:right;padding-left:28px;letter-spacing:.5px">
+        <input type="hidden" id="fab-valor">
+      </div>
+    </div>
     <div class="form-group"><label class="form-label">Fecha</label><input type="date" id="fab-fecha"></div>
     <div class="form-group"><label class="form-label">No. transacción</label><input type="text" id="fab-trans" placeholder="Opcional"></div>
     <div class="form-group"><label class="form-label">Nota</label><input type="text" id="fab-nota" placeholder="Opcional"></div>
@@ -826,7 +832,7 @@ document.addEventListener('click',e=>{
 
 async function guardarFabMov(){
   if(!fabClienteSeleccionado)return mostrarFabMsg('Selecciona un cliente primero','error');
-  const valor=Number(document.getElementById('fab-valor').value);
+  const valor=getValorFab();
   if(!valor||valor<=0)return mostrarFabMsg('Ingresa un valor válido','error');
   const confirmado=fabTipo==='pago'&&document.getElementById('fab-confirmado').checked;
   // Validar motivo si es reversión
@@ -839,7 +845,7 @@ async function guardarFabMov(){
   // Reversión actúa como pago (resta saldo) pero se guarda como 'reversion'
   const tipoGuardar = fabTipo==='reversion' ? 'reversion' : fabTipo;
   const payload={cliente_id:fabClienteSeleccionado.id,tipo:tipoGuardar,valor,fecha:document.getElementById('fab-fecha').value||hoy(),codigo_transaccion:document.getElementById('fab-trans').value||null,nota:notaFinal,codigo_cliente:fabClienteSeleccionado.codigo_cliente||null,codigo_cuenta:fabClienteSeleccionado.plataforma==='Juanito'?'032442':'028469',proveedor:fabClienteSeleccionado.proveedor||null,cuenta_destino:fabTipo==='pago'?(fabCuentaDestino||null):null,confirmado,confirmado_en:confirmado?new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T'):null};
-  try{const n=await api('movimientos_recarga','POST',payload);movimientos.unshift(n[0]);mostrarFabMsg(`✓ ${fabTipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${fabClienteSeleccionado.nombre}`,'ok');document.getElementById('fab-valor').value='';document.getElementById('fab-trans').value='';document.getElementById('fab-nota').value='';document.getElementById('fab-confirmado').checked=false;limpiarCliFab();fabCuentaDestino=null;document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));renderDash();renderClientes();renderHistorial();renderConfirmaciones();setTimeout(()=>closeFabModal(),1800);}catch(e){mostrarFabMsg('Error: '+e.message,'error');}
+  try{const n=await api('movimientos_recarga','POST',payload);movimientos.unshift(n[0]);mostrarFabMsg(`✓ ${fabTipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${fabClienteSeleccionado.nombre}`,'ok');document.getElementById('fab-valor').value='';document.getElementById('fab-valor-display').value='';document.getElementById('fab-trans').value='';document.getElementById('fab-nota').value='';document.getElementById('fab-confirmado').checked=false;limpiarCliFab();fabCuentaDestino=null;document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));renderDash();renderClientes();renderHistorial();renderConfirmaciones();setTimeout(()=>closeFabModal(),1800);}catch(e){mostrarFabMsg('Error: '+e.message,'error');}
 }
 function mostrarFabMsg(txt,tipo){const el=document.getElementById('fab-msg');el.textContent=txt;el.style.display='block';el.style.background=tipo==='ok'?'var(--green-light)':'var(--red-light)';el.style.color=tipo==='ok'?'var(--green-text)':'var(--red-text)';el.style.border=`0.5px solid ${tipo==='ok'?'#4ABEA0':'#E89070'}`;}
 
@@ -1014,6 +1020,21 @@ function verHistCli(id){
   });
   document.getElementById('hist-cli-body').innerHTML=resumen+(itemsHtml||'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>');
   openModal('modal-hist-cli');
+}
+
+// ── Formato de valores en pesos ──
+function formatValor(input, hiddenId){
+  // Extraer solo dígitos
+  const digits = input.value.replace(/\D/g,'');
+  const num = parseInt(digits||'0',10);
+  // Formatear con puntos de miles
+  input.value = num > 0 ? num.toLocaleString('es-CO') : '';
+  // Guardar valor numérico en el hidden
+  document.getElementById(hiddenId).value = num || '';
+}
+
+function getValorFab(){
+  return Number(document.getElementById('fab-valor').value) || 0;
 }
 
 // ── Init ──
