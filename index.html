@@ -254,6 +254,19 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 <div class="section" id="sec-confirmaciones">
   <div class="panel">
     <div class="panel-head"><span class="panel-title"><i class="ti ti-clock"></i> Pagos por confirmar</span></div>
+    <div class="filter-bar">
+      <i class="ti ti-calendar" style="color:var(--text2)"></i>
+      <button class="chip active" onclick="setChipConf(this,'todo')">Todos</button>
+      <button class="chip" onclick="setChipConf(this,'hoy')">Hoy</button>
+      <button class="chip" onclick="setChipConf(this,'semana')">Esta semana</button>
+      <button class="chip" onclick="setChipConf(this,'mes')">Este mes</button>
+      <button class="chip" onclick="setChipConf(this,'custom')">Personalizado</button>
+      <span id="conf-custom" style="display:none;gap:6px;align-items:center">
+        <input type="date" id="conf-desde" onchange="renderConfirmaciones()" style="width:auto;padding:5px 9px;font-size:12px">
+        <span style="font-size:12px;color:var(--text2)">→</span>
+        <input type="date" id="conf-hasta" onchange="renderConfirmaciones()" style="width:auto;padding:5px 9px;font-size:12px">
+      </span>
+    </div>
     <div class="alert alert-warning"><i class="ti ti-info-circle" style="flex-shrink:0"></i><span>Cuando un cliente avise que consignó, regístralo en Recargas sin marcar el checkbox. Aquí aparecerá para que lo confirmes cuando verifiques en tu banco.</span></div>
     <div id="conf-pendientes"><div class="empty"><i class="ti ti-circle-check"></i><p>No hay pagos pendientes de confirmar</p></div></div>
   </div>
@@ -352,9 +365,14 @@ let sbUrl='',sbKey='';
 let clientes=[],movimientos=[];
 let periodoActivo='hoy',periodoHistActivo='hoy';
 let clienteSeleccionado=null;
+let periodoConfActivo='todo';
 
 const fmt=v=>'$'+Number(v||0).toLocaleString('es-CO');
-const hoy=()=>new Date().toISOString().split('T')[0];
+const hoy=()=>{
+  const now=new Date();
+  const col=new Date(now.toLocaleString('en-US',{timeZone:'America/Bogota'}));
+  return col.getFullYear()+'-'+String(col.getMonth()+1).padStart(2,'0')+'-'+String(col.getDate()).padStart(2,'0');
+};
 const cuentaLbl=c=>c==='Juanito'?'Juanito (0660)':'Don Martín (6945)';
 
 // ── API ──
@@ -509,7 +527,7 @@ function renderClientes(){
       <td style="color:#25D366;font-size:12px">${c.nombre_whatsapp||'—'}</td>
       <td><span style="font-family:monospace;font-size:12px;color:var(--text2)">${c.codigo_cliente||'—'}</span></td>
       <td><span class="badge badge-blue" style="font-size:10px">${cuentaLbl(c.plataforma)}</span></td>
-      <td><span class="badge badge-gray" style="font-size:10px">${c.proveedor||'—'}</span></td>
+      <td><span class="badge badge-gray" style="font-size:10px">Megared · Multiproducto</span></td>
       <td><strong style="color:${pend>0?'var(--red)':'var(--green)'}">${fmt(pend)}</strong></td>
       <td><span class="badge ${e.cls}">${e.txt}</span></td>
       <td><div class="row-actions">
@@ -554,9 +572,9 @@ function renderHistorial(){
       <div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div>
       <div class="hist-info">
         <div class="hist-nombre">${cli?cli.nombre:'—'}${nc}</div>
-        <div class="hist-sub">${sub}</div>
+        <div class="hist-sub">${sub}${m.proveedor?' · '+m.proveedor:''}</div>
         <div style="margin-top:4px;display:flex;gap:5px">
-          ${cli?`<span class="badge badge-blue" style="font-size:10px">${cuentaLbl(cli.plataforma)}</span><span class="badge badge-gray" style="font-size:10px">${cli.proveedor}</span>`:''}
+          ${cli?`<span class="badge badge-blue" style="font-size:10px">${cuentaLbl(cli.plataforma)}</span><span class="badge badge-gray" style="font-size:10px">${m.proveedor||cli.proveedor||'—'}</span>`:''}
         </div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
@@ -568,9 +586,17 @@ function renderHistorial(){
 }
 
 // ── Confirmaciones ──
+function setChipConf(btn,p){
+  document.querySelectorAll('#sec-confirmaciones .chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  periodoConfActivo=p;
+  document.getElementById('conf-custom').style.display=p==='custom'?'flex':'none';
+  renderConfirmaciones();
+}
 function renderConfirmaciones(){
-  const pendientes=movimientos.filter(m=>m.tipo==='pago'&&!m.confirmado).sort((a,b)=>a.fecha.localeCompare(b.fecha));
-  const confirmados=movimientos.filter(m=>m.tipo==='pago'&&m.confirmado).sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,15);
+  const rConf=getRango(periodoConfActivo,'conf-');
+  const pendientes=filtrarF(movimientos.filter(m=>m.tipo==='pago'&&!m.confirmado),rConf).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const confirmados=filtrarF(movimientos.filter(m=>m.tipo==='pago'&&m.confirmado),rConf).sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,30);
   document.getElementById('conf-pendientes').innerHTML=pendientes.length
     ?pendientes.map(m=>{
       const cli=clientes.find(c=>c.id===m.cliente_id);
@@ -599,7 +625,7 @@ function renderConfirmaciones(){
 
 async function confirmarPago(id){
   try{
-    await api('movimientos_recarga?id=eq.'+id,'PATCH',{confirmado:true,confirmado_en:new Date().toISOString()});
+    await api('movimientos_recarga?id=eq.'+id,'PATCH',{confirmado:true,confirmado_en:new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T')});
     const m=movimientos.find(x=>x.id===id);
     if(m)m.confirmado=true;
     renderConfirmaciones();renderDash();
@@ -681,6 +707,7 @@ async function registrarMov(){
     nota:document.getElementById('rec-nota').value||null,
     codigo_cliente:clienteSeleccionado.codigo_cliente||null,
     codigo_cuenta:clienteSeleccionado.plataforma==='Juanito'?'032442':'028469',
+    proveedor:clienteSeleccionado.proveedor||null,
     confirmado,
     confirmado_en:confirmado?new Date().toISOString():null
   };
