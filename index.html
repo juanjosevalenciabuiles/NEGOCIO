@@ -305,11 +305,11 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div class="panel-head"><span class="panel-title"><i class="ti ti-history"></i> Historial</span></div>
     <div class="filter-bar">
       <span class="filter-label"><i class="ti ti-calendar"></i> Período</span>
-      <button class="chip amber active" onclick="setChipHist(this,'recientes')"><i class="ti ti-clock-hour-4"></i> Recientes</button>
-      <button class="chip" onclick="setChipHist(this,'semana')"><i class="ti ti-calendar-week"></i> Semana</button>
-      <button class="chip" onclick="setChipHist(this,'mes')"><i class="ti ti-calendar-month"></i> Mes</button>
-      <button class="chip" onclick="setChipHist(this,'todo')"><i class="ti ti-infinity"></i> Todo</button>
-      <button class="chip" onclick="setChipHist(this,'custom')"><i class="ti ti-calendar-search"></i> Personalizado</button>
+      <button class="chip amber active" id="hchip-recientes" onclick="setChipHist(this,'recientes')"><i class="ti ti-clock-hour-4"></i> Recientes</button>
+      <button class="chip" id="hchip-semana" onclick="setChipHist(this,'semana')"><i class="ti ti-calendar-week"></i> Semana</button>
+      <button class="chip" id="hchip-mes" onclick="setChipHist(this,'mes')"><i class="ti ti-calendar-month"></i> Mes</button>
+      <button class="chip" id="hchip-todo" onclick="setChipHist(this,'todo')"><i class="ti ti-infinity"></i> Todo</button>
+      <button class="chip" id="hchip-custom" onclick="setChipHist(this,'custom')"><i class="ti ti-calendar-search"></i> Personalizado</button>
       <span id="hist-custom" style="display:none;gap:6px;align-items:center">
         <input type="date" id="h-desde" onchange="renderHistorial()"><span style="font-size:12px">→</span><input type="date" id="h-hasta" onchange="renderHistorial()">
       </span>
@@ -331,9 +331,9 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div class="panel-head"><span class="panel-title"><i class="ti ti-circle-check"></i> Pagos bancarios</span></div>
     <div class="filter-bar">
       <span class="filter-label">Ver</span>
-      <button class="chip active" onclick="setChipConf(this,'pendientes')"><i class="ti ti-clock"></i> Pendientes</button>
-      <button class="chip" onclick="setChipConf(this,'confirmados')"><i class="ti ti-checks"></i> Confirmados</button>
-      <button class="chip" onclick="setChipConf(this,'todos')"><i class="ti ti-infinity"></i> Todos</button>
+      <button class="chip active" id="cchip-pendientes" onclick="setChipConf(this,'pendientes')"><i class="ti ti-clock"></i> Pendientes</button>
+      <button class="chip" id="cchip-confirmados" onclick="setChipConf(this,'confirmados')"><i class="ti ti-checks"></i> Confirmados</button>
+      <button class="chip" id="cchip-todos" onclick="setChipConf(this,'todos')"><i class="ti ti-infinity"></i> Todos</button>
     </div>
     <div class="filter-bar" style="margin-top:-6px">
       <input class="search-inline" id="conf-buscar" placeholder="Buscar cliente o comprobante..." onkeyup="renderConfirmaciones()" style="flex:1">
@@ -520,8 +520,22 @@ function filtrarF(arr,r,c='fecha'){if(!r)return arr;return arr.filter(m=>m[c]>=r
 
 // ── Chips ──
 function setChip(btn,p){document.querySelectorAll('#sec-dashboard .chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');periodoActivo=p;document.getElementById('custom-dates').style.display=p==='custom'?'flex':'none';renderDash();}
-function setChipHist(btn,p){document.querySelectorAll('#sec-historial .filter-bar:first-of-type .chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');periodoHistActivo=p;document.getElementById('hist-custom').style.display=p==='custom'?'flex':'none';renderHistorial();}
-function setChipConf(btn,p){document.querySelectorAll('#sec-confirmaciones .filter-bar:first-of-type .chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');vistaConf=p;renderConfirmaciones();}
+function setChipHist(btn,p){
+  ['hchip-recientes','hchip-semana','hchip-mes','hchip-todo','hchip-custom'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.classList.remove('active');
+  });
+  btn.classList.add('active');
+  periodoHistActivo=p;
+  document.getElementById('hist-custom').style.display=p==='custom'?'flex':'none';
+  renderHistorial();
+}
+function setChipConf(btn,p){
+  ['cchip-pendientes','cchip-confirmados','cchip-todos'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.classList.remove('active');
+  });
+  btn.classList.add('active');vistaConf=p;renderConfirmaciones();
+}
 function setChipConfFecha(btn,p){['chip-conf-recientes','chip-conf-mes','chip-conf-todo'].forEach(id=>document.getElementById(id).classList.remove('active'));btn.classList.add('active');periodoConfFecha=p;renderConfirmaciones();}
 
 // ── Navegación ──
