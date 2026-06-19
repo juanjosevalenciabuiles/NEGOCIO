@@ -367,6 +367,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <div class="fab-options hidden" id="fab-options">
     <div class="fab-option" onclick="abrirFabModal('entrega')"><span class="fab-option-label">Entregar saldo</span><button class="fab-option-btn entrega"><i class="ti ti-arrow-up"></i></button></div>
     <div class="fab-option" onclick="abrirFabModal('pago')"><span class="fab-option-label">Registrar pago recibido</span><button class="fab-option-btn pago"><i class="ti ti-cash"></i></button></div>
+    <div class="fab-option" onclick="abrirFabModal('reversion')"><span class="fab-option-label">Revertir saldo</span><button class="fab-option-btn" style="background:var(--red);color:#fff"><i class="ti ti-arrow-back-up"></i></button></div>
   </div>
   <button class="fab-main" id="fab-main" onclick="toggleFab()"><i class="ti ti-plus"></i></button>
 </div>
@@ -405,6 +406,16 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div class="form-group"><label class="form-label">Fecha</label><input type="date" id="fab-fecha"></div>
     <div class="form-group"><label class="form-label">No. transacción</label><input type="text" id="fab-trans" placeholder="Opcional"></div>
     <div class="form-group"><label class="form-label">Nota</label><input type="text" id="fab-nota" placeholder="Opcional"></div>
+    <div class="form-group" id="fab-motivo-grp" style="grid-column:1/-1;display:none">
+      <label class="form-label">Motivo de la reversión *</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="fab-motivo-btns">
+        <button type="button" class="cuenta-btn" onclick="selMotivo(this,'Error de envío')"><i class="ti ti-x"></i> Error de envío</button>
+        <button type="button" class="cuenta-btn" onclick="selMotivo(this,'Cambio a Megared')"><i class="ti ti-arrows-exchange"></i> Cambio a Megared</button>
+        <button type="button" class="cuenta-btn" onclick="selMotivo(this,'Cambio a Multiproducto')"><i class="ti ti-arrows-exchange"></i> Cambio a Multiproducto</button>
+        <button type="button" class="cuenta-btn" onclick="selMotivo(this,'Otro')"><i class="ti ti-dots"></i> Otro</button>
+      </div>
+      <input type="text" id="fab-motivo-custom" placeholder="Escribe el motivo..." style="margin-top:8px;display:none">
+    </div>
     <div class="form-group" id="fab-cuenta-destino-grp" style="grid-column:1/-1;display:none">
       <label class="form-label">¿A cuál cuenta llegó el pago?</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="fab-cuenta-btns">
@@ -463,7 +474,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <div class="modal-title">Editar movimiento <button class="close-btn" onclick="closeModal('modal-edit-mov')"><i class="ti ti-x"></i></button></div>
   <input type="hidden" id="em-id">
   <div class="form-grid">
-    <div class="form-group"><label class="form-label">Tipo</label><select id="em-tipo"><option value="entrega">Entrega de saldo</option><option value="pago">Pago recibido</option></select></div>
+    <div class="form-group"><label class="form-label">Tipo</label><select id="em-tipo"><option value="entrega">Entrega de saldo</option><option value="pago">Pago recibido</option><option value="reversion">Reversión de saldo</option></select></div>
     <div class="form-group"><label class="form-label">Valor ($) *</label><input id="em-valor" type="number" min="0"></div>
     <div class="form-group"><label class="form-label">Fecha</label><input id="em-fecha" type="date"></div>
     <div class="form-group"><label class="form-label">No. transacción</label><input id="em-trans"></div>
@@ -498,7 +509,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 let sbUrl='',sbKey='';
 let clientes=[],movimientos=[];
 let periodoActivo='recientes',periodoHistActivo='recientes',periodoConfFecha='todo',vistaConf='pendientes';
-let fabTipo='entrega',fabClienteSeleccionado=null,fabCuentaDestino=null,fabAbierto=false;
+let fabTipo='entrega',fabClienteSeleccionado=null,fabCuentaDestino=null,fabAbierto=false,fabMotivo=null;
 
 // ── Utilidades ──
 const fmt=v=>'$'+Number(v||0).toLocaleString('es-CO');
@@ -560,7 +571,7 @@ async function api(tabla,method='GET',body=null,qs=''){const url=sbUrl+'/rest/v1
 async function cargarDatos(){try{[clientes,movimientos]=await Promise.all([api('clientes_recarga','GET',null,'order=nombre'),api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc')]);renderDash();renderClientes();renderHistorial();renderConfirmaciones();}catch(e){console.error(e);}}
 
 // ── Lógica saldos ──
-function pendiente(c){const ms=movimientos.filter(m=>m.cliente_id===c.id);return Number(c.deuda_anterior||0)+ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0)-ms.filter(m=>m.tipo==='pago').reduce((a,m)=>a+Number(m.valor),0);}
+function pendiente(c){const ms=movimientos.filter(m=>m.cliente_id===c.id);return Number(c.deuda_anterior||0)+ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0)-ms.filter(m=>m.tipo==='pago'||m.tipo==='reversion').reduce((a,m)=>a+Number(m.valor),0);}
 function estadoCli(c){const p=pendiente(c);if(p<=0)return{txt:'Pagado',cls:'badge-green'};const pg=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');if(!pg.length)return{txt:'Sin pago',cls:'badge-amber'};const dias=Math.floor((new Date()-new Date(pg[0].fecha))/86400000);return dias>7?{txt:'En mora',cls:'badge-red'}:{txt:'Pendiente',cls:'badge-amber'};}
 
 // ── Búsqueda global ──
@@ -681,21 +692,21 @@ function renderHistorial(){
   fechasOrdenadas.forEach(fecha=>{
     html+=`<div class="fecha-grupo">${fmtFecha(fecha)}</div>`;
     grupos[fecha].forEach(m=>{
-      const eP=m.tipo==='pago';const cli=clientes.find(c=>c.id===m.cliente_id);
+      const eP=m.tipo==='pago';const esRev=m.tipo==='reversion';const cli=clientes.find(c=>c.id===m.cliente_id);
       const nc=eP&&!m.confirmado?`<span class="badge badge-purple">Sin confirmar</span>`:'';
-      const esReciente=(new Date()-new Date(m.fecha+'T23:59:59'))<86400000;
+      const revBadge=esRev?`<span class="badge badge-red"><i class="ti ti-arrow-back-up"></i> Reversión</span>`:'';
       const cdBadge=m.cuenta_destino?`<span class="badge badge-blue"><i class="ti ti-arrow-narrow-right"></i>${m.cuenta_destino}</span>`:'';
       html+=`<div class="hist-item">
-        <div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div>
+        <div class="hist-dot ${esRev?'entrega':eP?'pago':'entrega'}" style="${esRev?'background:var(--red-light);color:var(--red-text)':''}"><i class="ti ti-${esRev?'arrow-back-up':eP?'arrow-down':'arrow-up'}"></i></div>
         <div class="hist-info">
-          <div class="hist-nombre">${cli?cli.nombre:'—'} ${nc}</div>
+          <div class="hist-nombre">${cli?cli.nombre:'—'} ${nc}${revBadge}</div>
           <div class="hist-sub">${m.hora?m.hora.slice(0,5):''} ${cdBadge} ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px">#${m.codigo_transaccion}</span>`:''} ${m.nota?`<em>${m.nota}</em>`:''}</div>
           <div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">
             ${cli?`<span class="badge badge-blue">${cuentaLbl(cli.plataforma)}</span><span class="badge badge-gray">${m.proveedor||cli.proveedor||'—'}</span>`:''}
           </div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
-          <div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div>
+          <div class="hist-val" style="color:${eP?'var(--green)':esRev?'var(--red)':'var(--red)'}">${eP?'+':esRev?'-':'-'}${fmt(m.valor)}</div>
           <button class="btn btn-secondary btn-sm" onclick="abrirEditMov('${m.id}')"><i class="ti ti-edit"></i></button>
         </div>
       </div>`;
@@ -746,6 +757,15 @@ async function confirmarPago(id){
 }
 
 // ── FAB ──
+function selMotivo(btn, motivo){
+  document.querySelectorAll('#fab-motivo-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  fabMotivo = motivo;
+  const custom = document.getElementById('fab-motivo-custom');
+  custom.style.display = motivo === 'Otro' ? 'block' : 'none';
+  if(motivo !== 'Otro') custom.value = '';
+}
+
 function toggleFab(){fabAbierto=!fabAbierto;document.getElementById('fab-options').classList.toggle('hidden',!fabAbierto);document.getElementById('fab-main').classList.toggle('open',fabAbierto);}
 function abrirFabModal(tipo){
   fabTipo=tipo;fabAbierto=false;fabClienteSeleccionado=null;fabCuentaDestino=null;
@@ -758,12 +778,21 @@ function abrirFabModal(tipo){
   document.getElementById('fab-msg').style.display='none';
   document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
   const esPago=tipo==='pago';
+  const esReversion = tipo === 'reversion';
   document.getElementById('fab-confirm-grp').style.display=esPago?'block':'none';
   document.getElementById('fab-cuenta-destino-grp').style.display=esPago?'block':'none';
-  const color=esPago?'#25D366':'var(--amber)';
-  document.getElementById('fab-modal-title').innerHTML=`<span style="display:flex;align-items:center;gap:10px"><span style="width:34px;height:34px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px"><i class="ti ti-${esPago?'cash':'arrow-up'}"></i></span><span>${esPago?'Pago recibido':'Entregar saldo'}</span></span><button class="close-btn" onclick="closeFabModal()"><i class="ti ti-x"></i></button>`;
+  document.getElementById('fab-motivo-grp').style.display=esReversion?'block':'none';
+  fabMotivo=null;
+  document.querySelectorAll('#fab-motivo-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('fab-motivo-custom').style.display='none';
+  document.getElementById('fab-motivo-custom').value='';
+  const esReversion2 = tipo === 'reversion';
+  const color = esPago ? '#25D366' : esReversion2 ? 'var(--red)' : 'var(--amber)';
+  const icono = esPago ? 'cash' : esReversion2 ? 'arrow-back-up' : 'arrow-up';
+  const titulo = esPago ? 'Pago recibido' : esReversion2 ? 'Revertir saldo' : 'Entregar saldo';
+  document.getElementById('fab-modal-title').innerHTML=`<span style="display:flex;align-items:center;gap:10px"><span style="width:34px;height:34px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px"><i class="ti ti-${icono}"></i></span><span>${titulo}</span></span><button class="close-btn" onclick="closeFabModal()"><i class="ti ti-x"></i></button>`;
   document.getElementById('fab-submit-btn').style.background=color;
-  document.getElementById('fab-submit-btn').innerHTML=`<i class="ti ti-device-floppy"></i> ${esPago?'Registrar pago':'Registrar entrega'}`;
+  document.getElementById('fab-submit-btn').innerHTML=`<i class="ti ti-device-floppy"></i> ${titulo}`;
   openModal('modal-fab');
 }
 function closeFabModal(){closeModal('modal-fab');fabAbierto=false;document.getElementById('fab-options').classList.add('hidden');document.getElementById('fab-main').classList.remove('open');}
@@ -800,7 +829,16 @@ async function guardarFabMov(){
   const valor=Number(document.getElementById('fab-valor').value);
   if(!valor||valor<=0)return mostrarFabMsg('Ingresa un valor válido','error');
   const confirmado=fabTipo==='pago'&&document.getElementById('fab-confirmado').checked;
-  const payload={cliente_id:fabClienteSeleccionado.id,tipo:fabTipo,valor,fecha:document.getElementById('fab-fecha').value||hoy(),codigo_transaccion:document.getElementById('fab-trans').value||null,nota:document.getElementById('fab-nota').value||null,codigo_cliente:fabClienteSeleccionado.codigo_cliente||null,codigo_cuenta:fabClienteSeleccionado.plataforma==='Juanito'?'032442':'028469',proveedor:fabClienteSeleccionado.proveedor||null,cuenta_destino:fabTipo==='pago'?(fabCuentaDestino||null):null,confirmado,confirmado_en:confirmado?new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T'):null};
+  // Validar motivo si es reversión
+  if(fabTipo==='reversion'){
+    const motivoCustom=document.getElementById('fab-motivo-custom').value.trim();
+    if(fabMotivo==='Otro')fabMotivo=motivoCustom||'Otro';
+    if(!fabMotivo)return mostrarFabMsg('Selecciona el motivo de la reversión','error');
+  }
+  const notaFinal = fabTipo==='reversion' ? (fabMotivo+(document.getElementById('fab-nota').value?(' — '+document.getElementById('fab-nota').value):'')) : (document.getElementById('fab-nota').value||null);
+  // Reversión actúa como pago (resta saldo) pero se guarda como 'reversion'
+  const tipoGuardar = fabTipo==='reversion' ? 'reversion' : fabTipo;
+  const payload={cliente_id:fabClienteSeleccionado.id,tipo:tipoGuardar,valor,fecha:document.getElementById('fab-fecha').value||hoy(),codigo_transaccion:document.getElementById('fab-trans').value||null,nota:notaFinal,codigo_cliente:fabClienteSeleccionado.codigo_cliente||null,codigo_cuenta:fabClienteSeleccionado.plataforma==='Juanito'?'032442':'028469',proveedor:fabClienteSeleccionado.proveedor||null,cuenta_destino:fabTipo==='pago'?(fabCuentaDestino||null):null,confirmado,confirmado_en:confirmado?new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T'):null};
   try{const n=await api('movimientos_recarga','POST',payload);movimientos.unshift(n[0]);mostrarFabMsg(`✓ ${fabTipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${fabClienteSeleccionado.nombre}`,'ok');document.getElementById('fab-valor').value='';document.getElementById('fab-trans').value='';document.getElementById('fab-nota').value='';document.getElementById('fab-confirmado').checked=false;limpiarCliFab();fabCuentaDestino=null;document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));renderDash();renderClientes();renderHistorial();renderConfirmaciones();setTimeout(()=>closeFabModal(),1800);}catch(e){mostrarFabMsg('Error: '+e.message,'error');}
 }
 function mostrarFabMsg(txt,tipo){const el=document.getElementById('fab-msg');el.textContent=txt;el.style.display='block';el.style.background=tipo==='ok'?'var(--green-light)':'var(--red-light)';el.style.color=tipo==='ok'?'var(--green-text)':'var(--red-text)';el.style.border=`0.5px solid ${tipo==='ok'?'#4ABEA0':'#E89070'}`;}
@@ -956,14 +994,15 @@ function verHistCli(id){
   fechas.forEach(fecha=>{
     itemsHtml+=`<div class="fecha-grupo">${fmtFecha(fecha)}</div>`;
     grupos[fecha].forEach(m=>{
-      const eP=m.tipo==='pago';
-      if(eP)saldo-=Number(m.valor);else saldo+=Number(m.valor);
+      const eP=m.tipo==='pago';const esRevC=m.tipo==='reversion';
+      if(eP||esRevC)saldo-=Number(m.valor);else saldo+=Number(m.valor);
       const nc=eP&&!m.confirmado?'<span class="badge badge-purple">Sin confirmar</span>':'';
+      const revBadgeC=esRevC?'<span class="badge badge-red"><i class="ti ti-arrow-back-up"></i> Reversión</span>':'';
       const cdBadge=m.cuenta_destino?`<span class="badge badge-blue"><i class="ti ti-arrow-narrow-right"></i>${m.cuenta_destino}</span>`:'';
       itemsHtml+=`<div class="hist-item">
         <div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div>
         <div class="hist-info">
-          <div class="hist-nombre">${eP?'Pago recibido':'Entrega de saldo'} ${nc}</div>
+          <div class="hist-nombre">${esRevC?'Reversión de saldo':eP?'Pago recibido':'Entrega de saldo'} ${nc}${revBadgeC}</div>
           <div class="hist-sub">${m.hora?m.hora.slice(0,5):''} ${cdBadge} ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px">#${m.codigo_transaccion}</span>`:''} ${m.nota?`<em>${m.nota}</em>`:''}</div>
         </div>
         <div style="text-align:right">
