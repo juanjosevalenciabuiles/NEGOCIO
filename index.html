@@ -148,7 +148,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 /* ── Hist items ── */
 .hist-item{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:0.5px solid var(--border)}
 .hist-item:last-child{border-bottom:none}
-.hist-item.reciente{background:var(--amber-light);border-radius:var(--radius);padding:12px 10px;margin:0 -4px 4px;border-bottom:none}
+.hist-item.reciente{}
 .hist-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
 .hist-dot.entrega{background:var(--amber-light);color:var(--amber-text)}
 .hist-dot.pago{background:var(--green-light);color:var(--green-text)}
@@ -671,10 +671,10 @@ function renderHistorial(){
       const nc=eP&&!m.confirmado?`<span class="badge badge-purple">Sin confirmar</span>`:'';
       const esReciente=(new Date()-new Date(m.fecha+'T23:59:59'))<86400000;
       const cdBadge=m.cuenta_destino?`<span class="badge badge-blue"><i class="ti ti-arrow-narrow-right"></i>${m.cuenta_destino}</span>`:'';
-      html+=`<div class="hist-item${esReciente?' reciente':''}">
+      html+=`<div class="hist-item">
         <div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div>
         <div class="hist-info">
-          <div class="hist-nombre">${cli?cli.nombre:'—'} ${nc}${esReciente?'<span class="badge badge-amber"><i class="ti ti-clock-hour-4"></i> Reciente</span>':''}</div>
+          <div class="hist-nombre">${cli?cli.nombre:'—'} ${nc}</div>
           <div class="hist-sub">${m.hora?m.hora.slice(0,5):''} ${cdBadge} ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px">#${m.codigo_transaccion}</span>`:''} ${m.nota?`<em>${m.nota}</em>`:''}</div>
           <div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">
             ${cli?`<span class="badge badge-blue">${cuentaLbl(cli.plataforma)}</span><span class="badge badge-gray">${m.proveedor||cli.proveedor||'—'}</span>`:''}
