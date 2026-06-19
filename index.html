@@ -503,7 +503,7 @@ function renderClientes(){
     const pag=ms.filter(m=>m.tipo==='pago').reduce((a,m)=>a+Number(m.valor),0);
     const pend=Math.max(0,Number(c.deuda_anterior||0)+ent-pag);
     const e=estadoCli(c);
-    return`<tr><td><strong>${c.nombre}</strong><br><span style="font-size:11px;color:var(--text2)">${c.telefono||''}</span></td><td><span style="font-family:monospace;font-size:12px;color:var(--text2)">${c.codigo_cliente||'—'}</span></td><td><span class="badge badge-blue" style="font-size:10px">${cuentaLbl(c.plataforma)}</span></td><td><span class="badge badge-gray" style="font-size:10px">${c.proveedor||'—'}</span></td><td>${fmt(c.deuda_anterior)}</td><td>${fmt(ent)}</td><td>${fmt(pag)}</td><td><strong style="color:${pend>0?'var(--red)':'var(--green)'}">${fmt(pend)}</strong></td><td><span class="badge ${e.cls}">${e.txt}</span></td><td><div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="verHistCli('${c.id}')" title="Ver historial"><i class="ti ti-history"></i></button></div></td></tr>`;
+    return`<tr><td><strong>${c.nombre}</strong><br><span style="font-size:11px;color:var(--text2)">${c.telefono||''}</span></td><td><span style="font-family:monospace;font-size:12px;color:var(--text2)">${c.codigo_cliente||'—'}</span></td><td><span class="badge badge-blue" style="font-size:10px">${cuentaLbl(c.plataforma)}</span></td><td><span class="badge badge-gray" style="font-size:10px">${c.proveedor||'—'}</span></td><td>${fmt(c.deuda_anterior)}</td><td>${fmt(ent)}</td><td>${fmt(pag)}</td><td><strong style="color:${pend>0?'var(--red)':'var(--green)'}">${fmt(pend)}</strong></td><td><span class="badge ${e.cls}">${e.txt}</span></td><td><div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="verHistCli('${c.id}')" title="Ver historial"><i class="ti ti-history"></i></button><button class="btn btn-secondary btn-sm" onclick="abrirEditCliente('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button></div></td></tr>`;
   }).join(''):'<tr><td colspan="10"><div class="empty"><i class="ti ti-users"></i><p>Sin resultados.</p></div></td></tr>';
 }
 
@@ -524,7 +524,7 @@ function renderHistorial(){
     const nc=eP&&!m.confirmado?'<span class="badge badge-purple" style="font-size:10px;margin-left:4px">Sin confirmar</span>':'';
     const sub=[m.fecha,m.hora?m.hora.slice(0,5):null,m.codigo_transaccion?'#'+m.codigo_transaccion:null,m.codigo_cliente?'Cód: '+m.codigo_cliente:null,m.nota].filter(Boolean).join(' · ');
     const cli2=cli?`<span class="badge badge-blue" style="font-size:10px">${cuentaLbl(cli.plataforma)}</span> <span class="badge badge-gray" style="font-size:10px">${cli.proveedor}</span>`:'';
-    return`<div class="hist-item"><div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div><div class="hist-info"><div class="hist-nombre">${cli?cli.nombre:'—'}${nc}</div><div class="hist-sub">${sub}</div><div style="margin-top:4px;display:flex;gap:5px">${cli2}</div></div><div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div></div>`;
+    return`<div class="hist-item"><div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div><div class="hist-info"><div class="hist-nombre">${cli?cli.nombre:'—'}${nc}</div><div class="hist-sub">${sub}</div><div style="margin-top:4px;display:flex;gap:5px">${cli2}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div><button class="btn btn-secondary btn-sm" onclick="abrirEditMov('${m.id}')" title="Editar"><i class="ti ti-edit"></i></button></div></div>`;
   }).join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>';
 }
 
@@ -571,3 +571,140 @@ if(sbUrl&&sbKey){document.getElementById('sb-url').value=sbUrl;document.getEleme
 </script>
 </body>
 </html>
+<!-- PARCHE: Edición y eliminación -->
+<div class="modal-bg" id="modal-edit-cliente" style="display:none"><div class="modal">
+  <div class="modal-title">Editar cliente <button class="close-btn" onclick="closeModal('modal-edit-cliente')"><i class="ti ti-x"></i></button></div>
+  <input type="hidden" id="ec-id">
+  <div class="form-grid">
+    <div class="form-group"><label class="form-label">Nombre *</label><input id="ec-nombre"></div>
+    <div class="form-group"><label class="form-label">Teléfono</label><input id="ec-tel" type="tel"></div>
+    <div class="form-group"><label class="form-label">Código cliente</label><input id="ec-codigo"></div>
+    <div class="form-group"><label class="form-label">Cuenta</label><select id="ec-cuenta"><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select></div>
+    <div class="form-group"><label class="form-label">Proveedor</label><select id="ec-prov"><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select></div>
+    <div class="form-group"><label class="form-label">Deuda anterior ($)</label><input id="ec-deuda" type="number" min="0"></div>
+    <div class="form-group"><label class="form-label">Cupo máximo ($)</label><input id="ec-cupo" type="number" min="0"></div>
+  </div>
+  <div class="divider"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <button class="btn btn-danger btn-sm" onclick="confirmarEliminarCliente()"><i class="ti ti-trash"></i> Eliminar cliente</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-cliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEditCliente()"><i class="ti ti-device-floppy"></i> Guardar cambios</button>
+    </div>
+  </div>
+</div></div>
+
+<div class="modal-bg" id="modal-edit-mov" style="display:none"><div class="modal">
+  <div class="modal-title">Editar movimiento <button class="close-btn" onclick="closeModal('modal-edit-mov')"><i class="ti ti-x"></i></button></div>
+  <input type="hidden" id="em-id">
+  <div class="form-grid">
+    <div class="form-group"><label class="form-label">Tipo</label><select id="em-tipo"><option value="entrega">Entrega de saldo</option><option value="pago">Pago del cliente</option></select></div>
+    <div class="form-group"><label class="form-label">Valor ($) *</label><input id="em-valor" type="number" min="0"></div>
+    <div class="form-group"><label class="form-label">Fecha</label><input id="em-fecha" type="date"></div>
+    <div class="form-group"><label class="form-label">No. transacción</label><input id="em-trans"></div>
+    <div class="form-group"><label class="form-label">Comprobante</label><input id="em-comp"></div>
+    <div class="form-group"><label class="form-label">Nota</label><input id="em-nota"></div>
+  </div>
+  <div class="divider"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <button class="btn btn-danger btn-sm" onclick="confirmarEliminarMov()"><i class="ti ti-trash"></i> Eliminar movimiento</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-mov')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEditMov()"><i class="ti ti-device-floppy"></i> Guardar cambios</button>
+    </div>
+  </div>
+</div></div>
+
+<!-- Modal confirmación eliminación -->
+<div class="modal-bg" id="modal-confirmar" style="display:none"><div class="modal" style="max-width:380px">
+  <div class="modal-title" id="conf-title">¿Eliminar? <button class="close-btn" onclick="closeModal('modal-confirmar')"><i class="ti ti-x"></i></button></div>
+  <div id="conf-body" style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:1rem"></div>
+  <div style="background:var(--red-light);border-radius:var(--radius);padding:10px 12px;font-size:12px;color:var(--red-text);margin-bottom:1rem;display:flex;gap:8px;align-items:flex-start">
+    <i class="ti ti-alert-triangle" style="flex-shrink:0;margin-top:1px"></i>
+    <span>Esta acción <strong>no se puede deshacer</strong>. Los datos se eliminarán permanentemente.</span>
+  </div>
+  <div style="display:flex;justify-content:flex-end;gap:8px">
+    <button class="btn btn-secondary" onclick="closeModal('modal-confirmar')">Cancelar</button>
+    <button class="btn" id="conf-btn" style="background:var(--red);color:#fff"><i class="ti ti-trash"></i> Sí, eliminar</button>
+  </div>
+</div></div>
+
+<style>
+.btn-danger{background:transparent;border:0.5px solid #F0997B;color:var(--red)}.btn-danger:hover{background:var(--red-light)}
+</style>
+
+<script>
+// ── Editar cliente ──
+function abrirEditCliente(id){
+  const c=clientes.find(x=>x.id===id);
+  document.getElementById('ec-id').value=c.id;
+  document.getElementById('ec-nombre').value=c.nombre||'';
+  document.getElementById('ec-tel').value=c.telefono||'';
+  document.getElementById('ec-codigo').value=c.codigo_cliente||'';
+  document.getElementById('ec-cuenta').value=c.plataforma||'Juanito';
+  document.getElementById('ec-prov').value=c.proveedor||'Megared';
+  document.getElementById('ec-deuda').value=c.deuda_anterior||0;
+  document.getElementById('ec-cupo').value=c.cupo_maximo||0;
+  openModal('modal-edit-cliente');
+}
+async function guardarEditCliente(){
+  const id=document.getElementById('ec-id').value;
+  const nombre=document.getElementById('ec-nombre').value.trim();
+  if(!nombre)return alert('El nombre es obligatorio');
+  const patch={nombre,telefono:document.getElementById('ec-tel').value||null,codigo_cliente:document.getElementById('ec-codigo').value||null,plataforma:document.getElementById('ec-cuenta').value,proveedor:document.getElementById('ec-prov').value,deuda_anterior:Number(document.getElementById('ec-deuda').value)||0,cupo_maximo:Number(document.getElementById('ec-cupo').value)||0};
+  try{
+    await api('clientes_recarga?id=eq.'+id,'PATCH',patch);
+    const i=clientes.findIndex(x=>x.id===id);
+    if(i>=0)clientes[i]={...clientes[i],...patch};
+    clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+    closeModal('modal-edit-cliente');renderClientes();renderDash();
+  }catch(e){alert('Error: '+e.message);}
+}
+function confirmarEliminarCliente(){
+  const id=document.getElementById('ec-id').value;
+  const c=clientes.find(x=>x.id===id);
+  const movs=movimientos.filter(m=>m.cliente_id===id).length;
+  document.getElementById('conf-title').innerHTML='¿Eliminar cliente? <button class="close-btn" onclick="closeModal(\'modal-confirmar\')"><i class="ti ti-x"></i></button>';
+  document.getElementById('conf-body').innerHTML=`Vas a eliminar a <strong>${c.nombre}</strong>${movs>0?` y sus <strong>${movs} movimiento${movs>1?'s':''}</strong> asociados`:''}.`;
+  document.getElementById('conf-btn').onclick=async()=>{
+    try{await api('clientes_recarga?id=eq.'+id,'DELETE');clientes=clientes.filter(x=>x.id!==id);movimientos=movimientos.filter(m=>m.cliente_id!==id);closeModal('modal-confirmar');closeModal('modal-edit-cliente');renderClientes();renderDash();}catch(e){alert('Error: '+e.message);}
+  };
+  closeModal('modal-edit-cliente');openModal('modal-confirmar');
+}
+
+// ── Editar movimiento ──
+function abrirEditMov(id){
+  const m=movimientos.find(x=>x.id===id);
+  document.getElementById('em-id').value=m.id;
+  document.getElementById('em-tipo').value=m.tipo||'entrega';
+  document.getElementById('em-valor').value=m.valor||0;
+  document.getElementById('em-fecha').value=m.fecha||'';
+  document.getElementById('em-trans').value=m.codigo_transaccion||'';
+  document.getElementById('em-comp').value=m.comprobante||'';
+  document.getElementById('em-nota').value=m.nota||'';
+  openModal('modal-edit-mov');
+}
+async function guardarEditMov(){
+  const id=document.getElementById('em-id').value;
+  const valor=Number(document.getElementById('em-valor').value);
+  if(!valor||valor<=0)return alert('El valor debe ser mayor a 0');
+  const patch={tipo:document.getElementById('em-tipo').value,valor,fecha:document.getElementById('em-fecha').value,codigo_transaccion:document.getElementById('em-trans').value||null,comprobante:document.getElementById('em-comp').value||null,nota:document.getElementById('em-nota').value||null};
+  try{
+    await api('movimientos_recarga?id=eq.'+id,'PATCH',patch);
+    const i=movimientos.findIndex(x=>x.id===id);
+    if(i>=0)movimientos[i]={...movimientos[i],...patch};
+    closeModal('modal-edit-mov');renderClientes();renderHistorial();renderDash();renderRecargasHoy();
+  }catch(e){alert('Error: '+e.message);}
+}
+function confirmarEliminarMov(){
+  const id=document.getElementById('em-id').value;
+  const m=movimientos.find(x=>x.id===id);
+  const cli=clientes.find(c=>c.id===m.cliente_id);
+  document.getElementById('conf-title').innerHTML='¿Eliminar movimiento? <button class="close-btn" onclick="closeModal(\'modal-confirmar\')"><i class="ti ti-x"></i></button>';
+  document.getElementById('conf-body').innerHTML=`Vas a eliminar el ${m.tipo==='entrega'?'entrega de':'pago de'} <strong>$${Number(m.valor).toLocaleString('es-CO')}</strong> de <strong>${cli?cli.nombre:'—'}</strong> del ${m.fecha}.`;
+  document.getElementById('conf-btn').onclick=async()=>{
+    try{await api('movimientos_recarga?id=eq.'+id,'DELETE');movimientos=movimientos.filter(x=>x.id!==id);closeModal('modal-confirmar');closeModal('modal-edit-mov');renderClientes();renderHistorial();renderDash();renderRecargasHoy();}catch(e){alert('Error: '+e.message);}
+  };
+  closeModal('modal-edit-mov');openModal('modal-confirmar');
+}
+</script>
