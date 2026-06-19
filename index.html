@@ -69,19 +69,47 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 .modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between}
 .close-btn{background:none;border:none;cursor:pointer;color:var(--text2);font-size:20px;padding:2px;line-height:1;border-radius:6px}.close-btn:hover{background:var(--bg)}
 .empty{text-align:center;padding:2.5rem 1rem;color:var(--text3)}.empty i{font-size:36px;display:block;margin-bottom:10px;opacity:.35}.empty p{font-size:14px}
-.filter-bar{display:flex;align-items:center;gap:7px;background:var(--bg);border-radius:var(--radius);padding:10px 12px;margin-bottom:1rem;flex-wrap:wrap;border:0.5px solid var(--border)}
-.filter-bar select,.filter-bar input[type=date]{width:auto;padding:5px 9px;font-size:12px}
-.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:5px 11px;border-radius:20px;border:0.5px solid var(--border2);cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s}
-.chip.active{background:var(--green);color:#fff;border-color:var(--green)}.chip:hover:not(.active){border-color:var(--green);color:var(--green)}
-.hist-item{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:0.5px solid var(--border)}.hist-item:last-child{border-bottom:none}
+.filter-bar{display:flex;align-items:center;gap:7px;background:var(--surface);border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:1rem;flex-wrap:wrap;border:0.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.filter-bar select,.filter-bar input[type=date]{width:auto;padding:6px 10px;font-size:12px;border-radius:var(--radius)}
+.filter-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+/* Botones cuenta destino */
+.cuenta-btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;width:100%}
+.cuenta-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-light)}
+.cuenta-btn.selected{border-color:var(--green);background:var(--green);color:#fff;box-shadow:0 2px 8px rgba(29,158,117,.3)}
+/* FAB - Botón flotante */
+.fab-container{position:fixed;bottom:24px;right:24px;z-index:500;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.fab-main{width:56px;height:56px;border-radius:50%;background:var(--green);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 16px rgba(29,158,117,.45);transition:all .2s;flex-shrink:0}
+.fab-main:hover{background:var(--green-dark);transform:scale(1.08)}
+.fab-main.open{background:var(--red);transform:rotate(45deg)}
+.fab-options{display:flex;flex-direction:column;align-items:flex-end;gap:10px;transition:all .2s}
+.fab-options.hidden{opacity:0;pointer-events:none;transform:translateY(10px)}
+.fab-option{display:flex;align-items:center;gap:10px;cursor:pointer;border:none;background:transparent;padding:0}
+.fab-option-label{background:var(--surface);color:var(--text);font-size:13px;font-weight:600;padding:7px 14px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,.12);white-space:nowrap;border:0.5px solid var(--border)}
+.fab-option-btn{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,.15);flex-shrink:0;transition:all .15s}
+.fab-option-btn:hover{transform:scale(1.1)}
+.fab-option-btn.entrega{background:var(--amber);color:#fff}
+.fab-option-btn.pago{background:#25D366;color:#fff}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;border:1.5px solid var(--border2);cursor:pointer;background:var(--surface);color:var(--text2);transition:all .2s;white-space:nowrap}
+.chip.active{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 2px 8px rgba(29,158,117,.3)}
+.chip:hover:not(.active){border-color:var(--green);color:var(--green);background:var(--green-light)}
+.chip.recientes{border-color:var(--amber);color:var(--amber)}
+.chip.recientes.active{background:var(--amber);color:#fff;border-color:var(--amber);box-shadow:0 2px 8px rgba(186,117,23,.3)}
+.chip.recientes:hover:not(.active){background:var(--amber-light)}
+.filter-section{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1rem}
+.filter-section-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-divider{height:0.5px;background:var(--border);margin:10px 0}
+.hist-item{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:0.5px solid var(--border);transition:background .15s}.hist-item:last-child{border-bottom:none}
+.hist-item.reciente{background:linear-gradient(90deg,var(--amber-light) 0%,transparent 100%);border-radius:var(--radius);padding:11px 10px;margin:-2px -4px;border-bottom:none;margin-bottom:2px}
 .hist-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
 .hist-dot.entrega{background:var(--amber-light);color:var(--amber-text)}
 .hist-dot.pago{background:var(--green-light);color:var(--green-text)}
 .hist-dot.pendiente{background:var(--purple-light);color:var(--purple-text)}
 .hist-info{flex:1;min-width:0}.hist-nombre{font-size:13px;font-weight:600}.hist-sub{font-size:12px;color:var(--text2);margin-top:2px}
 .hist-val{font-size:13px;font-weight:600;white-space:nowrap;text-align:right}
-.resumen-chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
-.resumen-chip{font-size:12px;padding:4px 10px;border-radius:20px;border:0.5px solid var(--border);display:inline-flex;align-items:center;gap:5px;color:var(--text2)}
+.resumen-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.resumen-chip{font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;border:0.5px solid var(--border);display:inline-flex;align-items:center;gap:5px;color:var(--text2);background:var(--bg)}
+.resumen-chip.highlight{font-size:13px;font-weight:700;padding:6px 14px;border-width:1.5px}
 .alert{padding:11px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:1rem;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
 .alert-info{background:var(--blue-light);color:var(--blue-text);border:0.5px solid #b5d4f4}
 .alert-warning{background:var(--amber-light);color:var(--amber-text);border:0.5px solid #FAC775}
@@ -120,11 +148,11 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 <!-- DASHBOARD -->
 <div class="section active" id="sec-dashboard">
   <div class="filter-bar">
-    <i class="ti ti-calendar" style="color:var(--text2)"></i>
-    <button class="chip active" onclick="setChip(this,'hoy')">Hoy</button>
-    <button class="chip" onclick="setChip(this,'semana')">Esta semana</button>
-    <button class="chip" onclick="setChip(this,'mes')">Este mes</button>
-    <button class="chip" onclick="setChip(this,'custom')">Personalizado</button>
+    <span class="filter-label"><i class="ti ti-calendar"></i> Período</span>
+    <button class="chip recientes active" onclick="setChip(this,'recientes')"><i class="ti ti-clock-hour-4"></i> Recientes (24h)</button>
+    <button class="chip" onclick="setChip(this,'semana')"><i class='ti ti-calendar-week'></i> Esta semana</button>
+    <button class="chip" onclick="setChip(this,'mes')"><i class='ti ti-calendar-month'></i> Este mes</button>
+    <button class="chip" onclick="setChip(this,'custom')"><i class='ti ti-calendar-search'></i> Personalizado</button>
     <span id="custom-dates" style="display:none;gap:6px;align-items:center">
       <input type="date" id="d-desde" onchange="renderDash()"><span style="font-size:12px;color:var(--text2)">→</span><input type="date" id="d-hasta" onchange="renderDash()">
     </span>
@@ -182,6 +210,23 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
         <label class="form-label">Nota</label>
         <input type="text" id="rec-nota" placeholder="Opcional">
       </div>
+      <div class="form-group" id="rec-cuenta-destino-grp" style="grid-column:1/-1;display:none">
+        <label class="form-label">¿A cuál cuenta llegó el pago?</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button type="button" class="cuenta-btn" onclick="selCuentaDestinoRec(this,'Juanito (0660)')" data-cuenta="Juanito (0660)">
+            <i class="ti ti-building-bank"></i> Juanito (0660)
+          </button>
+          <button type="button" class="cuenta-btn" onclick="selCuentaDestinoRec(this,'Don Martín (6945)')" data-cuenta="Don Martín (6945)">
+            <i class="ti ti-building-bank"></i> Don Martín (6945)
+          </button>
+          <button type="button" class="cuenta-btn" onclick="selCuentaDestinoRec(this,'Bancolombia')" data-cuenta="Bancolombia">
+            <i class="ti ti-credit-card"></i> Bancolombia
+          </button>
+          <button type="button" class="cuenta-btn" onclick="selCuentaDestinoRec(this,'Nequi')" data-cuenta="Nequi">
+            <i class="ti ti-device-mobile"></i> Nequi
+          </button>
+        </div>
+      </div>
       <div class="form-group" id="rec-confirm-grp" style="grid-column:1/-1;display:none">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;background:var(--green-light);padding:10px 12px;border-radius:var(--radius);color:var(--green-text)">
           <input type="checkbox" id="rec-confirmado" style="width:auto;margin:0"> Ya confirmé que el dinero llegó a mi cuenta bancaria
@@ -196,7 +241,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div id="rec-msg" style="display:none;margin-top:12px;padding:10px 14px;border-radius:var(--radius);font-size:13px;font-weight:500"></div>
   </div>
   <div class="panel">
-    <div class="panel-head"><span class="panel-title"><i class="ti ti-clock"></i> Movimientos de hoy</span></div>
+    <div class="panel-head"><span class="panel-title"><i class="ti ti-clock"></i> Movimientos recientes (24h)</span></div>
     <div id="movs-hoy"><div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos hoy</p></div></div>
   </div>
 </div>
@@ -229,18 +274,18 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <div class="panel">
     <div class="panel-head"><span class="panel-title"><i class="ti ti-history"></i> Historial</span></div>
     <div class="filter-bar">
-      <i class="ti ti-calendar" style="color:var(--text2)"></i>
-      <button class="chip active" onclick="setChipHist(this,'hoy')">Hoy</button>
-      <button class="chip" onclick="setChipHist(this,'semana')">Esta semana</button>
-      <button class="chip" onclick="setChipHist(this,'mes')">Este mes</button>
-      <button class="chip" onclick="setChipHist(this,'todo')">Todo</button>
-      <button class="chip" onclick="setChipHist(this,'custom')">Personalizado</button>
+      <span class="filter-label"><i class="ti ti-calendar"></i> Período</span>
+      <button class="chip recientes active" onclick="setChipHist(this,'recientes')"><i class="ti ti-clock-hour-4"></i> Recientes (24h)</button>
+      <button class="chip" onclick="setChipHist(this,'semana')"><i class='ti ti-calendar-week'></i> Esta semana</button>
+      <button class="chip" onclick="setChipHist(this,'mes')"><i class='ti ti-calendar-month'></i> Este mes</button>
+      <button class="chip" onclick="setChipHist(this,'todo')"><i class='ti ti-infinity'></i> Todo</button>
+      <button class="chip" onclick="setChipHist(this,'custom')"><i class='ti ti-calendar-search'></i> Personalizado</button>
       <span id="hist-custom" style="display:none;gap:6px;align-items:center">
         <input type="date" id="h-desde" onchange="renderHistorial()"><span style="font-size:12px">→</span><input type="date" id="h-hasta" onchange="renderHistorial()">
       </span>
     </div>
     <div class="filter-bar" style="margin-top:-6px">
-      <i class="ti ti-adjustments" style="color:var(--text2)"></i>
+      <span class="filter-label"><i class="ti ti-adjustments"></i> Filtrar</span>
       <select id="h-cuenta" onchange="renderHistorial()" style="width:auto"><option value="">Todas las cuentas</option><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select>
       <select id="h-prov" onchange="renderHistorial()" style="width:auto"><option value="">Megared + Multiproducto</option><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select>
       <select id="h-tipo" onchange="renderHistorial()" style="width:auto"><option value="">Entregas + Pagos</option><option value="entrega">Solo entregas</option><option value="pago">Solo pagos</option></select>
@@ -257,11 +302,11 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div class="panel-head"><span class="panel-title"><i class="ti ti-clock"></i> Pagos por confirmar</span></div>
     <div class="filter-bar">
       <i class="ti ti-calendar" style="color:var(--text2)"></i>
-      <button class="chip active" onclick="setChipConf(this,'todo')">Todos</button>
-      <button class="chip" onclick="setChipConf(this,'hoy')">Hoy</button>
+      <button class="chip active" onclick="setChipConf(this,'todo')"><i class='ti ti-infinity'></i> Todos</button>
+      <button class="chip recientes" onclick="setChipConf(this,'recientes')"><i class="ti ti-clock-hour-4"></i> Recientes (24h)</button>
       <button class="chip" onclick="setChipConf(this,'semana')">Esta semana</button>
-      <button class="chip" onclick="setChipConf(this,'mes')">Este mes</button>
-      <button class="chip" onclick="setChipConf(this,'custom')">Personalizado</button>
+      <button class="chip" onclick="setChipConf(this,'mes')"><i class='ti ti-calendar-month'></i> Este mes</button>
+      <button class="chip" onclick="setChipConf(this,'custom')"><i class='ti ti-calendar-search'></i> Personalizado</button>
       <span id="conf-custom" style="display:none;gap:6px;align-items:center">
         <input type="date" id="conf-desde" onchange="renderConfirmaciones()" style="width:auto;padding:5px 9px;font-size:12px">
         <span style="font-size:12px;color:var(--text2)">→</span>
@@ -328,6 +373,87 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   </div>
 </div>
 </div>
+
+<!-- FAB - Botón flotante de acción rápida -->
+<div class="fab-container" id="fab-container">
+  <div class="fab-options hidden" id="fab-options">
+    <div class="fab-option" onclick="abrirFabModal('entrega')">
+      <span class="fab-option-label">Entregar saldo</span>
+      <button class="fab-option-btn entrega"><i class="ti ti-arrow-up"></i></button>
+    </div>
+    <div class="fab-option" onclick="abrirFabModal('pago')">
+      <span class="fab-option-label">Registrar pago recibido</span>
+      <button class="fab-option-btn pago"><i class="ti ti-cash"></i></button>
+    </div>
+  </div>
+  <button class="fab-main" id="fab-main" onclick="toggleFab()">
+    <i class="ti ti-plus" id="fab-icon"></i>
+  </button>
+</div>
+
+<!-- MODAL RECARGA RÁPIDA (FAB) -->
+<div class="modal-bg" id="modal-fab" style="display:none"><div class="modal">
+  <div class="modal-title" id="fab-modal-title">Registrar movimiento <button class="close-btn" onclick="closeFabModal()"><i class="ti ti-x"></i></button></div>
+  <div class="form-group" style="margin-bottom:1rem">
+    <label class="form-label">Buscar cliente por nombre, código o WhatsApp</label>
+    <div class="cliente-search">
+      <input type="text" id="fab-buscar-cli" placeholder="Escribe para buscar..." oninput="buscarCliFab()" autocomplete="off">
+      <div class="autocomplete-list" id="fab-auto-list" style="display:none"></div>
+    </div>
+    <div class="cliente-sel-box" id="fab-cli-sel-box">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--green-text)" id="fab-cli-sel-nombre"></div>
+        <div style="font-size:11px;color:var(--green-text);margin-top:2px" id="fab-cli-sel-info"></div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="limpiarCliFab()"><i class="ti ti-x"></i></button>
+    </div>
+  </div>
+  <div class="form-grid">
+    <div class="form-group">
+      <label class="form-label">Valor ($) *</label>
+      <input type="number" id="fab-valor" placeholder="0" min="0" style="font-size:20px;font-weight:700;text-align:center">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fecha</label>
+      <input type="date" id="fab-fecha">
+    </div>
+    <div class="form-group">
+      <label class="form-label">No. transacción</label>
+      <input type="text" id="fab-trans" placeholder="Opcional">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nota</label>
+      <input type="text" id="fab-nota" placeholder="Opcional">
+    </div>
+    <div class="form-group" id="fab-cuenta-destino-grp" style="grid-column:1/-1;display:none">
+      <label class="form-label">¿A cuál cuenta llegó el pago?</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="fab-cuenta-btns">
+        <button type="button" class="cuenta-btn" onclick="selCuentaDestino(this,'Juanito (0660)')" data-cuenta="Juanito (0660)">
+          <i class="ti ti-building-bank"></i> Juanito (0660)
+        </button>
+        <button type="button" class="cuenta-btn" onclick="selCuentaDestino(this,'Don Martín (6945)')" data-cuenta="Don Martín (6945)">
+          <i class="ti ti-building-bank"></i> Don Martín (6945)
+        </button>
+        <button type="button" class="cuenta-btn" onclick="selCuentaDestino(this,'Bancolombia')" data-cuenta="Bancolombia">
+          <i class="ti ti-credit-card"></i> Bancolombia
+        </button>
+        <button type="button" class="cuenta-btn" onclick="selCuentaDestino(this,'Nequi')" data-cuenta="Nequi">
+          <i class="ti ti-device-mobile"></i> Nequi
+        </button>
+      </div>
+    </div>
+    <div class="form-group" id="fab-confirm-grp" style="grid-column:1/-1;display:none">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;background:var(--green-light);padding:10px 12px;border-radius:var(--radius);color:var(--green-text)">
+        <input type="checkbox" id="fab-confirmado" style="width:auto;margin:0"> Ya confirmé que el dinero llegó a mi cuenta bancaria
+      </label>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <button class="btn btn-primary" id="fab-submit-btn" style="width:100%;justify-content:center;padding:12px;font-size:14px" onclick="guardarFabMov()">
+    <i class="ti ti-device-floppy"></i> Registrar
+  </button>
+  <div id="fab-msg" style="display:none;margin-top:10px;padding:10px 14px;border-radius:var(--radius);font-size:13px;font-weight:500"></div>
+</div></div>
 
 <!-- MODAL CLIENTE (nuevo y editar) -->
 <div class="modal-bg" id="modal-cliente" style="display:none"><div class="modal">
@@ -398,7 +524,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 <script>
 let sbUrl='',sbKey='';
 let clientes=[],movimientos=[];
-let periodoActivo='hoy',periodoHistActivo='hoy';
+let periodoActivo='recientes',periodoHistActivo='recientes';
 let clienteSeleccionado=null;
 let periodoConfActivo='todo';
 
@@ -488,6 +614,14 @@ document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>
 // ── Períodos ──
 function getRango(p,pref=''){
   const n=new Date();let desde,hasta=hoy();
+  if(p==='recientes'){
+    // Últimas 24 horas en hora Colombia
+    const ayer=new Date(n.getTime()-24*60*60*1000);
+    const col=new Date(ayer.toLocaleString('en-US',{timeZone:'America/Bogota'}));
+    desde=col.getFullYear()+'-'+String(col.getMonth()+1).padStart(2,'0')+'-'+String(col.getDate()).padStart(2,'0');
+    hasta=hoy();
+    return{desde,hasta};
+  }
   if(p==='hoy')desde=hoy();
   else if(p==='semana'){const d=new Date(n);d.setDate(n.getDate()-n.getDay());desde=d.toISOString().split('T')[0];}
   else if(p==='mes')desde=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-01';
@@ -595,15 +729,19 @@ function renderHistorial(){
   }
   const cobrado=ms.filter(m=>m.tipo==='pago').reduce((a,m)=>a+Number(m.valor),0);
   const entregado=ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0);
+  const saldo_neto = cobrado - entregado;
   document.getElementById('hist-resumen').innerHTML=
-    `<span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-arrow-down"></i> Cobrado: ${fmt(cobrado)}</span>
-     <span class="resumen-chip" style="color:var(--red-text)"><i class="ti ti-arrow-up"></i> Entregado: ${fmt(entregado)}</span>
+    `<span class="resumen-chip highlight" style="color:var(--green-text);border-color:#5DCAA5"><i class="ti ti-arrow-down"></i> Cobrado: ${fmt(cobrado)}</span>
+     <span class="resumen-chip highlight" style="color:var(--red-text);border-color:#F0997B"><i class="ti ti-arrow-up"></i> Entregado: ${fmt(entregado)}</span>
+     <span class="resumen-chip highlight" style="color:${saldo_neto>=0?'var(--green-text)':'var(--red-text)'};border-color:${saldo_neto>=0?'#5DCAA5':'#F0997B'}"><i class="ti ti-scale"></i> Neto: ${saldo_neto>=0?'+':''}${fmt(saldo_neto)}</span>
      <span class="resumen-chip"><i class="ti ti-list"></i> ${ms.length} movimiento${ms.length!==1?'s':''}</span>`;
   document.getElementById('hist-lista').innerHTML=ms.length?ms.map(m=>{
     const eP=m.tipo==='pago';
     const cli=clientes.find(c=>c.id===m.cliente_id);
     const nc=eP&&!m.confirmado?'<span class="badge badge-purple" style="font-size:10px;margin-left:4px">Sin confirmar</span>':'';
-    const sub=[m.fecha,m.hora?m.hora.slice(0,5):null,m.codigo_transaccion?'#'+m.codigo_transaccion:null,m.nota].filter(Boolean).join(' · ');
+    const fechaFmtC=(f)=>{if(!f)return'';const [y,mo,d]=f.split('-');return `${d}/${mo}/${y}`;};
+    const horaFmtC=m.hora?m.hora.slice(0,5):null;
+    const sub=`<strong>${fechaFmtC(m.fecha)}</strong>${horaFmtC?' · '+horaFmtC:''}${m.cuenta_destino?` · <span style="background:var(--blue-light);color:var(--blue-text);font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px"><i class="ti ti-arrow-narrow-right"></i> ${m.cuenta_destino}</span>`:''}${m.codigo_transaccion?' · <span style="font-family:monospace;font-size:11px;background:var(--bg);padding:1px 5px;border-radius:3px">#'+m.codigo_transaccion+'</span>':''}${m.nota?' · <em>'+m.nota+'</em>':''}`;
     return`<div class="hist-item">
       <div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div>
       <div class="hist-info">
@@ -670,7 +808,10 @@ async function confirmarPago(id){
 
 // ── Movimientos de hoy ──
 function renderMovsHoy(){
-  const ms=movimientos.filter(m=>m.fecha===hoy());
+  const hace24h=new Date(new Date().getTime()-24*60*60*1000);
+  const col24=new Date(hace24h.toLocaleString('en-US',{timeZone:'America/Bogota'}));
+  const desde24=col24.getFullYear()+'-'+String(col24.getMonth()+1).padStart(2,'0')+'-'+String(col24.getDate()).padStart(2,'0');
+  const ms=movimientos.filter(m=>m.fecha>=desde24&&m.fecha<=hoy());
   document.getElementById('movs-hoy').innerHTML=ms.length
     ?ms.map(m=>{
       const eP=m.tipo==='pago';
@@ -723,7 +864,10 @@ function limpiarCli(){
 }
 
 function toggleConfirmRec(){
-  document.getElementById('rec-confirm-grp').style.display=document.getElementById('rec-tipo').value==='pago'?'block':'none';
+  const esPago = document.getElementById('rec-tipo').value === 'pago';
+  document.getElementById('rec-confirm-grp').style.display = esPago ? 'block' : 'none';
+  document.getElementById('rec-cuenta-destino-grp').style.display = esPago ? 'block' : 'none';
+  if(!esPago){ recCuentaDestino = null; }
 }
 
 document.addEventListener('click',e=>{if(!e.target.closest('.cliente-search'))document.getElementById('auto-list').style.display='none';});
@@ -744,6 +888,7 @@ async function registrarMov(){
     codigo_cliente:clienteSeleccionado.codigo_cliente||null,
     codigo_cuenta:clienteSeleccionado.plataforma==='Juanito'?'032442':'028469',
     proveedor:clienteSeleccionado.proveedor||null,
+    cuenta_destino:document.getElementById('rec-tipo').value==='pago'?(recCuentaDestino||null):null,
     confirmado,
     confirmado_en:confirmado?new Date().toISOString():null
   };
@@ -894,7 +1039,9 @@ function verHistCli(id){
     const eP=m.tipo==='pago';
     if(eP)saldo-=Number(m.valor);else saldo+=Number(m.valor);
     const nc=eP&&!m.confirmado?'<span class="badge badge-purple" style="font-size:10px;margin-left:4px">Sin confirmar</span>':'';
-    const sub=[m.fecha,m.hora?m.hora.slice(0,5):null,m.codigo_transaccion?'#'+m.codigo_transaccion:null,m.nota].filter(Boolean).join(' · ');
+    const fechaFmtC=(f)=>{if(!f)return'';const [y,mo,d]=f.split('-');return `${d}/${mo}/${y}`;};
+    const horaFmtC=m.hora?m.hora.slice(0,5):null;
+    const sub=`<strong>${fechaFmtC(m.fecha)}</strong>${horaFmtC?' · '+horaFmtC:''}${m.cuenta_destino?` · <span style="background:var(--blue-light);color:var(--blue-text);font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px"><i class="ti ti-arrow-narrow-right"></i> ${m.cuenta_destino}</span>`:''}${m.codigo_transaccion?' · <span style="font-family:monospace;font-size:11px;background:var(--bg);padding:1px 5px;border-radius:3px">#'+m.codigo_transaccion+'</span>':''}${m.nota?' · <em>'+m.nota+'</em>':''}`;
     return`<div class="hist-item">
       <div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div>
       <div class="hist-info">
@@ -1095,6 +1242,159 @@ function mostrarImpMsg(txt,tipo){
   el.style.background=tipo==='ok'?'var(--green-light)':tipo==='error'?'var(--red-light)':'var(--blue-light)';
   el.style.color=tipo==='ok'?'var(--green-text)':tipo==='error'?'var(--red-text)':'var(--blue-text)';
   el.style.border=`0.5px solid ${tipo==='ok'?'#5DCAA5':tipo==='error'?'#F0997B':'#b5d4f4'}`;
+}
+
+// ── FAB ──
+let fabTipo = 'entrega';
+let fabClienteSeleccionado = null;
+let fabAbierto = false;
+
+let fabCuentaDestino = null;
+let recCuentaDestino = null;
+
+function selCuentaDestino(btn, cuenta){
+  document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  fabCuentaDestino = cuenta;
+}
+
+function selCuentaDestinoRec(btn, cuenta){
+  btn.closest('div').querySelectorAll('.cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  recCuentaDestino = cuenta;
+}
+
+function toggleFab(){
+  fabAbierto = !fabAbierto;
+  document.getElementById('fab-options').classList.toggle('hidden', !fabAbierto);
+  document.getElementById('fab-main').classList.toggle('open', fabAbierto);
+}
+
+function abrirFabModal(tipo){
+  fabTipo = tipo;
+  fabAbierto = false;
+  document.getElementById('fab-options').classList.add('hidden');
+  document.getElementById('fab-main').classList.remove('open');
+  // Reset
+  fabClienteSeleccionado = null;
+  document.getElementById('fab-buscar-cli').value = '';
+  document.getElementById('fab-auto-list').style.display = 'none';
+  document.getElementById('fab-cli-sel-box').style.display = 'none';
+  document.getElementById('fab-valor').value = '';
+  document.getElementById('fab-fecha').value = hoy();
+  document.getElementById('fab-trans').value = '';
+  document.getElementById('fab-nota').value = '';
+  document.getElementById('fab-confirmado').checked = false;
+  document.getElementById('fab-msg').style.display = 'none';
+  fabCuentaDestino = null;
+  // Configurar según tipo
+  const esPago = tipo === 'pago';
+  document.getElementById('fab-confirm-grp').style.display = esPago ? 'block' : 'none';
+  document.getElementById('fab-cuenta-destino-grp').style.display = esPago ? 'block' : 'none';
+  // Reset selección
+  fabCuentaDestino = null;
+  document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('fab-modal-title').innerHTML = `
+    <span style="display:flex;align-items:center;gap:8px">
+      <span style="width:32px;height:32px;border-radius:50%;background:${esPago?'#25D366':'var(--amber)'};display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px">
+        <i class="ti ti-${esPago?'cash':'arrow-up'}"></i>
+      </span>
+      ${esPago ? 'Registrar pago recibido' : 'Entregar saldo'}
+    </span>
+    <button class="close-btn" onclick="closeFabModal()"><i class="ti ti-x"></i></button>`;
+  document.getElementById('fab-submit-btn').style.background = esPago ? '#25D366' : 'var(--amber)';
+  document.getElementById('fab-submit-btn').innerHTML = `<i class="ti ti-device-floppy"></i> ${esPago ? 'Registrar pago' : 'Registrar entrega'}`;
+  document.getElementById('modal-fab').style.display = 'flex';
+}
+
+function closeFabModal(){
+  document.getElementById('modal-fab').style.display = 'none';
+  fabAbierto = false;
+  document.getElementById('fab-options').classList.add('hidden');
+  document.getElementById('fab-main').classList.remove('open');
+}
+
+function buscarCliFab(){
+  const q = document.getElementById('fab-buscar-cli').value.toLowerCase().trim();
+  const list = document.getElementById('fab-auto-list');
+  if(!q){list.style.display='none';return;}
+  const res = clientes.filter(c=>c.nombre.toLowerCase().includes(q)||(c.codigo_cliente||'').includes(q)||(c.nombre_whatsapp||'').toLowerCase().includes(q)).slice(0,8);
+  if(!res.length){list.style.display='none';return;}
+  list.innerHTML = res.map(c=>`<div class="autocomplete-item" onclick="selCliFab('${c.id}')">
+    <div style="flex:1">
+      <div style="font-weight:600">${c.nombre}</div>
+      ${c.nombre_whatsapp?`<div style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</div>`:''}
+      <div style="font-size:11px;color:var(--text2)">${cuentaLbl(c.plataforma)} · ${c.proveedor}</div>
+    </div>
+    ${c.codigo_cliente?`<span style="font-family:monospace;font-size:11px;color:var(--text2);background:var(--bg);padding:2px 6px;border-radius:4px">${c.codigo_cliente}</span>`:''}
+  </div>`).join('');
+  list.style.display = 'block';
+}
+
+function selCliFab(id){
+  fabClienteSeleccionado = clientes.find(c=>c.id===id);
+  document.getElementById('fab-buscar-cli').value = '';
+  document.getElementById('fab-auto-list').style.display = 'none';
+  const box = document.getElementById('fab-cli-sel-box');
+  box.style.display = 'flex';
+  document.getElementById('fab-cli-sel-nombre').textContent = fabClienteSeleccionado.nombre+(fabClienteSeleccionado.nombre_whatsapp?' · '+fabClienteSeleccionado.nombre_whatsapp:'');
+  document.getElementById('fab-cli-sel-info').textContent = cuentaLbl(fabClienteSeleccionado.plataforma)+' · '+fabClienteSeleccionado.proveedor+(fabClienteSeleccionado.codigo_cliente?' · Cód: '+fabClienteSeleccionado.codigo_cliente:'');
+}
+
+function limpiarCliFab(){
+  fabClienteSeleccionado = null;
+  document.getElementById('fab-cli-sel-box').style.display = 'none';
+  document.getElementById('fab-buscar-cli').value = '';
+}
+
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#fab-auto-list') && !e.target.closest('#fab-buscar-cli'))
+    document.getElementById('fab-auto-list').style.display = 'none';
+  if(!e.target.closest('.fab-container') && fabAbierto){
+    fabAbierto = false;
+    document.getElementById('fab-options').classList.add('hidden');
+    document.getElementById('fab-main').classList.remove('open');
+  }
+});
+
+async function guardarFabMov(){
+  if(!fabClienteSeleccionado) return mostrarFabMsg('Selecciona un cliente primero','error');
+  const valor = Number(document.getElementById('fab-valor').value);
+  if(!valor||valor<=0) return mostrarFabMsg('Ingresa un valor válido','error');
+  const confirmado = fabTipo==='pago' && document.getElementById('fab-confirmado').checked;
+  const payload = {
+    cliente_id: fabClienteSeleccionado.id,
+    tipo: fabTipo, valor,
+    fecha: document.getElementById('fab-fecha').value || hoy(),
+    codigo_transaccion: document.getElementById('fab-trans').value || null,
+    nota: document.getElementById('fab-nota').value || null,
+    codigo_cliente: fabClienteSeleccionado.codigo_cliente || null,
+    codigo_cuenta: fabClienteSeleccionado.plataforma==='Juanito'?'032442':'028469',
+    proveedor: fabClienteSeleccionado.proveedor || null,
+    cuenta_destino: fabTipo==='pago' ? (fabCuentaDestino||null) : null,
+    confirmado,
+    confirmado_en: confirmado ? new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T') : null
+  };
+  try{
+    const n = await api('movimientos_recarga','POST',payload);
+    movimientos.unshift(n[0]);
+    mostrarFabMsg(`✓ ${fabTipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${fabClienteSeleccionado.nombre}`,'ok');
+    document.getElementById('fab-valor').value = '';
+    document.getElementById('fab-trans').value = '';
+    document.getElementById('fab-nota').value = '';
+    document.getElementById('fab-confirmado').checked = false;
+    limpiarCliFab();
+    renderMovsHoy();renderDash();renderConfirmaciones();
+    setTimeout(()=>closeFabModal(), 1800);
+  }catch(e){mostrarFabMsg('Error: '+e.message,'error');}
+}
+
+function mostrarFabMsg(txt,tipo){
+  const el = document.getElementById('fab-msg');
+  el.textContent = txt; el.style.display = 'block';
+  el.style.background = tipo==='ok'?'var(--green-light)':'var(--red-light)';
+  el.style.color = tipo==='ok'?'var(--green-text)':'var(--red-text)';
+  el.style.border = `0.5px solid ${tipo==='ok'?'#5DCAA5':'#F0997B'}`;
 }
 
 // ── Init ──
