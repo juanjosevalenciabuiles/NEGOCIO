@@ -113,6 +113,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <button class="tab" onclick="switchTab('clientes',this)"><i class="ti ti-users"></i> Clientes</button>
   <button class="tab" onclick="switchTab('historial',this)"><i class="ti ti-history"></i> Historial</button>
   <button class="tab" onclick="switchTab('confirmaciones',this)"><i class="ti ti-circle-check"></i> Confirmar</button>
+  <button class="tab" onclick="switchTab('importar',this)"><i class="ti ti-file-upload"></i> Importar</button>
   <button class="tab" onclick="switchTab('config',this)"><i class="ti ti-settings"></i> Configurar</button>
 </div>
 
@@ -273,6 +274,40 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <div class="panel">
     <div class="panel-head"><span class="panel-title"><i class="ti ti-checks"></i> Pagos confirmados recientes</span></div>
     <div id="conf-confirmados"><div class="empty"><i class="ti ti-inbox"></i><p>Sin pagos confirmados aún</p></div></div>
+  </div>
+</div>
+
+<!-- IMPORTAR -->
+<div class="section" id="sec-importar">
+  <div class="panel">
+    <div class="panel-head"><span class="panel-title"><i class="ti ti-file-upload"></i> Importar archivo Megared</span></div>
+    <div class="alert alert-info"><i class="ti ti-info-circle" style="flex-shrink:0"></i>
+      <span>Sube el Excel exportado de Megared. La app detecta automáticamente si es de Juanito o Don Martín, agrega clientes nuevos y movimientos sin duplicar los que ya existen.</span>
+    </div>
+
+    <div class="form-grid" style="margin-bottom:1rem">
+      <div class="form-group">
+        <label class="form-label">Proveedor del archivo *</label>
+        <select id="imp-proveedor">
+          <option value="Megared">Megared</option>
+          <option value="Multiproducto">Multiproducto</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Archivo Excel (.xls) *</label>
+        <input type="file" id="imp-archivo" accept=".xls,.xlsx" style="padding:6px">
+      </div>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:14px;margin-bottom:1rem" onclick="procesarImport()">
+      <i class="ti ti-upload"></i> Procesar e importar
+    </button>
+
+    <div id="imp-msg" style="display:none;padding:12px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:1rem"></div>
+    <div id="imp-preview" style="display:none">
+      <div class="panel-title" style="margin-bottom:10px"><i class="ti ti-list"></i> Vista previa</div>
+      <div id="imp-preview-body"></div>
+    </div>
   </div>
 </div>
 
@@ -443,6 +478,7 @@ function switchTab(t,btn){
   if(t==='historial')renderHistorial();
   if(t==='confirmaciones')renderConfirmaciones();
   if(t==='recargas'){document.getElementById('rec-fecha').value=hoy();renderMovsHoy();}
+  if(t==='importar'){document.getElementById('imp-msg').style.display='none';document.getElementById('imp-preview').style.display='none';}
 }
 
 function openModal(id){document.getElementById(id).style.display='flex';}
@@ -873,6 +909,192 @@ function verHistCli(id){
   });
   document.getElementById('hist-cli-body').innerHTML=resumen+(items.length?items.join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>');
   openModal('modal-hist-cli');
+}
+
+// ── Importación Excel ──
+function procesarImport(){
+  const file = document.getElementById('imp-archivo').files[0];
+  const proveedor = document.getElementById('imp-proveedor').value;
+  if(!file) return mostrarImpMsg('Selecciona un archivo primero','error');
+
+  mostrarImpMsg('Leyendo archivo...','info');
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    try{
+      const html = new TextDecoder('latin1').decode(e.target.result);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html,'text/html');
+      const table = doc.querySelector('table');
+      if(!table) return mostrarImpMsg('No se encontró tabla en el archivo','error');
+
+      const rows = Array.from(table.querySelectorAll('tr')).slice(1);
+      const transacciones = [];
+
+      // Códigos de cuenta conocidos
+      const JUANITO = '032442';
+      const DON_MARTIN = '028469';
+
+      for(const row of rows){
+        const cols = row.querySelectorAll('td');
+        if(cols.length < 7) continue;
+        const observacion = cols[5].textContent.trim();
+        if(observacion !== '') continue; // solo las tuyas
+
+        const fechaCompleta = cols[0].textContent.trim();
+        const usuarioEnvia = cols[2].textContent.trim();
+        const comercio = cols[3].textContent.trim();
+        const razonSocial = cols[4].textContent.trim();
+        const valorTxt = cols[6].textContent.trim().replace(/\./g,'').replace(',','.');
+        const valor = parseFloat(valorTxt) || 0;
+        const trans = cols[1].textContent.trim();
+
+        // Detectar cuenta por código de usuario
+        let cuenta = null;
+        let codigoCuenta = null;
+        if(usuarioEnvia.includes(JUANITO)){cuenta='Juanito';codigoCuenta=JUANITO;}
+        else if(usuarioEnvia.includes(DON_MARTIN)){cuenta='Don Martin';codigoCuenta=DON_MARTIN;}
+        else if(usuarioEnvia===JUANITO||trans.startsWith(JUANITO)){cuenta='Juanito';codigoCuenta=JUANITO;}
+        else if(usuarioEnvia===DON_MARTIN||trans.startsWith(DON_MARTIN)){cuenta='Don Martin';codigoCuenta=DON_MARTIN;}
+        // Si no se detecta automaticamente, inferir por el archivo
+        // (el usuario ya seleccionó el proveedor, la cuenta se detecta del código de quien envía)
+        if(!cuenta){
+          // Intentar detectar por el código en la transacción
+          if(trans.includes(JUANITO)){cuenta='Juanito';codigoCuenta=JUANITO;}
+          else if(trans.includes(DON_MARTIN)){cuenta='Don Martin';codigoCuenta=DON_MARTIN;}
+          else{cuenta='Juanito';codigoCuenta=JUANITO;} // fallback
+        }
+
+        transacciones.push({
+          fecha: fechaCompleta.slice(0,10),
+          hora: fechaCompleta.length > 10 ? fechaCompleta.slice(11,19) : null,
+          transaccion: trans,
+          comercio,
+          razonSocial,
+          valor,
+          cuenta,
+          codigoCuenta,
+          proveedor
+        });
+      }
+
+      if(!transacciones.length) return mostrarImpMsg('No se encontraron transacciones tuyas (sin observación) en el archivo','error');
+
+      // Clasificar: clientes nuevos vs existentes, movimientos nuevos vs duplicados
+      const transExistentes = new Set(movimientos.map(m=>m.codigo_transaccion).filter(Boolean));
+      const clientesNuevos = [];
+      const movsNuevos = [];
+      const movsdup = [];
+      const clientesMap = {}; // codigo+cuenta -> id
+
+      // Mapear clientes existentes
+      clientes.forEach(c=>{if(c.codigo_cliente&&c.plataforma)clientesMap[c.codigo_cliente+'_'+c.plataforma]=c.id;});
+
+      for(const t of transacciones){
+        const key = t.comercio+'_'+t.cuenta;
+        // Cliente nuevo?
+        if(!clientesMap[key]){
+          if(!clientesNuevos.find(c=>c.key===key)){
+            const newId = crypto.randomUUID();
+            clientesMap[key] = newId;
+            clientesNuevos.push({key,id:newId,nombre:t.razonSocial,cuenta:t.cuenta,codigoCuenta:t.codigoCuenta,comercio:t.comercio});
+          }
+        }
+        // Movimiento duplicado?
+        if(transExistentes.has(t.transaccion)){
+          movsdup.push(t);
+        } else {
+          movsNuevos.push({...t, clienteId: clientesMap[key]});
+        }
+      }
+
+      // Mostrar preview
+      mostrarPreview(clientesNuevos, movsNuevos, movsdup, clientesMap);
+
+    }catch(err){mostrarImpMsg('Error leyendo el archivo: '+err.message,'error');}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function mostrarPreview(clientesNuevos, movsNuevos, movsdup, clientesMap){
+  document.getElementById('imp-preview').style.display='block';
+  const total = movsNuevos.length + movsdup.length;
+  mostrarImpMsg(`✓ Archivo leído: ${total} transacciones tuyas encontradas`,'ok');
+
+  let html = `<div class="resumen-chips" style="margin-bottom:12px">
+    <span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-user-plus"></i> ${clientesNuevos.length} cliente${clientesNuevos.length!==1?'s':''} nuevo${clientesNuevos.length!==1?'s':''}</span>
+    <span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-plus"></i> ${movsNuevos.length} movimiento${movsNuevos.length!==1?'s':''} nuevo${movsNuevos.length!==1?'s':''}</span>
+    <span class="resumen-chip" style="color:var(--text2)"><i class="ti ti-copy"></i> ${movsdup.length} ya existía${movsdup.length!==1?'n':''} (se omiten)</span>
+  </div>`;
+
+  if(clientesNuevos.length){
+    html += `<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Clientes nuevos que se crearán</div>`;
+    html += clientesNuevos.map(c=>`<div class="hist-item"><div class="hist-dot entrega"><i class="ti ti-user-plus"></i></div><div class="hist-info"><div class="hist-nombre">${c.nombre}</div><div class="hist-sub">Cód: ${c.comercio} · ${c.cuenta==='Juanito'?'Juanito (0660)':'Don Martín (6945)'}</div></div></div>`).join('');
+  }
+
+  if(movsNuevos.length){
+    html += `<div style="font-size:12px;font-weight:600;color:var(--text2);margin:12px 0 6px;text-transform:uppercase">Movimientos nuevos</div>`;
+    html += movsNuevos.slice(0,10).map(m=>{
+      const cli = clientes.find(c=>c.id===m.clienteId)||clientesNuevos.find(c=>c.id===m.clienteId);
+      return`<div class="hist-item"><div class="hist-dot entrega"><i class="ti ti-arrow-up"></i></div><div class="hist-info"><div class="hist-nombre">${cli?cli.nombre||cli.razonSocial:'—'}</div><div class="hist-sub">${m.fecha} · ${m.proveedor} · #${m.transaccion}</div></div><div class="hist-val" style="color:var(--red)">-${fmt(m.valor)}</div></div>`;
+    }).join('');
+    if(movsNuevos.length>10) html+=`<div style="font-size:12px;color:var(--text2);padding:8px 0">... y ${movsNuevos.length-10} más</div>`;
+  }
+
+  html += `<button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;margin-top:1rem" onclick="confirmarImport(${JSON.stringify(clientesNuevos).replace(/"/g,"'")}, ${JSON.stringify(movsNuevos).replace(/"/g,"'")})">
+    <i class="ti ti-database-import"></i> Confirmar e importar ${clientesNuevos.length} cliente${clientesNuevos.length!==1?'s':''} y ${movsNuevos.length} movimiento${movsNuevos.length!==1?'s':''}
+  </button>`;
+
+  document.getElementById('imp-preview-body').innerHTML = html;
+}
+
+async function confirmarImport(clientesNuevos, movsNuevos){
+  mostrarImpMsg('Importando...','info');
+  try{
+    // Insertar clientes nuevos
+    if(clientesNuevos.length){
+      const cData = clientesNuevos.map(c=>({
+        id:c.id, nombre:c.nombre, plataforma:c.cuenta,
+        proveedor:'Megared / Multiproducto',
+        codigo_cliente:c.comercio, deuda_anterior:0
+      }));
+      const nuevos = await api('clientes_recarga','POST',cData);
+      if(Array.isArray(nuevos)) clientes.push(...nuevos);
+      clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+    }
+
+    // Insertar movimientos nuevos
+    if(movsNuevos.length){
+      const mData = movsNuevos.map(m=>({
+        cliente_id:m.clienteId, tipo:'entrega', valor:m.valor,
+        fecha:m.fecha, hora:m.hora||null,
+        codigo_transaccion:m.transaccion,
+        codigo_cliente:m.comercio,
+        codigo_cuenta:m.codigoCuenta,
+        proveedor:m.proveedor,
+        confirmado:false
+      }));
+      // Insertar en lotes de 20
+      for(let i=0;i<mData.length;i+=20){
+        const lote = mData.slice(i,i+20);
+        const nuevos = await api('movimientos_recarga','POST',lote);
+        if(Array.isArray(nuevos)) movimientos.unshift(...nuevos);
+      }
+    }
+
+    mostrarImpMsg(`✅ Importado correctamente: ${clientesNuevos.length} cliente${clientesNuevos.length!==1?'s':''} y ${movsNuevos.length} movimiento${movsNuevos.length!==1?'s':''}`, 'ok');
+    document.getElementById('imp-preview').style.display='none';
+    document.getElementById('imp-archivo').value='';
+    renderDash();renderClientes();renderHistorial();renderMovsHoy();
+
+  }catch(e){mostrarImpMsg('Error importando: '+e.message,'error');}
+}
+
+function mostrarImpMsg(txt,tipo){
+  const el=document.getElementById('imp-msg');
+  el.textContent=txt;el.style.display='block';
+  el.style.background=tipo==='ok'?'var(--green-light)':tipo==='error'?'var(--red-light)':'var(--blue-light)';
+  el.style.color=tipo==='ok'?'var(--green-text)':tipo==='error'?'var(--red-text)':'var(--blue-text)';
+  el.style.border=`0.5px solid ${tipo==='ok'?'#5DCAA5':tipo==='error'?'#F0997B':'#b5d4f4'}`;
 }
 
 // ── Init ──
