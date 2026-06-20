@@ -212,32 +212,6 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 
 /* ── Code ── */
 .code-block{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;font-family:'Courier New',monospace;font-size:11px;white-space:pre;overflow-x:auto;line-height:1.6}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
-/* Teclado numérico */
-.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
-.numpad-btn{padding:16px;border-radius:var(--radius-lg);border:0.5px solid var(--border);background:var(--surface);font-size:20px;font-weight:700;cursor:pointer;text-align:center;color:var(--text);transition:all .1s;box-shadow:var(--shadow);-webkit-tap-highlight-color:transparent}
-.numpad-btn:active{transform:scale(.94);background:var(--bg)}
-.numpad-btn.especial{background:var(--bg);font-size:16px;color:var(--text2)}
-.numpad-btn.ok{background:var(--green);color:#fff;box-shadow:0 3px 10px rgba(26,158,110,.35)}
-.numpad-btn.borrar{font-size:18px}
-.valor-display{background:var(--bg);border-radius:var(--radius-lg);padding:16px 20px;text-align:right;font-size:32px;font-weight:700;color:var(--text);letter-spacing:-1px;min-height:64px;border:0.5px solid var(--border);margin-bottom:4px}
-.valor-display .prefijo{font-size:18px;color:var(--text2);font-weight:500}
-/* Toque rápido en Inicio */
-.quick-cliente{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow);margin-bottom:8px}
-.quick-cliente:hover{border-color:var(--green);transform:translateX(2px)}
-.quick-cliente:active{transform:scale(.98)}
-.quick-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.quick-info{flex:1;min-width:0}
-.quick-nombre{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.quick-sub{font-size:11px;color:var(--text2);margin-top:2px}
-.quick-saldo{font-size:14px;font-weight:700;white-space:nowrap}
-.quick-actions{display:flex;gap:6px}
-.quick-btn{width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .15s}
-.quick-btn:active{transform:scale(.9)}
-/* Recordatorios */
-.recordatorio-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;box-shadow:var(--shadow);transition:all .2s}
-.recordatorio-card.urgente{border-color:var(--red);background:var(--red-light)}
-.recordatorio-card.completado{opacity:.5}
 </style>
 </head>
 <body>
@@ -264,7 +238,6 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <button class="tab" onclick="switchTab('clientes',this)"><i class="ti ti-users"></i> Clientes</button>
   <button class="tab" onclick="switchTab('historial',this)"><i class="ti ti-history"></i> Historial</button>
   <button class="tab" onclick="switchTab('confirmaciones',this)"><i class="ti ti-circle-check"></i> Confirmar</button>
-  <button class="tab" onclick="switchTab('recordatorios',this)"><i class="ti ti-notes"></i> Notas</button>
   <button class="tab tab-config" onclick="switchTab('config',this)" title="Configurar"><i class="ti ti-settings"></i></button>
 </div>
 
@@ -292,13 +265,6 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div class="cuenta-card"><div class="cuenta-card-title"><i class="ti ti-building-bank"></i> Don Martín (6945)</div><div class="cuenta-card-val" id="cc-martin">$0</div><div class="cuenta-card-sub" id="cc-martin-sub">0 clientes activos</div></div>
   </div>
   <div class="panel">
-    <div class="panel-head">
-      <span class="panel-title"><i class="ti ti-bolt" style="color:var(--amber)"></i> Registro rápido</span>
-      <span style="font-size:11px;color:var(--text2)">Toca un cliente para registrar</span>
-    </div>
-    <div id="quick-clientes"><div class="empty"><i class="ti ti-users"></i><p>Sin clientes con saldo pendiente</p></div></div>
-  </div>
-  <div class="panel">
     <div class="panel-head"><span class="panel-title"><i class="ti ti-clock-hour-4" style="color:var(--amber)"></i> Últimos movimientos</span></div>
     <div id="dash-recientes"><div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos recientes</p></div></div>
   </div>
@@ -313,10 +279,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <div class="panel">
     <div class="panel-head">
       <span class="panel-title"><i class="ti ti-users"></i> Clientes (<span id="clientes-count">0</span>)</span>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-secondary btn-sm" onclick="exportarCartera()"><i class="ti ti-file-export"></i> Reporte</button>
-        <button class="btn btn-primary btn-sm" onclick="abrirModalCliente()"><i class="ti ti-plus"></i> Nuevo</button>
-      </div>
+      <button class="btn btn-primary btn-sm" onclick="abrirModalCliente()"><i class="ti ti-plus"></i> Nuevo</button>
     </div>
     <div class="filter-bar">
       <input class="search-inline" id="f-buscar" placeholder="Buscar por nombre, código o WhatsApp..." onkeyup="renderClientes()">
@@ -326,16 +289,10 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
       <select onchange="renderClientes()" id="f-cuenta" style="width:auto"><option value="">Todas las cuentas</option><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select>
       <select onchange="renderClientes()" id="f-prov" style="width:auto"><option value="">Megared + Multiproducto</option><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select>
       <select onchange="renderClientes()" id="f-est" style="width:auto"><option value="">Todos los estados</option><option value="mora">En mora</option><option value="pendiente">Pendiente</option><option value="pagado">Pagado</option></select>
-      <select onchange="renderClientes()" id="f-orden" style="width:auto">
-        <option value="reciente">Más recientes primero</option>
-        <option value="alfa">Alfabético</option>
-        <option value="deuda">Mayor deuda</option>
-        <option value="mora">Mayor mora primero</option>
-      </select>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th></th><th>Cliente</th><th>Código</th><th>Cuenta</th><th>Saldo</th><th>Último pago</th><th>Estado</th><th></th></tr></thead>
+        <thead><tr><th>Cliente</th><th>Código</th><th>Cuenta</th><th>Saldo pendiente</th><th>Cupo usado</th><th>Estado</th><th></th></tr></thead>
         <tbody id="tbody-clientes"><tr><td colspan="7"><div class="empty"><i class="ti ti-users"></i><p>Sin clientes.</p></div></td></tr></tbody>
       </table>
     </div>
@@ -345,10 +302,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 <!-- ═══ HISTORIAL ═══ -->
 <div class="section" id="sec-historial">
   <div class="panel">
-    <div class="panel-head">
-      <span class="panel-title"><i class="ti ti-history"></i> Historial</span>
-      <button class="btn btn-secondary btn-sm" onclick="exportarHistorial()"><i class="ti ti-file-export"></i> Exportar</button>
-    </div>
+    <div class="panel-head"><span class="panel-title"><i class="ti ti-history"></i> Historial</span></div>
     <div class="filter-bar">
       <span class="filter-label"><i class="ti ti-calendar"></i> Período</span>
       <button class="chip amber active" id="hchip-recientes" onclick="setChipHist(this,'recientes')"><i class="ti ti-clock-hour-4"></i> Recientes</button>
@@ -392,17 +346,6 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   </div>
 </div>
 
-<!-- ═══ RECORDATORIOS ═══ -->
-<div class="section" id="sec-recordatorios">
-  <div class="panel">
-    <div class="panel-head">
-      <span class="panel-title"><i class="ti ti-notes"></i> Notas rápidas</span>
-      <button class="btn btn-primary btn-sm" onclick="openModal('modal-recordatorio')"><i class="ti ti-plus"></i> Nueva nota</button>
-    </div>
-    <div id="recordatorios-lista"><div class="empty"><i class="ti ti-notes"></i><p>Sin notas aún</p></div></div>
-  </div>
-</div>
-
 <!-- ═══ CONFIG ═══ -->
 <div class="section" id="sec-config">
   <div class="panel">
@@ -434,20 +377,13 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <span class="modal-handle"></span>
   <div class="modal-title"><span style="display:flex;align-items:center;gap:8px"><i class="ti ti-file-spreadsheet" style="color:var(--blue)"></i> Importar Excel Megared</span><button class="close-btn" onclick="closeModal('modal-importar')"><i class="ti ti-x"></i></button></div>
   <div class="alert alert-info"><i class="ti ti-info-circle" style="flex-shrink:0"></i><span>Sube el Excel de Megared. La app detecta la cuenta automáticamente y solo agrega lo nuevo sin duplicar.</span></div>
-  <div class="form-group" style="margin-bottom:1rem">
-    <label class="form-label">Archivos Excel (puedes seleccionar varios a la vez)</label>
-    <input type="file" id="imp-archivos" accept=".xls,.xlsx" multiple style="padding:8px">
-    <div style="font-size:11px;color:var(--text2);margin-top:6px"><i class="ti ti-info-circle"></i> El proveedor se detecta automáticamente por el nombre del archivo (MULTIPRODUCTO → Multiproducto, sino → Megared)</div>
+  <div class="form-grid" style="margin-bottom:1rem">
+    <div class="form-group"><label class="form-label">Proveedor *</label><select id="imp-proveedor"><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select></div>
+    <div class="form-group"><label class="form-label">Archivo Excel *</label><input type="file" id="imp-archivo" accept=".xls,.xlsx" style="padding:6px"></div>
   </div>
-  <div id="imp-archivos-lista" style="margin-bottom:12px"></div>
-  <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="procesarImportMultiple()"><i class="ti ti-upload"></i> Procesar todos</button>
+  <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="procesarImport()"><i class="ti ti-upload"></i> Procesar</button>
   <div id="imp-msg" style="display:none;padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-top:10px"></div>
   <div id="imp-preview" style="display:none;margin-top:1rem"><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Vista previa</div><div id="imp-preview-body"></div></div>
-  <div class="divider" id="imp-hist-divider" style="display:none"></div>
-  <div id="imp-historial-section" style="display:none">
-    <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase"><i class="ti ti-history"></i> Historial de importaciones</div>
-    <div id="imp-historial-lista"></div>
-  </div>
 </div></div>
 
 <!-- MODAL FAB -->
@@ -475,7 +411,6 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     </div>
     <div class="form-group"><label class="form-label">Fecha</label><input type="date" id="fab-fecha"></div>
     <div class="form-group"><label class="form-label">No. transacción</label><input type="text" id="fab-trans" placeholder="Opcional"></div>
-    <div class="form-group"><label class="form-label">Hora (opcional)</label><input type="time" id="fab-hora" placeholder="HH:MM"></div>
     <div class="form-group"><label class="form-label">Nota</label><input type="text" id="fab-nota" placeholder="Opcional"></div>
     <div class="form-group" id="fab-motivo-grp" style="grid-column:1/-1;display:none">
       <label class="form-label">Motivo de la reversión *</label>
@@ -519,18 +454,8 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div class="form-group"><label class="form-label">Código cliente</label><input id="cli-codigo" placeholder="Ej: 029804"></div>
     <div class="form-group"><label class="form-label">Cuenta *</label><select id="cli-cuenta"><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select></div>
     <div class="form-group"><label class="form-label">Proveedor *</label><select id="cli-prov"><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select></div>
-    <div class="form-group"><label class="form-label">Ciudad</label><input id="cli-ciudad" placeholder="Rionegro, El Carmen..."></div>
     <div class="form-group"><label class="form-label">Deuda anterior ($)</label><input id="cli-deuda" type="number" placeholder="0" min="0"></div>
-    <div class="form-group" style="grid-column:1/-1">
-      <label class="form-label">Estado personalizado</label>
-      <select id="cli-estado"><option value="">Sin estado</option></select>
-    </div>
-    <div class="form-group" style="grid-column:1/-1">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;background:var(--amber-light);padding:10px 12px;border-radius:var(--radius);color:var(--amber-text)">
-        <input type="checkbox" id="cli-vip" style="width:auto;margin:0"> <i class="ti ti-star"></i> Cliente VIP (alta confianza, acuerdos especiales)
-      </label>
-    </div>
-    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Notas del cliente</label><textarea id="cli-notas" rows="2" placeholder="Acuerdos, número de cuenta bancaria, datos extra..."></textarea></div>
+    <div class="form-group"><label class="form-label">Cupo máximo ($)</label><input id="cli-cupo" type="number" placeholder="500000" min="0"></div>
   </div>
   <div class="divider"></div>
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
@@ -569,58 +494,6 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
       <button class="btn btn-secondary" onclick="closeModal('modal-edit-mov')">Cancelar</button>
       <button class="btn btn-primary" onclick="guardarEditMov()"><i class="ti ti-device-floppy"></i> Guardar</button>
     </div>
-  </div>
-</div></div>
-
-<!-- MODAL RECORDATORIO -->
-<div class="modal-bg" id="modal-recordatorio" style="display:none"><div class="modal">
-  <span class="modal-handle"></span>
-  <div class="modal-title" id="rec-modal-title">Nueva nota <button class="close-btn" onclick="closeModal('modal-recordatorio')"><i class="ti ti-x"></i></button></div>
-  <input type="hidden" id="rec-id">
-  <div class="form-grid">
-    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Título *</label><input id="rec-titulo" placeholder="Ej: Llamar a Mauricio"></div>
-    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Contenido</label><textarea id="rec-contenido" rows="3" placeholder="Detalles..."></textarea></div>
-    <div class="form-group" style="grid-column:1/-1">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;background:var(--red-light);padding:10px 12px;border-radius:var(--radius);color:var(--red-text)">
-        <input type="checkbox" id="rec-urgente" style="width:auto;margin:0"> <i class="ti ti-alert-triangle"></i> Marcar como urgente
-      </label>
-    </div>
-  </div>
-  <div class="divider"></div>
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-    <button class="btn btn-danger btn-sm" id="btn-del-rec" style="display:none" onclick="eliminarRecordatorio()"><i class="ti ti-trash"></i></button>
-    <div style="display:flex;gap:8px;margin-left:auto">
-      <button class="btn btn-secondary" onclick="closeModal('modal-recordatorio')">Cancelar</button>
-      <button class="btn btn-primary" onclick="guardarRecordatorio()"><i class="ti ti-device-floppy"></i> Guardar</button>
-    </div>
-  </div>
-</div></div>
-
-<!-- MODAL TECLADO NUMÉRICO -->
-<div class="modal-bg" id="modal-numpad" style="display:none"><div class="modal" style="max-width:340px">
-  <span class="modal-handle"></span>
-  <div class="modal-title" id="numpad-title">Valor <button class="close-btn" onclick="closeModal('modal-numpad')"><i class="ti ti-x"></i></button></div>
-  <div id="numpad-cliente-info" style="background:var(--bg);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;font-size:13px;color:var(--text2)"></div>
-  <div class="valor-display"><span class="prefijo">$ </span><span id="numpad-display">0</span></div>
-  <div style="font-size:11px;color:var(--text2);text-align:right;margin-bottom:8px" id="numpad-formatted"></div>
-  <div class="numpad">
-    <button class="numpad-btn" onclick="numpadPress('7')">7</button>
-    <button class="numpad-btn" onclick="numpadPress('8')">8</button>
-    <button class="numpad-btn" onclick="numpadPress('9')">9</button>
-    <button class="numpad-btn" onclick="numpadPress('4')">4</button>
-    <button class="numpad-btn" onclick="numpadPress('5')">5</button>
-    <button class="numpad-btn" onclick="numpadPress('6')">6</button>
-    <button class="numpad-btn" onclick="numpadPress('1')">1</button>
-    <button class="numpad-btn" onclick="numpadPress('2')">2</button>
-    <button class="numpad-btn" onclick="numpadPress('3')">3</button>
-    <button class="numpad-btn especial borrar" onclick="numpadPress('del')"><i class="ti ti-backspace"></i></button>
-    <button class="numpad-btn" onclick="numpadPress('0')">0</button>
-    <button class="numpad-btn ok" onclick="numpadConfirmar()"><i class="ti ti-check"></i></button>
-  </div>
-  <div style="display:flex;gap:8px;margin-top:12px">
-    <button class="btn btn-secondary btn-sm" onclick="numpadPress('000')" style="flex:1;justify-content:center">000</button>
-    <button class="btn btn-secondary btn-sm" onclick="numpadPress('00')" style="flex:1;justify-content:center">00</button>
-    <button class="btn btn-secondary btn-sm" onclick="numpadPress('limpiar')" style="flex:1;justify-content:center">Limpiar</button>
   </div>
 </div></div>
 
@@ -691,7 +564,6 @@ function switchTab(t,btn){
   if(t==='clientes')renderClientes();
   if(t==='historial')renderHistorial();
   if(t==='confirmaciones')renderConfirmaciones();
-  if(t==='recordatorios'){cargarRecordatorios();}
 }
 function openModal(id){document.getElementById(id).style.display='flex';}
 function closeModal(id){document.getElementById(id).style.display='none';}
@@ -700,24 +572,13 @@ document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>
 // ── Configuración ──
 function guardarConfig(){sbUrl=document.getElementById('sb-url').value.trim().replace(/\/+$/,'');sbKey=document.getElementById('sb-key').value.trim();if(!sbUrl||!sbKey){alert('Ingresa la URL y la clave');return;}localStorage.setItem('sb_url',sbUrl);localStorage.setItem('sb_key',sbKey);const msg=document.getElementById('config-msg');msg.style.display='inline';setTimeout(()=>msg.style.display='none',3000);probarConexion();}
 async function probarConexion(){if(!sbUrl||!sbKey){setConn(false,'Sin configurar');return;}try{const r=await fetch(sbUrl+'/rest/v1/clientes_recarga?select=id&limit=1',{headers:{apikey:sbKey,Authorization:'Bearer '+sbKey}});if(r.ok){setConn(true,'Conectado');cargarDatos();}else setConn(false,'Error de conexión');}catch{setConn(false,'Sin conexión');}}
-function setConn(ok,txt){document.getElementById('connDot').className='dot'+(ok?' on':'');document.getElementById('connTxt').textContent=txt;if(ok)iniciarRealtime();}
+function setConn(ok,txt){document.getElementById('connDot').className='dot'+(ok?' on':'');document.getElementById('connTxt').textContent=txt;}
 async function api(tabla,method='GET',body=null,qs=''){const url=sbUrl+'/rest/v1/'+tabla+(qs?'?'+qs:'');const h={apikey:sbKey,Authorization:'Bearer '+sbKey,'Content-Type':'application/json',Prefer:'return=representation'};const r=await fetch(url,{method,headers:h,body:body?JSON.stringify(body):null});if(!r.ok)throw new Error(await r.text());const txt=await r.text();return txt?JSON.parse(txt):[];}
-async function cargarDatos(){try{[clientes,movimientos]=await Promise.all([api('clientes_recarga','GET',null,'order=creado_en.desc'),api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc')]);renderDash();renderClientes();renderHistorial();renderConfirmaciones();}catch(e){console.error(e);}}
+async function cargarDatos(){try{[clientes,movimientos]=await Promise.all([api('clientes_recarga','GET',null,'order=nombre'),api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc')]);renderDash();renderClientes();renderHistorial();renderConfirmaciones();}catch(e){console.error(e);}}
 
 // ── Lógica saldos ──
-function pendiente(c){
-  const ms=movimientos.filter(m=>m.cliente_id===c.id);
-  return Number(c.deuda_anterior||0)
-    +ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0)
-    -ms.filter(m=>m.tipo==='pago'||m.tipo==='reversion').reduce((a,m)=>a+Number(m.valor),0);
-}
-function colorSaldo(v){return v>0?'var(--red)':v<0?'var(--blue)':'var(--green)';}
-function fmtSaldo(v){
-  if(v<0) return '<span style="color:var(--blue);font-weight:700">A favor: '+fmt(Math.abs(v))+'</span>';
-  if(v===0) return '<span style="color:var(--green);font-weight:700">Saldado</span>';
-  return '<span style="color:var(--red);font-weight:700">'+fmt(v)+'</span>';
-}
-function estadoCli(c){const p=pendiente(c);if(p<=0)return{txt:'Pagado',cls:'badge-green'};const pg=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');if(!pg.length)return{txt:'Sin pago',cls:'badge-amber'};const dias=Math.floor((new Date()-new Date(pg[0].fecha))/86400000);return dias>4?{txt:'En mora',cls:'badge-red'}:dias>1?{txt:'Pendiente',cls:'badge-amber'}:{txt:'Al día',cls:'badge-green'};}
+function pendiente(c){const ms=movimientos.filter(m=>m.cliente_id===c.id);return Number(c.deuda_anterior||0)+ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0)-ms.filter(m=>m.tipo==='pago'||m.tipo==='reversion').reduce((a,m)=>a+Number(m.valor),0);}
+function estadoCli(c){const p=pendiente(c);if(p<=0)return{txt:'Pagado',cls:'badge-green'};const pg=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');if(!pg.length)return{txt:'Sin pago',cls:'badge-amber'};const dias=Math.floor((new Date()-new Date(pg[0].fecha))/86400000);return dias>7?{txt:'En mora',cls:'badge-red'}:{txt:'Pendiente',cls:'badge-amber'};}
 
 // ── Búsqueda global ──
 function buscarGlobal(){
@@ -777,7 +638,6 @@ function renderDash(){
   const at=[];
   if(sinConf)at.push({nombre:`${sinConf} pago${sinConf>1?'s':''} sin confirmar en banco`,detalle:'Ve a "Confirmar" para verificarlos',txt:'Pendiente',cls:'badge-purple'});
   clientes.filter(c=>estadoCli(c).cls!=='badge-green').slice(0,8).forEach(c=>at.push({nombre:c.nombre+(c.nombre_whatsapp?' ('+c.nombre_whatsapp+')':''),detalle:fmt(Math.max(0,pendiente(c)))+' pendiente · '+cuentaLbl(c.plataforma),...estadoCli(c)}));
-  renderQuickClientes();
   document.getElementById('atencion-list').innerHTML=at.length?at.map(a=>`<div class="hist-item"><div class="hist-dot entrega"><i class="ti ti-user"></i></div><div class="hist-info"><div class="hist-nombre">${a.nombre}</div><div class="hist-sub">${a.detalle}</div></div><span class="badge ${a.cls}">${a.txt}</span></div>`).join(''):'<div class="empty"><i class="ti ti-circle-check"></i><p>Todo al día 🎉</p></div>';
 }
 
@@ -792,19 +652,6 @@ function renderClientes(){
   if(prov)lista=lista.filter(c=>c.proveedor===prov);
   if(est)lista=lista.filter(c=>{const e=estadoCli(c);return est==='mora'?e.cls==='badge-red':est==='pendiente'?e.cls==='badge-amber':e.cls==='badge-green';});
   if(buscar)lista=lista.filter(c=>c.nombre.toLowerCase().includes(buscar)||(c.codigo_cliente||'').includes(buscar)||(c.nombre_whatsapp||'').toLowerCase().includes(buscar));
-  // Ordenar
-  const orden=document.getElementById('f-orden').value;
-  if(orden==='alfa')lista=[...lista].sort((a,b)=>a.nombre.localeCompare(b.nombre));
-  else if(orden==='deuda')lista=[...lista].sort((a,b)=>pendiente(b)-pendiente(a));
-  else if(orden==='mora'){lista=[...lista].sort((a,b)=>{
-    const pa=movimientos.filter(m=>m.cliente_id===a.id&&m.tipo==='pago');
-    const pb=movimientos.filter(m=>m.cliente_id===b.id&&m.tipo==='pago');
-    const da=pa.length?Math.floor((new Date()-new Date(pa[0].fecha))/86400000):999;
-    const db=pb.length?Math.floor((new Date()-new Date(pb[0].fecha))/86400000):999;
-    return db-da;
-  });}
-  // VIP primero dentro del orden elegido
-  if(orden==='reciente'){lista=[...lista].sort((a,b)=>(b.es_vip?1:0)-(a.es_vip?1:0));}
   document.getElementById('clientes-count').textContent=lista.length;
   const tb=document.getElementById('tbody-clientes');
   tb.innerHTML=lista.length?lista.map(c=>{
@@ -813,22 +660,12 @@ function renderClientes(){
     const pct=cupoMax>0?Math.min(100,Math.round(pend/cupoMax*100)):0;
     const colorBarra=pct>80?'var(--red)':pct>50?'var(--amber)':'var(--green)';
     const e=estadoCli(c);
-    // Semáforo basado en días sin pago
-    const pagos=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');
-    const diasSinPago=pagos.length?Math.floor((new Date()-new Date(pagos[0].fecha))/86400000):null;
-    let semaforo='';
-    if(pend>0){
-      if(diasSinPago===null) semaforo='<span title="Sin pagos registrados" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--amber);margin-right:4px;flex-shrink:0"></span>';
-      else if(diasSinPago<=1) semaforo='<span title="Pagó recientemente" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--green);margin-right:4px;flex-shrink:0"></span>';
-      else if(diasSinPago<=4) semaforo='<span title="${diasSinPago} días sin pagar — contactar pronto" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--amber);margin-right:4px;flex-shrink:0;animation:pulse 1.5s infinite"></span>';
-      else semaforo='<span title="${diasSinPago} días sin pagar — EN MORA" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--red);margin-right:4px;flex-shrink:0;animation:pulse 1s infinite"></span>';
-    }
     return`<tr>
-      <td><div style="display:flex;align-items:center;gap:0">${semaforo}<div><strong>${c.nombre}</strong>${c.es_vip?'<span style="color:#B8860B;font-size:12px"> ⭐</span>':''}<br>${c.nombre_whatsapp?`<span style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span> `:''}</div></div></td>
+      <td><strong>${c.nombre}</strong>${c.nombre_whatsapp?`<br><span style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span>`:''}</td>
       <td><span style="font-family:monospace;font-size:12px;color:var(--text2)">${c.codigo_cliente||'—'}</span></td>
       <td><span class="badge badge-blue">${cuentaLbl(c.plataforma)}</span></td>
-      <td>${fmtSaldo(pend)}</td>
-      <td>${diasSinPago!==null&&pend>0?`<span style="font-size:12px;color:${diasSinPago>4?'var(--red)':diasSinPago>1?'var(--amber)':'var(--green)'}">${diasSinPago===0?'Hoy':diasSinPago===1?'Ayer':diasSinPago+' días'}</span>`:'<span style="font-size:11px;color:var(--text3)">—</span>'}</td>
+      <td><strong style="color:${pend>0?'var(--red)':'var(--green)'}">${fmt(pend)}</strong></td>
+      <td>${cupoMax>0?`<div style="font-size:11px;color:var(--text2)">${pct}% de ${fmt(cupoMax)}</div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${colorBarra}"></div></div>`:'<span style="font-size:11px;color:var(--text3)">Sin cupo definido</span>'}</td>
       <td><span class="badge ${e.cls}">${e.txt}</span></td>
       <td><div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="verHistCli('${c.id}')" title="Historial"><i class="ti ti-history"></i></button><button class="btn btn-secondary btn-sm" onclick="abrirEditCliente('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button></div></td>
     </tr>`;
@@ -910,7 +747,7 @@ function renderConfirmaciones(){
       const sub=[m.hora?m.hora.slice(0,5):null,m.codigo_transaccion?'Trans: '+m.codigo_transaccion:null,m.comprobante?'Comp: #'+m.comprobante:null,m.cuenta_destino?'→ '+m.cuenta_destino:null,m.nota].filter(Boolean).join(' · ');
       html+=`<div class="conf-card ${m.confirmado?'conf':'pend'}">
         <div class="hist-dot ${m.confirmado?'pago':'pendiente'}"><i class="ti ti-${m.confirmado?'check':'clock'}"></i></div>
-        <div class="conf-info" style="cursor:pointer" onclick="verHistCli('${m.cliente_id}')"><div class="conf-nombre" style="display:flex;align-items:center;gap:5px">${cli?cli.nombre:'—'} <i class="ti ti-external-link" style="font-size:11px;color:var(--text3)"></i></div><div class="conf-sub">${sub||'Sin detalles'}</div></div>
+        <div class="conf-info"><div class="conf-nombre">${cli?cli.nombre:'—'}</div><div class="conf-sub">${sub||'Sin detalles'}</div></div>
         <div style="text-align:right">
           <div style="font-size:14px;font-weight:700;color:var(--green)">${fmt(m.valor)}</div>
           ${!m.confirmado?`<button class="btn btn-confirm btn-sm" style="margin-top:6px" onclick="confirmarPago('${m.id}')"><i class="ti ti-circle-check"></i> Confirmar</button>`:'<div style="font-size:11px;color:var(--green-text);margin-top:4px"><i class="ti ti-check"></i> Confirmado</div>'}
@@ -1007,108 +844,13 @@ async function guardarFabMov(){
   const notaFinal = fabTipo==='reversion' ? (fabMotivo+(document.getElementById('fab-nota').value?(' — '+document.getElementById('fab-nota').value):'')) : (document.getElementById('fab-nota').value||null);
   // Reversión actúa como pago (resta saldo) pero se guarda como 'reversion'
   const tipoGuardar = fabTipo==='reversion' ? 'reversion' : fabTipo;
-  const payload={cliente_id:fabClienteSeleccionado.id,tipo:tipoGuardar,valor,fecha:document.getElementById('fab-fecha').value||hoy(),codigo_transaccion:document.getElementById('fab-trans').value||null,hora_manual:document.getElementById('fab-hora').value||null,nota:notaFinal,codigo_cliente:fabClienteSeleccionado.codigo_cliente||null,codigo_cuenta:fabClienteSeleccionado.plataforma==='Juanito'?'032442':'028469',proveedor:fabClienteSeleccionado.proveedor||null,cuenta_destino:fabTipo==='pago'?(fabCuentaDestino||null):null,confirmado,confirmado_en:confirmado?new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T'):null};
-  try{const n=await api('movimientos_recarga','POST',payload);movimientos.unshift(n[0]);mostrarFabMsg(`✓ ${fabTipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${fabClienteSeleccionado.nombre}`,'ok');document.getElementById('fab-valor').value='';document.getElementById('fab-valor-display').value='';document.getElementById('fab-hora').value='';document.getElementById('fab-trans').value='';document.getElementById('fab-nota').value='';document.getElementById('fab-confirmado').checked=false;limpiarCliFab();fabCuentaDestino=null;document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));renderDash();renderClientes();renderHistorial();renderConfirmaciones();setTimeout(()=>closeFabModal(),1800);}catch(e){mostrarFabMsg('Error: '+e.message,'error');}
+  const payload={cliente_id:fabClienteSeleccionado.id,tipo:tipoGuardar,valor,fecha:document.getElementById('fab-fecha').value||hoy(),codigo_transaccion:document.getElementById('fab-trans').value||null,nota:notaFinal,codigo_cliente:fabClienteSeleccionado.codigo_cliente||null,codigo_cuenta:fabClienteSeleccionado.plataforma==='Juanito'?'032442':'028469',proveedor:fabClienteSeleccionado.proveedor||null,cuenta_destino:fabTipo==='pago'?(fabCuentaDestino||null):null,confirmado,confirmado_en:confirmado?new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T'):null};
+  try{const n=await api('movimientos_recarga','POST',payload);movimientos.unshift(n[0]);mostrarFabMsg(`✓ ${fabTipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${fabClienteSeleccionado.nombre}`,'ok');document.getElementById('fab-valor').value='';document.getElementById('fab-valor-display').value='';document.getElementById('fab-trans').value='';document.getElementById('fab-nota').value='';document.getElementById('fab-confirmado').checked=false;limpiarCliFab();fabCuentaDestino=null;document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));renderDash();renderClientes();renderHistorial();renderConfirmaciones();setTimeout(()=>closeFabModal(),1800);}catch(e){mostrarFabMsg('Error: '+e.message,'error');}
 }
 function mostrarFabMsg(txt,tipo){const el=document.getElementById('fab-msg');el.textContent=txt;el.style.display='block';el.style.background=tipo==='ok'?'var(--green-light)':'var(--red-light)';el.style.color=tipo==='ok'?'var(--green-text)':'var(--red-text)';el.style.border=`0.5px solid ${tipo==='ok'?'#4ABEA0':'#E89070'}`;}
 
 // ── Importar ──
 function abrirModalImportar(){document.getElementById('imp-msg').style.display='none';document.getElementById('imp-preview').style.display='none';document.getElementById('imp-archivo').value='';openModal('modal-importar');}
-function abrirModalImportar(){
-  document.getElementById('imp-msg').style.display='none';
-  document.getElementById('imp-preview').style.display='none';
-  document.getElementById('imp-archivos').value='';
-  document.getElementById('imp-archivos-lista').innerHTML='';
-  cargarHistorialImportaciones();
-  openModal('modal-importar');
-}
-
-async function cargarHistorialImportaciones(){
-  try{
-    const hist=await api('historial_importaciones','GET',null,'order=creado_en.desc&limit=10');
-    const sec=document.getElementById('imp-historial-section');
-    const div=document.getElementById('imp-hist-divider');
-    if(hist.length){
-      sec.style.display='block';div.style.display='block';
-      document.getElementById('imp-historial-lista').innerHTML=hist.map(h=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:12px">
-          <i class="ti ti-file-spreadsheet" style="color:var(--blue);flex-shrink:0"></i>
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.nombre_archivo||'Sin nombre'}</div>
-            <div style="color:var(--text2)">${h.proveedor||''} · ${h.clientes_nuevos} clientes · ${h.movimientos_nuevos} movimientos · ${h.movimientos_omitidos} duplicados</div>
-          </div>
-          <div style="color:var(--text2);white-space:nowrap">${new Date(h.creado_en).toLocaleDateString('es-CO')}</div>
-        </div>`).join('');
-    }
-  }catch(e){console.log('Sin historial de importaciones');}
-}
-
-// Listener para mostrar lista de archivos seleccionados
-document.addEventListener('DOMContentLoaded',()=>{
-  const inp=document.getElementById('imp-archivos');
-  if(inp)inp.addEventListener('change',function(){
-    const lista=document.getElementById('imp-archivos-lista');
-    if(!this.files.length){lista.innerHTML='';return;}
-    lista.innerHTML=Array.from(this.files).map(f=>{
-      const esMult=f.name.toUpperCase().includes('MULTIPRODUCTO');
-      return`<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg);border-radius:var(--radius);margin-bottom:4px;font-size:12px">
-        <i class="ti ti-file-spreadsheet" style="color:var(--blue)"></i>
-        <span style="flex:1">${f.name}</span>
-        <span class="badge ${esMult?'badge-amber':'badge-blue'}">${esMult?'Multiproducto':'Megared'}</span>
-      </div>`;
-    }).join('');
-  });
-});
-
-async function procesarImportMultiple(){
-  const files=document.getElementById('imp-archivos').files;
-  if(!files.length)return mostrarImpMsg('Selecciona al menos un archivo','error');
-  mostrarImpMsg('Procesando '+files.length+' archivo'+( files.length>1?'s':'')+'...','info');
-  const todosClientesNuevos=[];const todosMovsNuevos=[];const todosMovsDup=[];
-  const archivos=Array.from(files);
-  const clientesMapGlobal={};
-  clientes.forEach(c=>{if(c.codigo_cliente&&c.plataforma)clientesMapGlobal[c.codigo_cliente+'_'+c.plataforma]=c.id;});
-  const transExistentes=new Set(movimientos.map(m=>m.codigo_transaccion).filter(Boolean));
-  for(const file of archivos){
-    const proveedor=file.name.toUpperCase().includes('MULTIPRODUCTO')?'Multiproducto':'Megared';
-    await new Promise(resolve=>{
-      const reader=new FileReader();
-      reader.onload=async function(e){
-        try{
-          const html=new TextDecoder('latin1').decode(e.target.result);
-          const doc=new DOMParser().parseFromString(html,'text/html');
-          const table=doc.querySelector('table');if(!table){resolve();return;}
-          const JUANITO='032442',DON_MARTIN='028469';
-          Array.from(table.querySelectorAll('tr')).slice(1).forEach(row=>{
-            const cols=row.querySelectorAll('td');
-            if(cols.length<7)return;
-            if(cols[5].textContent.trim()!=='')return;
-            const fechaC=cols[0].textContent.trim();
-            const usuarioEnvia=cols[2].textContent.trim();
-            const trans=cols[1].textContent.trim();
-            let cuenta=null,codigoCuenta=null;
-            if(usuarioEnvia.includes(JUANITO)||trans.includes(JUANITO)){cuenta='Juanito';codigoCuenta=JUANITO;}
-            else if(usuarioEnvia.includes(DON_MARTIN)||trans.includes(DON_MARTIN)){cuenta='Don Martin';codigoCuenta=DON_MARTIN;}
-            else{cuenta='Juanito';codigoCuenta=JUANITO;}
-            const valorTxt=cols[6].textContent.trim().replace(/\./g,'').replace(',','.');
-            const t={fecha:fechaC.slice(0,10),hora:fechaC.length>10?fechaC.slice(11,19):null,transaccion:trans,comercio:cols[3].textContent.trim(),razonSocial:cols[4].textContent.trim(),valor:parseFloat(valorTxt)||0,cuenta,codigoCuenta,proveedor,archivo:file.name};
-            const key=t.comercio+'_'+t.cuenta;
-            if(!clientesMapGlobal[key]&&!todosClientesNuevos.find(c=>c.key===key)){
-              const newId=crypto.randomUUID();clientesMapGlobal[key]=newId;
-              todosClientesNuevos.push({key,id:newId,nombre:t.razonSocial,cuenta:t.cuenta,codigoCuenta:t.codigoCuenta,comercio:t.comercio});
-            }
-            if(transExistentes.has(t.transaccion))todosMovsDup.push(t);
-            else{todosMovsNuevos.push({...t,clienteId:clientesMapGlobal[key]});transExistentes.add(t.transaccion);}
-          });
-        }catch(err){console.error('Error en',file.name,err);}
-        resolve();
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  }
-  mostrarPreview(todosClientesNuevos,todosMovsNuevos,todosMovsDup);
-}
-
 function procesarImport(){
   const file=document.getElementById('imp-archivo').files[0];
   const proveedor=document.getElementById('imp-proveedor').value;
@@ -1169,35 +911,14 @@ async function confirmarImport(clientesNuevos,movsNuevos){
   try{
     if(clientesNuevos.length){const cData=clientesNuevos.map(c=>({id:c.id,nombre:c.nombre,plataforma:c.cuenta,proveedor:'Megared / Multiproducto',codigo_cliente:c.comercio,deuda_anterior:0}));const nuevos=await api('clientes_recarga','POST',cData);if(Array.isArray(nuevos))clientes.push(...nuevos);clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));}
     if(movsNuevos.length){const mData=movsNuevos.map(m=>({cliente_id:m.clienteId,tipo:'entrega',valor:m.valor,fecha:m.fecha,hora:m.hora||null,codigo_transaccion:m.transaccion,codigo_cliente:m.comercio,codigo_cuenta:m.codigoCuenta,proveedor:m.proveedor,confirmado:false}));for(let i=0;i<mData.length;i+=20){const nuevos=await api('movimientos_recarga','POST',mData.slice(i,i+20));if(Array.isArray(nuevos))movimientos.unshift(...nuevos);}}
-    // Guardar en historial de importaciones
-    try{
-      await api('historial_importaciones','POST',{
-        nombre_archivo:'Importación múltiple',
-        clientes_nuevos:clientesNuevos.length,
-        movimientos_nuevos:movsNuevos.length,
-        movimientos_omitidos:movsNuevos.length>0?0:0
-      });
-    }catch(e){console.log('No se pudo guardar historial');}
     mostrarImpMsg(`✅ Importado: ${clientesNuevos.length} clientes y ${movsNuevos.length} movimientos`,'ok');
-    document.getElementById('imp-preview').style.display='none';
-    document.getElementById('imp-archivos').value='';
-    document.getElementById('imp-archivos-lista').innerHTML='';
+    document.getElementById('imp-preview').style.display='none';document.getElementById('imp-archivo').value='';
     renderDash();renderClientes();renderHistorial();renderConfirmaciones();
-    cargarHistorialImportaciones();
   }catch(e){mostrarImpMsg('Error: '+e.message,'error');}
 }
 function mostrarImpMsg(txt,tipo){const el=document.getElementById('imp-msg');el.textContent=txt;el.style.display='block';el.style.background=tipo==='ok'?'var(--green-light)':tipo==='error'?'var(--red-light)':'var(--blue-light)';el.style.color=tipo==='ok'?'var(--green-text)':tipo==='error'?'var(--red-text)':'var(--blue-text)';el.style.border=`0.5px solid ${tipo==='ok'?'#4ABEA0':tipo==='error'?'#E89070':'#70A8E8'}`;}
 
 // ── Guardar cliente ──
-async function cargarEstadosSelect(selId, valorActual=''){
-  try{
-    const estados=await api('estados_personalizados','GET',null,'order=orden');
-    const sel=document.getElementById(selId);
-    if(!sel)return;
-    sel.innerHTML='<option value="">Sin estado</option>'+estados.map(e=>`<option value="${e.nombre}" ${valorActual===e.nombre?'selected':''}>${e.nombre}</option>`).join('');
-  }catch(e){console.log('Sin estados personalizados');}
-}
-
 function abrirModalCliente(){
   document.getElementById('modal-cli-title').innerHTML='Nuevo cliente <button class="close-btn" onclick="closeModal(\'modal-cliente\')"><i class="ti ti-x"></i></button>';
   document.getElementById('cli-id').value='';document.getElementById('btn-eliminar-cli').style.display='none';
@@ -1208,13 +929,13 @@ function abrirModalCliente(){
 function abrirEditCliente(id){
   const c=clientes.find(x=>x.id===id);
   document.getElementById('modal-cli-title').innerHTML='Editar cliente <button class="close-btn" onclick="closeModal(\'modal-cliente\')"><i class="ti ti-x"></i></button>';
-  document.getElementById('cli-id').value=c.id;document.getElementById('cli-nombre').value=c.nombre||'';document.getElementById('cli-wsp').value=c.nombre_whatsapp||'';document.getElementById('cli-tel').value=c.telefono||'';document.getElementById('cli-codigo').value=c.codigo_cliente||'';document.getElementById('cli-cuenta').value=c.plataforma||'Juanito';document.getElementById('cli-prov').value=c.proveedor||'Megared';document.getElementById('cli-deuda').value=c.deuda_anterior||0;document.getElementById('cli-ciudad').value=c.ciudad||'';document.getElementById('cli-vip').checked=c.es_vip||false;document.getElementById('cli-notas').value=c.notas||'';document.getElementById('btn-eliminar-cli').style.display='inline-flex';cargarEstadosSelect('cli-estado',c.estado_personalizado||'');
+  document.getElementById('cli-id').value=c.id;document.getElementById('cli-nombre').value=c.nombre||'';document.getElementById('cli-wsp').value=c.nombre_whatsapp||'';document.getElementById('cli-tel').value=c.telefono||'';document.getElementById('cli-codigo').value=c.codigo_cliente||'';document.getElementById('cli-cuenta').value=c.plataforma||'Juanito';document.getElementById('cli-prov').value=c.proveedor||'Megared';document.getElementById('cli-deuda').value=c.deuda_anterior||0;document.getElementById('cli-cupo').value=c.cupo_maximo||0;document.getElementById('btn-eliminar-cli').style.display='inline-flex';
   openModal('modal-cliente');
 }
 async function guardarCliente(){
   const nombre=document.getElementById('cli-nombre').value.trim();if(!nombre)return alert('El nombre es obligatorio');
   const id=document.getElementById('cli-id').value;
-  const data={nombre,nombre_whatsapp:document.getElementById('cli-wsp').value||null,telefono:document.getElementById('cli-tel').value||null,plataforma:document.getElementById('cli-cuenta').value,proveedor:document.getElementById('cli-prov').value,codigo_cliente:document.getElementById('cli-codigo').value||null,deuda_anterior:Number(document.getElementById('cli-deuda').value)||0,ciudad:document.getElementById('cli-ciudad').value||null,es_vip:document.getElementById('cli-vip').checked,estado_personalizado:document.getElementById('cli-estado').value||null,notas:document.getElementById('cli-notas').value||null};
+  const data={nombre,nombre_whatsapp:document.getElementById('cli-wsp').value||null,telefono:document.getElementById('cli-tel').value||null,plataforma:document.getElementById('cli-cuenta').value,proveedor:document.getElementById('cli-prov').value,codigo_cliente:document.getElementById('cli-codigo').value||null,deuda_anterior:Number(document.getElementById('cli-deuda').value)||0,cupo_maximo:Number(document.getElementById('cli-cupo').value)||0};
   try{if(id){await api('clientes_recarga?id=eq.'+id,'PATCH',data);const i=clientes.findIndex(x=>x.id===id);if(i>=0)clientes[i]={...clientes[i],...data};}else{const n=await api('clientes_recarga','POST',data);clientes.push(n[0]);}clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));closeModal('modal-cliente');renderClientes();renderDash();}catch(e){alert('Error: '+e.message);}
 }
 function confirmarEliminarCliente(){
@@ -1258,13 +979,9 @@ function verHistCli(id){
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
       <span class="badge badge-blue">${cuentaLbl(c.plataforma)}</span>
       <span class="badge badge-gray">${c.proveedor||'—'}</span>
-      ${c.es_vip?'<span class="badge badge-amber">⭐ VIP</span>':''}
-      ${c.estado_personalizado?`<span class="badge" style="background:var(--purple-light);color:var(--purple-text)">${c.estado_personalizado}</span>`:''}
-      ${c.ciudad?`<span class="badge badge-gray"><i class="ti ti-map-pin"></i> ${c.ciudad}</span>`:''}
       ${c.codigo_cliente?`<span style="font-family:monospace;font-size:11px;color:var(--text2);background:var(--surface);padding:2px 8px;border-radius:10px;border:0.5px solid var(--border)">Cód: ${c.codigo_cliente}</span>`:''}
       ${c.nombre_whatsapp?`<span style="color:#25D366;font-size:12px"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span>`:''}
     </div>
-    ${c.notas?`<div style="background:var(--amber-light);border-radius:var(--radius);padding:8px 12px;font-size:12px;color:var(--amber-text);margin-bottom:10px"><i class="ti ti-notes"></i> ${c.notas}</div>`:''}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${cupoMax>0?'8px':'0'}">
       <span style="font-size:13px;color:var(--text2)">Saldo pendiente</span>
       <strong style="font-size:18px;color:${pend>0?'var(--red)':'var(--green)'}">${fmt(pend)}</strong>
@@ -1294,12 +1011,9 @@ function verHistCli(id){
           <div class="hist-nombre">${esRevC?'Reversión de saldo':eP?'Pago recibido':'Entrega de saldo'} ${nc}${revBadgeC}</div>
           <div class="hist-sub">${m.hora?m.hora.slice(0,5):''} ${cdBadge} ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px">#${m.codigo_transaccion}</span>`:''} ${m.nota?`<em>${m.nota}</em>`:''}</div>
         </div>
-        <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <div style="text-align:right">
           <div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div>
-          <div style="font-size:11px;color:${saldo<0?'var(--blue)':saldo===0?'var(--green)':'var(--text2)'}">
-            ${saldo<0?'A favor: '+fmt(Math.abs(saldo)):saldo===0?'Saldado ✓':'Debe: '+fmt(saldo)}
-          </div>
-          <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-hist-cli');abrirEditMov('${m.id}')" title="Editar"><i class="ti ti-edit"></i></button>
+          <div style="font-size:11px;color:var(--text2)">Saldo: ${fmt(Math.max(0,saldo))}</div>
         </div>
       </div>`;
     });
@@ -1323,241 +1037,9 @@ function getValorFab(){
   return Number(document.getElementById('fab-valor').value) || 0;
 }
 
-// ── Registro rápido en Inicio ──
-function renderQuickClientes(){
-  const conSaldo = clientes
-    .filter(c=>pendiente(c)>0)
-    .sort((a,b)=>{
-      const pa=movimientos.filter(m=>m.cliente_id===a.id&&m.tipo==='pago');
-      const pb=movimientos.filter(m=>m.cliente_id===b.id&&m.tipo==='pago');
-      const da=pa.length?Math.floor((new Date()-new Date(pa[0].fecha))/86400000):999;
-      const db=pb.length?Math.floor((new Date()-new Date(pb[0].fecha))/86400000):999;
-      return db-da;
-    }).slice(0,8);
-  const el=document.getElementById('quick-clientes');
-  if(!el)return;
-  el.innerHTML=conSaldo.length?conSaldo.map(c=>{
-    const pend=pendiente(c);
-    const pagos=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');
-    const dias=pagos.length?Math.floor((new Date()-new Date(pagos[0].fecha))/86400000):null;
-    const color=dias===null?'var(--amber)':dias<=1?'var(--green)':dias<=4?'var(--amber)':'var(--red)';
-    return`<div class="quick-cliente" onclick="abrirNumpad('${c.id}','entrega')">
-      <span class="quick-dot" style="background:${color}"></span>
-      <div class="quick-info">
-        <div class="quick-nombre">${c.nombre}${c.nombre_whatsapp?` <span style="color:#25D366;font-size:10px">${c.nombre_whatsapp}</span>`:''}</div>
-        <div class="quick-sub">${cuentaLbl(c.plataforma)}${dias!==null?' · '+( dias===0?'pagó hoy':dias===1?'pagó ayer':dias+' días sin pagar'):' · sin pagos'}</div>
-      </div>
-      <div style="text-align:right">
-        <div class="quick-saldo" style="color:var(--red)">${fmt(pend)}</div>
-      </div>
-      <div class="quick-actions" onclick="event.stopPropagation()">
-        <button class="quick-btn" style="background:var(--green-light);color:var(--green-text)" onclick="abrirNumpad('${c.id}','entrega')" title="Entregar saldo"><i class="ti ti-arrow-up"></i></button>
-        <button class="quick-btn" style="background:#E8F8EE;color:#25D366" onclick="abrirNumpad('${c.id}','pago')" title="Registrar pago"><i class="ti ti-cash"></i></button>
-      </div>
-    </div>`;
-  }).join(''):'<div class="empty"><i class="ti ti-circle-check"></i><p>¡Todo cobrado! Sin saldos pendientes</p></div>';
-}
-
-// ── Teclado numérico ──
-let numpadValor='',numpadClienteId=null,numpadTipo='entrega';
-function abrirNumpad(clienteId,tipo){
-  numpadClienteId=clienteId;numpadTipo=tipo;numpadValor='';
-  actualizarNumpad();
-  const c=clientes.find(x=>x.id===clienteId);
-  document.getElementById('numpad-title').innerHTML=`${tipo==='entrega'?'Entregar saldo':'Registrar pago'} <button class="close-btn" onclick="closeModal('modal-numpad')"><i class="ti ti-x"></i></button>`;
-  document.getElementById('numpad-cliente-info').innerHTML=c?`<strong>${c.nombre}</strong>${c.nombre_whatsapp?` · <span style="color:#25D366">${c.nombre_whatsapp}</span>`:''} <span class="badge badge-blue">${cuentaLbl(c.plataforma)}</span>`:'';
-  openModal('modal-numpad');
-}
-function numpadPress(v){
-  if(v==='del'){numpadValor=numpadValor.slice(0,-1);}
-  else if(v==='limpiar'){numpadValor='';}
-  else if(v==='000'){numpadValor+=numpadValor?'000':'';}
-  else if(v==='00'){numpadValor+=numpadValor?'00':'';}
-  else{if(numpadValor==='0')numpadValor=v;else numpadValor+=v;}
-  if(numpadValor.length>10)numpadValor=numpadValor.slice(0,10);
-  actualizarNumpad();
-}
-function actualizarNumpad(){
-  const num=parseInt(numpadValor||'0',10);
-  document.getElementById('numpad-display').textContent=numpadValor||'0';
-  document.getElementById('numpad-formatted').textContent=num>0?'= '+fmt(num):'';
-}
-async function numpadConfirmar(){
-  const valor=parseInt(numpadValor||'0',10);
-  if(!valor||valor<=0){document.getElementById('numpad-display').style.color='var(--red)';setTimeout(()=>document.getElementById('numpad-display').style.color='',500);return;}
-  const c=clientes.find(x=>x.id===numpadClienteId);
-  if(!c)return;
-  try{
-    const payload={cliente_id:numpadClienteId,tipo:numpadTipo,valor,fecha:hoy(),codigo_cliente:c.codigo_cliente||null,codigo_cuenta:c.plataforma==='Juanito'?'032442':'028469',proveedor:c.proveedor||null,confirmado:false};
-    const n=await api('movimientos_recarga','POST',payload);
-    movimientos.unshift(n[0]);
-    closeModal('modal-numpad');
-    renderDash();renderClientes();renderHistorial();renderConfirmaciones();
-    // Feedback visual
-    mostrarToast(`✓ ${numpadTipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${c.nombre}`);
-  }catch(e){alert('Error: '+e.message);}
-}
-
-// ── Toast de confirmación ──
-function mostrarToast(txt){
-  let t=document.getElementById('toast');
-  if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1A1A18;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;max-width:90vw;text-align:center';document.body.appendChild(t);}
-  t.textContent=txt;t.style.opacity='1';
-  clearTimeout(t._timeout);t._timeout=setTimeout(()=>t.style.opacity='0',2500);
-}
-
-// ── Recordatorios ──
-let recordatorios=[];
-async function cargarRecordatorios(){
-  try{recordatorios=await api('recordatorios','GET',null,'order=creado_en.desc');renderRecordatorios();}catch(e){console.error(e);}
-}
-function renderRecordatorios(){
-  const el=document.getElementById('recordatorios-lista');if(!el)return;
-  const activos=recordatorios.filter(r=>!r.completado);
-  const completados=recordatorios.filter(r=>r.completado);
-  let html='';
-  if(activos.length){
-    html+=activos.map(r=>`<div class="recordatorio-card${r.es_urgente?' urgente':''}">
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px">
-          ${r.es_urgente?'<i class="ti ti-alert-triangle" style="color:var(--red)"></i>':'<i class="ti ti-note" style="color:var(--text2)"></i>'}
-          ${r.titulo}
-        </div>
-        ${r.contenido?`<div style="font-size:12px;color:var(--text2);margin-top:4px">${r.contenido}</div>`:''}
-      </div>
-      <div style="display:flex;gap:6px;flex-shrink:0">
-        <button class="btn btn-secondary btn-sm" onclick="editarRecordatorio('${r.id}')" title="Editar"><i class="ti ti-edit"></i></button>
-        <button class="btn btn-primary btn-sm" onclick="completarRecordatorio('${r.id}')" title="Marcar completado"><i class="ti ti-check"></i></button>
-      </div>
-    </div>`).join('');
-  }
-  if(completados.length){
-    html+=`<div class="fecha-grupo" style="margin-top:12px">Completados (${completados.length})</div>`;
-    html+=completados.slice(0,5).map(r=>`<div class="recordatorio-card completado">
-      <div style="flex:1"><div style="font-size:13px;font-weight:600;text-decoration:line-through">${r.titulo}</div></div>
-      <button class="btn btn-secondary btn-sm" onclick="eliminarRecordatorioId('${r.id}')"><i class="ti ti-trash"></i></button>
-    </div>`).join('');
-  }
-  el.innerHTML=html||'<div class="empty"><i class="ti ti-notes"></i><p>Sin notas. ¡Agrega una!</p></div>';
-}
-function openModalRecordatorio(){
-  document.getElementById('rec-id').value='';
-  document.getElementById('rec-titulo').value='';
-  document.getElementById('rec-contenido').value='';
-  document.getElementById('rec-urgente').checked=false;
-  document.getElementById('btn-del-rec').style.display='none';
-  document.getElementById('rec-modal-title').innerHTML='Nueva nota <button class="close-btn" onclick="closeModal('modal-recordatorio')"><i class="ti ti-x"></i></button>';
-  openModal('modal-recordatorio');
-}
-function editarRecordatorio(id){
-  const r=recordatorios.find(x=>x.id===id);if(!r)return;
-  document.getElementById('rec-id').value=r.id;
-  document.getElementById('rec-titulo').value=r.titulo;
-  document.getElementById('rec-contenido').value=r.contenido||'';
-  document.getElementById('rec-urgente').checked=r.es_urgente||false;
-  document.getElementById('btn-del-rec').style.display='inline-flex';
-  document.getElementById('rec-modal-title').innerHTML='Editar nota <button class="close-btn" onclick="closeModal('modal-recordatorio')"><i class="ti ti-x"></i></button>';
-  openModal('modal-recordatorio');
-}
-async function guardarRecordatorio(){
-  const titulo=document.getElementById('rec-titulo').value.trim();
-  if(!titulo)return alert('El título es obligatorio');
-  const id=document.getElementById('rec-id').value;
-  const data={titulo,contenido:document.getElementById('rec-contenido').value||null,es_urgente:document.getElementById('rec-urgente').checked};
-  try{
-    if(id){await api('recordatorios?id=eq.'+id,'PATCH',data);const i=recordatorios.findIndex(x=>x.id===id);if(i>=0)recordatorios[i]={...recordatorios[i],...data};}
-    else{const n=await api('recordatorios','POST',data);recordatorios.unshift(n[0]);}
-    closeModal('modal-recordatorio');renderRecordatorios();
-  }catch(e){alert('Error: '+e.message);}
-}
-async function completarRecordatorio(id){
-  try{await api('recordatorios?id=eq.'+id,'PATCH',{completado:true});const r=recordatorios.find(x=>x.id===id);if(r)r.completado=true;renderRecordatorios();}catch(e){alert('Error: '+e.message);}
-}
-async function eliminarRecordatorioId(id){
-  try{await api('recordatorios?id=eq.'+id,'DELETE');recordatorios=recordatorios.filter(x=>x.id!==id);renderRecordatorios();}catch(e){alert('Error: '+e.message);}
-}
-async function eliminarRecordatorio(){
-  const id=document.getElementById('rec-id').value;if(!id)return;
-  try{await api('recordatorios?id=eq.'+id,'DELETE');recordatorios=recordatorios.filter(x=>x.id!==id);closeModal('modal-recordatorio');renderRecordatorios();}catch(e){alert('Error: '+e.message);}
-}
-
-// ── Exportar a Excel (CSV descargable) ──
-function exportarCSV(filas, nombre){
-  const bom='﻿';
-  const csv=bom+filas.map(f=>f.map(c=>{
-    const s=String(c==null?'':c);
-    return s.includes(',')||s.includes('"')||s.includes('
-')?'"'+s.replace(/"/g,'""')+'"':s;
-  }).join(',')).join('
-');
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=nombre+'.csv';a.click();
-  URL.revokeObjectURL(url);
-  mostrarToast('✓ Archivo descargado: '+nombre+'.csv');
-}
-
-function exportarHistorial(){
-  const r=getRango(periodoHistActivo,'h-');
-  const cuenta=document.getElementById('h-cuenta').value;
-  const prov=document.getElementById('h-prov').value;
-  const tipo=document.getElementById('h-tipo').value;
-  const buscar=document.getElementById('h-buscar').value.toLowerCase();
-  let ms=filtrarF(movimientos,r);
-  if(tipo)ms=ms.filter(m=>m.tipo===tipo);
-  if(cuenta||prov||buscar)ms=ms.filter(m=>{const cli=clientes.find(c=>c.id===m.cliente_id);if(!cli)return false;if(cuenta&&cli.plataforma!==cuenta)return false;if(prov&&cli.proveedor!==prov)return false;if(buscar&&!cli.nombre.toLowerCase().includes(buscar))return false;return true;});
-  const filas=[['Fecha','Hora','Cliente','WhatsApp','Cuenta','Proveedor','Tipo','Valor','Cuenta Destino','Transacción','Comprobante','Nota']];
-  ms.forEach(m=>{
-    const cli=clientes.find(c=>c.id===m.cliente_id);
-    filas.push([m.fecha,m.hora||'',cli?cli.nombre:'',cli?cli.nombre_whatsapp||'':'',cli?cuentaLbl(cli.plataforma):'',m.proveedor||'',m.tipo,m.valor,m.cuenta_destino||'',m.codigo_transaccion||'',m.comprobante||'',m.nota||'']);
-  });
-  exportarCSV(filas,'Historial_'+new Date().toISOString().slice(0,10));
-}
-
-function exportarCartera(){
-  const filas=[['Cliente','WhatsApp','Código','Cuenta','Proveedor','Deuda Anterior','Total Entregado','Total Pagado','Saldo Pendiente','Estado','Días sin pago','Último pago']];
-  clientes.forEach(c=>{
-    const ms=movimientos.filter(m=>m.cliente_id===c.id);
-    const ent=ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0);
-    const pag=ms.filter(m=>m.tipo==='pago'||m.tipo==='reversion').reduce((a,m)=>a+Number(m.valor),0);
-    const pend=Number(c.deuda_anterior||0)+ent-pag;
-    const pagos=ms.filter(m=>m.tipo==='pago').sort((a,b)=>b.fecha.localeCompare(a.fecha));
-    const dias=pagos.length?Math.floor((new Date()-new Date(pagos[0].fecha))/86400000):null;
-    const e=estadoCli(c);
-    filas.push([c.nombre,c.nombre_whatsapp||'',c.codigo_cliente||'',cuentaLbl(c.plataforma),c.proveedor||'',c.deuda_anterior||0,ent,pag,pend,e.txt,dias!==null?dias:'Sin pagos',pagos.length?pagos[0].fecha:'']);
-  });
-  exportarCSV(filas,'Reporte_Cartera_'+new Date().toISOString().slice(0,10));
-}
-
 // ── Init ──
 sbUrl=localStorage.getItem('sb_url')||'';sbKey=localStorage.getItem('sb_key')||'';
-if(sbUrl&&sbKey){
-  document.getElementById('sb-url').value=sbUrl;
-  document.getElementById('sb-key').value=sbKey;
-  probarConexion();
-}
-
-// Sincronización en tiempo real
-function iniciarRealtime(){
-  if(!sbUrl||!sbKey)return;
-  try{
-    const ws=new WebSocket(`${sbUrl.replace('https','wss')}/realtime/v1/websocket?apikey=${sbKey}&vsn=1.0.0`);
-    ws.onopen=()=>{
-      ws.send(JSON.stringify({topic:'realtime:public:movimientos_recarga',event:'phx_join',payload:{},ref:'1'}));
-      ws.send(JSON.stringify({topic:'realtime:public:clientes_recarga',event:'phx_join',payload:{},ref:'2'}));
-    };
-    ws.onmessage=e=>{
-      const msg=JSON.parse(e.data);
-      if(msg.event==='INSERT'||msg.event==='UPDATE'||msg.event==='DELETE'){
-        // Recargar datos silenciosamente
-        setTimeout(()=>cargarDatos(),300);
-      }
-    };
-    ws.onclose=()=>{setTimeout(()=>iniciarRealtime(),5000);}; // Reconectar
-  }catch(err){console.log('Realtime no disponible');}
-}
-// Botón nueva nota
-document.getElementById('sec-recordatorios').querySelector('button').onclick=openModalRecordatorio;
+if(sbUrl&&sbKey){document.getElementById('sb-url').value=sbUrl;document.getElementById('sb-key').value=sbKey;probarConexion();}
 </script>
 </body>
 </html>
