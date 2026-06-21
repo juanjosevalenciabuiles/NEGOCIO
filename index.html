@@ -291,7 +291,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
       <select onchange="renderClientes()" id="f-cuenta" style="width:auto"><option value="">Todas las cuentas</option><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select>
       <select onchange="renderClientes()" id="f-prov" style="width:auto"><option value="">Megared + Multiproducto</option><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select>
       <select onchange="renderClientes()" id="f-est" style="width:auto"><option value="">Todos los estados</option><option value="mora">En mora</option><option value="pendiente">Pendiente</option><option value="pagado">Al día / A favor</option></select>
-      <select onchange="renderClientes()" id="f-extra" style="width:auto"><option value="">Filtro extra</option><option value="con_wsp">✓ Con WhatsApp</option><option value="sin_wsp">✗ Sin WhatsApp</option><option value="deuda_ant">Con deuda anterior</option><option value="deuda_sinrev">⚠ Deuda sin revisar</option><option value="con_codigo">Con código Megared</option><option value="sin_codigo">Sin código Megared</option></select>
+      <select onchange="renderClientes()" id="f-extra" style="width:auto"><option value="">Filtro extra</option><option value="con_wsp">✓ Con WhatsApp</option><option value="sin_wsp">✗ Sin WhatsApp</option><option value="deuda_ant">Con deuda anterior</option><option value="deuda_sinrev">⚠ Sin revisar (todos)</option><option value="con_codigo">Con código Megared</option><option value="sin_codigo">Sin código Megared</option></select>
     </div>
     <!-- Orden y búsqueda rápida -->
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
@@ -472,8 +472,8 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div class="form-group"><label class="form-label">Deuda anterior ($)</label><input id="cli-deuda" type="number" placeholder="0" min="0"></div>
     <div class="form-group"><label class="form-label">Estado deuda anterior</label>
       <select id="cli-deuda-rev">
-        <option value="sin_revisar">⚠ Sin revisar (pendiente confirmar del cuaderno)</option>
-        <option value="revisada">✓ Revisada (confirmada del cuaderno)</option>
+        <option value="sin_revisar">⚠ Sin revisar</option>
+        <option value="revisada">✓ Revisada</option>
       </select>
     </div>
   </div>
@@ -752,7 +752,7 @@ function renderClientes(){
   if(extra==='con_wsp')lista=lista.filter(c=>c.nombre_whatsapp);
   else if(extra==='sin_wsp')lista=lista.filter(c=>!c.nombre_whatsapp);
   else if(extra==='deuda_ant')lista=lista.filter(c=>Number(c.deuda_anterior||0)>0);
-  else if(extra==='deuda_sinrev')lista=lista.filter(c=>Number(c.deuda_anterior||0)>0&&c.deuda_revisada!=='revisada');
+  else if(extra==='deuda_sinrev')lista=lista.filter(c=>c.deuda_revisada!=='revisada');
   else if(extra==='con_codigo')lista=lista.filter(c=>c.codigo_cliente);
   else if(extra==='sin_codigo')lista=lista.filter(c=>!c.codigo_cliente);
 
@@ -1087,12 +1087,9 @@ async function guardarCliente(){
   const data={nombre,nombre_whatsapp:document.getElementById('cli-wsp').value||null,telefono:document.getElementById('cli-tel').value||null,plataforma:document.getElementById('cli-cuenta').value,proveedor:document.getElementById('cli-prov').value,codigo_cliente:document.getElementById('cli-codigo').value||null,deuda_anterior:Number(document.getElementById('cli-deuda').value)||0,deuda_revisada:document.getElementById('cli-deuda-rev')?.value||'sin_revisar'};
   try{
     if(id){
-      console.log('Enviando a Supabase:', data);
-      const patchResult=await api('clientes_recarga?id=eq.'+id,'PATCH',data);
-      console.log('Resultado PATCH:', patchResult);
+      await api('clientes_recarga?id=eq.'+id,'PATCH',data);
       // Recargar datos frescos del cliente desde Supabase
-      const frescos=await api('clientes_recarga','GET',null,'id=eq.'+id+'&select=*');
-      console.log('Datos frescos:', frescos);
+      const frescos=await api('clientes_recarga','GET',null,'id=eq.'+id);
       const i=clientes.findIndex(x=>x.id===id);
       if(i>=0&&frescos.length)clientes[i]=frescos[0];
     }else{
