@@ -209,6 +209,8 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 
 /* ── Row actions ── */
 .row-actions{display:flex;gap:5px;justify-content:flex-end}
+.semaforo{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
 
 /* ── Code ── */
 .code-block{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;font-family:'Courier New',monospace;font-size:11px;white-space:pre;overflow-x:auto;line-height:1.6}
@@ -288,11 +290,20 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
       <span class="filter-label">Filtrar</span>
       <select onchange="renderClientes()" id="f-cuenta" style="width:auto"><option value="">Todas las cuentas</option><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select>
       <select onchange="renderClientes()" id="f-prov" style="width:auto"><option value="">Megared + Multiproducto</option><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select>
-      <select onchange="renderClientes()" id="f-est" style="width:auto"><option value="">Todos los estados</option><option value="mora">En mora</option><option value="pendiente">Pendiente</option><option value="pagado">Pagado</option></select>
+      <select onchange="renderClientes()" id="f-est" style="width:auto"><option value="">Todos los estados</option><option value="mora">En mora</option><option value="pendiente">Pendiente</option><option value="pagado">Al día / A favor</option></select>
+      <select onchange="renderClientes()" id="f-extra" style="width:auto"><option value="">Filtro extra</option><option value="con_wsp">✓ Con WhatsApp</option><option value="sin_wsp">✗ Sin WhatsApp</option><option value="deuda_ant">Con deuda anterior</option><option value="deuda_sinrev">⚠ Deuda sin revisar</option><option value="con_codigo">Con código Megared</option><option value="sin_codigo">Sin código Megared</option></select>
+    </div>
+    <!-- Orden y búsqueda rápida -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px">Orden:</span>
+      <button class="chip active" id="cord-reciente" onclick="setOrdenCli(this,'reciente')"><i class="ti ti-clock"></i> Recientes</button>
+      <button class="chip" id="cord-alfa" onclick="setOrdenCli(this,'alfa')"><i class="ti ti-sort-a-z"></i> A–Z</button>
+      <button class="chip" id="cord-deuda" onclick="setOrdenCli(this,'deuda')"><i class="ti ti-sort-descending"></i> Mayor deuda</button>
+      <button class="chip" id="cord-mora" onclick="setOrdenCli(this,'mora')"><i class="ti ti-alert-triangle"></i> Más mora</button>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Cliente</th><th>Código</th><th>Cuenta</th><th>Saldo pendiente</th><th>Cupo usado</th><th>Estado</th><th></th></tr></thead>
+        <thead><tr><th>Cliente</th><th>Código</th><th>Cuenta</th><th>Saldo pendiente</th><th>Estado</th><th></th></tr></thead>
         <tbody id="tbody-clientes"><tr><td colspan="7"><div class="empty"><i class="ti ti-users"></i><p>Sin clientes.</p></div></td></tr></tbody>
       </table>
     </div>
@@ -411,6 +422,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     </div>
     <div class="form-group"><label class="form-label">Fecha</label><input type="date" id="fab-fecha"></div>
     <div class="form-group"><label class="form-label">No. transacción</label><input type="text" id="fab-trans" placeholder="Opcional"></div>
+    <div class="form-group"><label class="form-label">Hora manual (opcional)</label><input type="time" id="fab-hora-man"></div>
     <div class="form-group"><label class="form-label">Nota</label><input type="text" id="fab-nota" placeholder="Opcional"></div>
     <div class="form-group" id="fab-motivo-grp" style="grid-column:1/-1;display:none">
       <label class="form-label">Motivo de la reversión *</label>
@@ -455,7 +467,12 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div class="form-group"><label class="form-label">Cuenta *</label><select id="cli-cuenta"><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select></div>
     <div class="form-group"><label class="form-label">Proveedor *</label><select id="cli-prov"><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select></div>
     <div class="form-group"><label class="form-label">Deuda anterior ($)</label><input id="cli-deuda" type="number" placeholder="0" min="0"></div>
-    <div class="form-group"><label class="form-label">Cupo máximo ($)</label><input id="cli-cupo" type="number" placeholder="500000" min="0"></div>
+    <div class="form-group"><label class="form-label">Estado deuda anterior</label>
+      <select id="cli-deuda-rev">
+        <option value="sin_revisar">⚠ Sin revisar (pendiente confirmar del cuaderno)</option>
+        <option value="revisada">✓ Revisada (confirmada del cuaderno)</option>
+      </select>
+    </div>
   </div>
   <div class="divider"></div>
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
@@ -485,6 +502,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div class="form-group"><label class="form-label">Fecha</label><input id="em-fecha" type="date"></div>
     <div class="form-group"><label class="form-label">No. transacción</label><input id="em-trans"></div>
     <div class="form-group"><label class="form-label">Comprobante</label><input id="em-comp"></div>
+    <div class="form-group"><label class="form-label">Hora manual (HH:MM)</label><input type="time" id="em-hora-man"></div>
     <div class="form-group"><label class="form-label">Nota</label><input id="em-nota"></div>
   </div>
   <div class="divider"></div>
@@ -522,6 +540,12 @@ const fmt=v=>'$'+Number(v||0).toLocaleString('es-CO');
 const hoy=()=>{const n=new Date();const c=new Date(n.toLocaleString('en-US',{timeZone:'America/Bogota'}));return c.getFullYear()+'-'+String(c.getMonth()+1).padStart(2,'0')+'-'+String(c.getDate()).padStart(2,'0');};
 const cuentaLbl=c=>c==='Juanito'?'Juanito (0660)':'Don Martín (6945)';
 const fmtFecha=f=>{if(!f)return'';const[y,mo,d]=f.split('-');return`${d}/${mo}/${y}`;};
+function horaEfectiva(m){
+  if(m.hora_manual)return String(m.hora_manual).slice(0,5);
+  if(m.hora)return String(m.hora).slice(0,5);
+  if(m.creado_en){const col=new Date(new Date(m.creado_en).toLocaleString('en-US',{timeZone:'America/Bogota'}));return String(col.getHours()).padStart(2,'0')+':'+String(col.getMinutes()).padStart(2,'0');}
+  return '';
+}
 
 function getRango(p,pref=''){
   const n=new Date();let desde,hasta=hoy();
@@ -574,11 +598,24 @@ function guardarConfig(){sbUrl=document.getElementById('sb-url').value.trim().re
 async function probarConexion(){if(!sbUrl||!sbKey){setConn(false,'Sin configurar');return;}try{const r=await fetch(sbUrl+'/rest/v1/clientes_recarga?select=id&limit=1',{headers:{apikey:sbKey,Authorization:'Bearer '+sbKey}});if(r.ok){setConn(true,'Conectado');cargarDatos();}else setConn(false,'Error de conexión');}catch{setConn(false,'Sin conexión');}}
 function setConn(ok,txt){document.getElementById('connDot').className='dot'+(ok?' on':'');document.getElementById('connTxt').textContent=txt;}
 async function api(tabla,method='GET',body=null,qs=''){const url=sbUrl+'/rest/v1/'+tabla+(qs?'?'+qs:'');const h={apikey:sbKey,Authorization:'Bearer '+sbKey,'Content-Type':'application/json',Prefer:'return=representation'};const r=await fetch(url,{method,headers:h,body:body?JSON.stringify(body):null});if(!r.ok)throw new Error(await r.text());const txt=await r.text();return txt?JSON.parse(txt):[];}
-async function cargarDatos(){try{[clientes,movimientos]=await Promise.all([api('clientes_recarga','GET',null,'order=nombre'),api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc')]);renderDash();renderClientes();renderHistorial();renderConfirmaciones();}catch(e){console.error(e);}}
+async function cargarDatos(){try{[clientes,movimientos]=await Promise.all([api('clientes_recarga','GET',null,'order=creado_en.desc'),api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc')]);renderDash();renderClientes();renderHistorial();renderConfirmaciones();}catch(e){console.error(e);}}
 
 // ── Lógica saldos ──
 function pendiente(c){const ms=movimientos.filter(m=>m.cliente_id===c.id);return Number(c.deuda_anterior||0)+ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0)-ms.filter(m=>m.tipo==='pago'||m.tipo==='reversion').reduce((a,m)=>a+Number(m.valor),0);}
-function estadoCli(c){const p=pendiente(c);if(p<=0)return{txt:'Pagado',cls:'badge-green'};const pg=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');if(!pg.length)return{txt:'Sin pago',cls:'badge-amber'};const dias=Math.floor((new Date()-new Date(pg[0].fecha))/86400000);return dias>7?{txt:'En mora',cls:'badge-red'}:{txt:'Pendiente',cls:'badge-amber'};}
+function estadoCli(c){
+  const p=pendiente(c);
+  if(p<0)return{txt:'A favor',cls:'badge-blue'};
+  if(p===0)return{txt:'Al día',cls:'badge-green'};
+  const pg=movimientos.filter(m=>m.cliente_id===c.id&&(m.tipo==='pago'||m.tipo==='reversion'));
+  if(!pg.length)return{txt:'Sin pago',cls:'badge-amber'};
+  const dias=Math.floor((new Date()-new Date(pg[0].fecha))/86400000);
+  return dias>4?{txt:'En mora',cls:'badge-red'}:dias>1?{txt:'Pendiente',cls:'badge-amber'}:{txt:'Al día',cls:'badge-green'};
+}
+function fmtSaldo(v){
+  if(v<0)return '<strong style="color:var(--blue)">A favor '+fmt(Math.abs(v))+'</strong>';
+  if(v===0)return '<strong style="color:var(--green)">Saldado ✓</strong>';
+  return '<strong style="color:var(--red)">'+fmt(v)+'</strong>';
+}
 
 // ── Búsqueda global ──
 function buscarGlobal(){
@@ -646,25 +683,59 @@ function renderClientes(){
   const cuenta=document.getElementById('f-cuenta').value;
   const prov=document.getElementById('f-prov').value;
   const est=document.getElementById('f-est').value;
+  const extra=document.getElementById('f-extra')?.value||'';
   const buscar=document.getElementById('f-buscar').value.toLowerCase();
   let lista=clientes;
   if(cuenta)lista=lista.filter(c=>c.plataforma===cuenta);
   if(prov)lista=lista.filter(c=>c.proveedor===prov);
   if(est)lista=lista.filter(c=>{const e=estadoCli(c);return est==='mora'?e.cls==='badge-red':est==='pendiente'?e.cls==='badge-amber':e.cls==='badge-green';});
+  // Filtro extra
+  if(extra==='con_wsp')lista=lista.filter(c=>c.nombre_whatsapp);
+  else if(extra==='sin_wsp')lista=lista.filter(c=>!c.nombre_whatsapp);
+  else if(extra==='deuda_ant')lista=lista.filter(c=>Number(c.deuda_anterior||0)>0);
+  else if(extra==='deuda_sinrev')lista=lista.filter(c=>Number(c.deuda_anterior||0)>0&&c.deuda_revisada!=='revisada');
+  else if(extra==='con_codigo')lista=lista.filter(c=>c.codigo_cliente);
+  else if(extra==='sin_codigo')lista=lista.filter(c=>!c.codigo_cliente);
+
   if(buscar)lista=lista.filter(c=>c.nombre.toLowerCase().includes(buscar)||(c.codigo_cliente||'').includes(buscar)||(c.nombre_whatsapp||'').toLowerCase().includes(buscar));
   document.getElementById('clientes-count').textContent=lista.length;
+  // Aplicar orden
+  if(ordenCli==='alfa'){
+    lista=[...lista].sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+  } else if(ordenCli==='deuda'){
+    lista=[...lista].sort((a,b)=>pendiente(b)-pendiente(a));
+  } else if(ordenCli==='mora'){
+    lista=[...lista].sort((a,b)=>{
+      const pa=movimientos.filter(m=>m.cliente_id===a.id&&m.tipo==='pago');
+      const pb=movimientos.filter(m=>m.cliente_id===b.id&&m.tipo==='pago');
+      const da=pa.length?Math.floor((new Date()-new Date(pa[0].fecha))/86400000):999;
+      const db=pb.length?Math.floor((new Date()-new Date(pb[0].fecha))/86400000):999;
+      return db-da;
+    });
+  }
+  // reciente: orden del servidor (creado_en desc)
   const tb=document.getElementById('tbody-clientes');
   tb.innerHTML=lista.length?lista.map(c=>{
     const pend=Math.max(0,pendiente(c));
-    const cupoMax=Number(c.cupo_maximo)||0;
-    const pct=cupoMax>0?Math.min(100,Math.round(pend/cupoMax*100)):0;
-    const colorBarra=pct>80?'var(--red)':pct>50?'var(--amber)':'var(--green)';
+
     const e=estadoCli(c);
     return`<tr>
-      <td><strong>${c.nombre}</strong>${c.nombre_whatsapp?`<br><span style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span>`:''}</td>
+      <td><div style="display:flex;align-items:center;gap:4px">
+        ${(()=>{
+          const pags=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');
+          const dias=pags.length?Math.floor((new Date()-new Date(pags[0].fecha))/86400000):null;
+          const color=pend>0?(dias===null?'var(--amber)':dias<=1?'var(--green)':dias<=4?'var(--amber)':'var(--red)'):'var(--green)';
+          const anim=pend>0&&(dias===null||dias>4)?';animation:pulse 1s infinite':'';
+          return '<span class="semaforo" style="background:'+color+anim+'"></span>';
+        })()}
+        <div>
+          <strong>${c.nombre}</strong>
+          ${c.nombre_whatsapp?`<br><span style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span>`:''}
+        </div>
+      </div></td>
       <td><span style="font-family:monospace;font-size:12px;color:var(--text2)">${c.codigo_cliente||'—'}</span></td>
       <td><span class="badge badge-blue">${cuentaLbl(c.plataforma)}</span></td>
-      <td><strong style="color:${pend>0?'var(--red)':'var(--green)'}">${fmt(pend)}</strong></td>
+      <td>${fmtSaldo(pend)}</td>
       <td>${cupoMax>0?`<div style="font-size:11px;color:var(--text2)">${pct}% de ${fmt(cupoMax)}</div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${colorBarra}"></div></div>`:'<span style="font-size:11px;color:var(--text3)">Sin cupo definido</span>'}</td>
       <td><span class="badge ${e.cls}">${e.txt}</span></td>
       <td><div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="verHistCli('${c.id}')" title="Historial"><i class="ti ti-history"></i></button><button class="btn btn-secondary btn-sm" onclick="abrirEditCliente('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button></div></td>
@@ -747,7 +818,7 @@ function renderConfirmaciones(){
       const sub=[m.hora?m.hora.slice(0,5):null,m.codigo_transaccion?'Trans: '+m.codigo_transaccion:null,m.comprobante?'Comp: #'+m.comprobante:null,m.cuenta_destino?'→ '+m.cuenta_destino:null,m.nota].filter(Boolean).join(' · ');
       html+=`<div class="conf-card ${m.confirmado?'conf':'pend'}">
         <div class="hist-dot ${m.confirmado?'pago':'pendiente'}"><i class="ti ti-${m.confirmado?'check':'clock'}"></i></div>
-        <div class="conf-info"><div class="conf-nombre">${cli?cli.nombre:'—'}</div><div class="conf-sub">${sub||'Sin detalles'}</div></div>
+        <div class="conf-info"><div class="conf-nombre" style="cursor:pointer" onclick="verHistCli('${m.cliente_id}')">${cli?cli.nombre:'—'}${cli&&cli.nombre_whatsapp?`<span style="color:#25D366;font-size:11px;margin-left:6px"><i class="ti ti-brand-whatsapp"></i> ${cli.nombre_whatsapp}</span>`:''}</div><div class="conf-sub">${sub||'Sin detalles'}</div></div>
         <div style="text-align:right">
           <div style="font-size:14px;font-weight:700;color:var(--green)">${fmt(m.valor)}</div>
           ${!m.confirmado?`<button class="btn btn-confirm btn-sm" style="margin-top:6px" onclick="confirmarPago('${m.id}')"><i class="ti ti-circle-check"></i> Confirmar</button>`:'<div style="font-size:11px;color:var(--green-text);margin-top:4px"><i class="ti ti-check"></i> Confirmado</div>'}
@@ -844,8 +915,9 @@ async function guardarFabMov(){
   const notaFinal = fabTipo==='reversion' ? (fabMotivo+(document.getElementById('fab-nota').value?(' — '+document.getElementById('fab-nota').value):'')) : (document.getElementById('fab-nota').value||null);
   // Reversión actúa como pago (resta saldo) pero se guarda como 'reversion'
   const tipoGuardar = fabTipo==='reversion' ? 'reversion' : fabTipo;
-  const payload={cliente_id:fabClienteSeleccionado.id,tipo:tipoGuardar,valor,fecha:document.getElementById('fab-fecha').value||hoy(),codigo_transaccion:document.getElementById('fab-trans').value||null,nota:notaFinal,codigo_cliente:fabClienteSeleccionado.codigo_cliente||null,codigo_cuenta:fabClienteSeleccionado.plataforma==='Juanito'?'032442':'028469',proveedor:fabClienteSeleccionado.proveedor||null,cuenta_destino:fabTipo==='pago'?(fabCuentaDestino||null):null,confirmado,confirmado_en:confirmado?new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T'):null};
-  try{const n=await api('movimientos_recarga','POST',payload);movimientos.unshift(n[0]);mostrarFabMsg(`✓ ${fabTipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${fabClienteSeleccionado.nombre}`,'ok');document.getElementById('fab-valor').value='';document.getElementById('fab-valor-display').value='';document.getElementById('fab-trans').value='';document.getElementById('fab-nota').value='';document.getElementById('fab-confirmado').checked=false;limpiarCliFab();fabCuentaDestino=null;document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));renderDash();renderClientes();renderHistorial();renderConfirmaciones();setTimeout(()=>closeFabModal(),1800);}catch(e){mostrarFabMsg('Error: '+e.message,'error');}
+  const payload={cliente_id:fabClienteSeleccionado.id,tipo:tipoGuardar,valor,fecha:document.getElementById('fab-fecha').value||hoy(),codigo_transaccion:document.getElementById('fab-trans').value||null,
+    hora_manual:document.getElementById('fab-hora-man').value||null,nota:notaFinal,codigo_cliente:fabClienteSeleccionado.codigo_cliente||null,codigo_cuenta:fabClienteSeleccionado.plataforma==='Juanito'?'032442':'028469',proveedor:fabClienteSeleccionado.proveedor||null,cuenta_destino:fabTipo==='pago'?(fabCuentaDestino||null):null,confirmado,confirmado_en:confirmado?new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T'):null};
+  try{const n=await api('movimientos_recarga','POST',payload);movimientos.unshift(n[0]);mostrarFabMsg(`✓ ${fabTipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${fabClienteSeleccionado.nombre}`,'ok');document.getElementById('fab-valor').value='';document.getElementById('fab-valor-display').value='';const hm=document.getElementById('fab-hora-man');if(hm)hm.value='';document.getElementById('fab-trans').value='';document.getElementById('fab-nota').value='';document.getElementById('fab-confirmado').checked=false;limpiarCliFab();fabCuentaDestino=null;document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));renderDash();renderClientes();renderHistorial();renderConfirmaciones();setTimeout(()=>closeFabModal(),1800);}catch(e){mostrarFabMsg('Error: '+e.message,'error');}
 }
 function mostrarFabMsg(txt,tipo){const el=document.getElementById('fab-msg');el.textContent=txt;el.style.display='block';el.style.background=tipo==='ok'?'var(--green-light)':'var(--red-light)';el.style.color=tipo==='ok'?'var(--green-text)':'var(--red-text)';el.style.border=`0.5px solid ${tipo==='ok'?'#4ABEA0':'#E89070'}`;}
 
@@ -922,20 +994,20 @@ function mostrarImpMsg(txt,tipo){const el=document.getElementById('imp-msg');el.
 function abrirModalCliente(){
   document.getElementById('modal-cli-title').innerHTML='Nuevo cliente <button class="close-btn" onclick="closeModal(\'modal-cliente\')"><i class="ti ti-x"></i></button>';
   document.getElementById('cli-id').value='';document.getElementById('btn-eliminar-cli').style.display='none';
-  ['cli-nombre','cli-wsp','cli-tel','cli-codigo'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('cli-deuda').value=0;document.getElementById('cli-cupo').value=0;
+  ['cli-nombre','cli-wsp','cli-tel','cli-codigo'].forEach(i=>document.getElementById(i).value='');const dr0=document.getElementById('cli-deuda-rev');if(dr0)dr0.value='sin_revisar';
+  document.getElementById('cli-deuda').value=0;
   openModal('modal-cliente');
 }
 function abrirEditCliente(id){
   const c=clientes.find(x=>x.id===id);
   document.getElementById('modal-cli-title').innerHTML='Editar cliente <button class="close-btn" onclick="closeModal(\'modal-cliente\')"><i class="ti ti-x"></i></button>';
-  document.getElementById('cli-id').value=c.id;document.getElementById('cli-nombre').value=c.nombre||'';document.getElementById('cli-wsp').value=c.nombre_whatsapp||'';document.getElementById('cli-tel').value=c.telefono||'';document.getElementById('cli-codigo').value=c.codigo_cliente||'';document.getElementById('cli-cuenta').value=c.plataforma||'Juanito';document.getElementById('cli-prov').value=c.proveedor||'Megared';document.getElementById('cli-deuda').value=c.deuda_anterior||0;document.getElementById('cli-cupo').value=c.cupo_maximo||0;document.getElementById('btn-eliminar-cli').style.display='inline-flex';
+  document.getElementById('cli-id').value=c.id;document.getElementById('cli-nombre').value=c.nombre||'';document.getElementById('cli-wsp').value=c.nombre_whatsapp||'';document.getElementById('cli-tel').value=c.telefono||'';document.getElementById('cli-codigo').value=c.codigo_cliente||'';document.getElementById('cli-cuenta').value=c.plataforma||'Juanito';document.getElementById('cli-prov').value=c.proveedor||'Megared';document.getElementById('cli-deuda').value=c.deuda_anterior||0;const dr=document.getElementById('cli-deuda-rev');if(dr)dr.value=c.deuda_revisada||'sin_revisar';document.getElementById('btn-eliminar-cli').style.display='inline-flex';
   openModal('modal-cliente');
 }
 async function guardarCliente(){
   const nombre=document.getElementById('cli-nombre').value.trim();if(!nombre)return alert('El nombre es obligatorio');
   const id=document.getElementById('cli-id').value;
-  const data={nombre,nombre_whatsapp:document.getElementById('cli-wsp').value||null,telefono:document.getElementById('cli-tel').value||null,plataforma:document.getElementById('cli-cuenta').value,proveedor:document.getElementById('cli-prov').value,codigo_cliente:document.getElementById('cli-codigo').value||null,deuda_anterior:Number(document.getElementById('cli-deuda').value)||0,cupo_maximo:Number(document.getElementById('cli-cupo').value)||0};
+  const data={nombre,nombre_whatsapp:document.getElementById('cli-wsp').value||null,telefono:document.getElementById('cli-tel').value||null,plataforma:document.getElementById('cli-cuenta').value,proveedor:document.getElementById('cli-prov').value,codigo_cliente:document.getElementById('cli-codigo').value||null,deuda_anterior:Number(document.getElementById('cli-deuda').value)||0};
   try{if(id){await api('clientes_recarga?id=eq.'+id,'PATCH',data);const i=clientes.findIndex(x=>x.id===id);if(i>=0)clientes[i]={...clientes[i],...data};}else{const n=await api('clientes_recarga','POST',data);clientes.push(n[0]);}clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));closeModal('modal-cliente');renderClientes();renderDash();}catch(e){alert('Error: '+e.message);}
 }
 function confirmarEliminarCliente(){
@@ -949,12 +1021,13 @@ function confirmarEliminarCliente(){
 // ── Editar movimiento ──
 function abrirEditMov(id){
   const m=movimientos.find(x=>x.id===id);
-  document.getElementById('em-id').value=m.id;document.getElementById('em-tipo').value=m.tipo||'entrega';document.getElementById('em-valor').value=m.valor||0;document.getElementById('em-fecha').value=m.fecha||'';document.getElementById('em-trans').value=m.codigo_transaccion||'';document.getElementById('em-comp').value=m.comprobante||'';document.getElementById('em-nota').value=m.nota||'';
+  document.getElementById('em-id').value=m.id;document.getElementById('em-tipo').value=m.tipo||'entrega';document.getElementById('em-valor').value=m.valor||0;document.getElementById('em-fecha').value=m.fecha||'';document.getElementById('em-trans').value=m.codigo_transaccion||'';
+  const emh=document.getElementById('em-hora-man');if(emh)emh.value=m.hora_manual||m.hora||'';document.getElementById('em-comp').value=m.comprobante||'';document.getElementById('em-nota').value=m.nota||'';
   openModal('modal-edit-mov');
 }
 async function guardarEditMov(){
   const id=document.getElementById('em-id').value;const valor=Number(document.getElementById('em-valor').value);if(!valor||valor<=0)return alert('El valor debe ser mayor a 0');
-  const patch={tipo:document.getElementById('em-tipo').value,valor,fecha:document.getElementById('em-fecha').value,codigo_transaccion:document.getElementById('em-trans').value||null,comprobante:document.getElementById('em-comp').value||null,nota:document.getElementById('em-nota').value||null};
+  const emhv=document.getElementById('em-hora-man');const patch={tipo:document.getElementById('em-tipo').value,valor,fecha:document.getElementById('em-fecha').value,codigo_transaccion:document.getElementById('em-trans').value||null,comprobante:document.getElementById('em-comp').value||null,nota:document.getElementById('em-nota').value||null,hora_manual:emhv?emhv.value||null:null};
   try{await api('movimientos_recarga?id=eq.'+id,'PATCH',patch);const i=movimientos.findIndex(x=>x.id===id);if(i>=0)movimientos[i]={...movimientos[i],...patch};closeModal('modal-edit-mov');renderClientes();renderHistorial();renderDash();renderConfirmaciones();}catch(e){alert('Error: '+e.message);}
 }
 function confirmarEliminarMov(){
@@ -971,10 +1044,7 @@ function verHistCli(id){
   const ms=movimientos.filter(m=>m.cliente_id===id).sort((a,b)=>a.fecha.localeCompare(b.fecha));
   let saldo=Number(c.deuda_anterior||0);
   document.getElementById('hist-cli-title').innerHTML=`${c.nombre} <button class="close-btn" onclick="closeModal('modal-hist-cli')"><i class="ti ti-x"></i></button>`;
-  const pend=Math.max(0,pendiente(c));
-  const cupoMax=Number(c.cupo_maximo)||0;
-  const pct=cupoMax>0?Math.min(100,Math.round(pend/cupoMax*100)):0;
-  const colorBarra=pct>80?'var(--red)':pct>50?'var(--amber)':'var(--green)';
+  const pend=pendiente(c);
   const resumen=`<div style="background:var(--bg);border-radius:var(--radius);padding:12px 14px;margin-bottom:1rem">
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
       <span class="badge badge-blue">${cuentaLbl(c.plataforma)}</span>
@@ -984,9 +1054,9 @@ function verHistCli(id){
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${cupoMax>0?'8px':'0'}">
       <span style="font-size:13px;color:var(--text2)">Saldo pendiente</span>
-      <strong style="font-size:18px;color:${pend>0?'var(--red)':'var(--green)'}">${fmt(pend)}</strong>
+      <span style="font-size:18px">${fmtSaldo(pend)}</span>
     </div>
-    ${cupoMax>0?`<div style="font-size:11px;color:var(--text2);margin-bottom:4px">${pct}% del cupo usado (${fmt(pend)} de ${fmt(cupoMax)})</div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${colorBarra}"></div></div>`:''}
+
   </div>
   <div style="display:flex;gap:8px;margin-bottom:1rem">
     <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="closeModal('modal-hist-cli');abrirFabModal('entrega');selCliFab('${c.id}')"><i class="ti ti-arrow-up"></i> Entregar</button>
@@ -1011,14 +1081,42 @@ function verHistCli(id){
           <div class="hist-nombre">${esRevC?'Reversión de saldo':eP?'Pago recibido':'Entrega de saldo'} ${nc}${revBadgeC}</div>
           <div class="hist-sub">${m.hora?m.hora.slice(0,5):''} ${cdBadge} ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px">#${m.codigo_transaccion}</span>`:''} ${m.nota?`<em>${m.nota}</em>`:''}</div>
         </div>
-        <div style="text-align:right">
+        <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px">
           <div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div>
-          <div style="font-size:11px;color:var(--text2)">Saldo: ${fmt(Math.max(0,saldo))}</div>
+          <div style="font-size:11px;color:${saldo<0?'var(--blue)':saldo===0?'var(--green)':'var(--text2)'}">
+            ${saldo<0?'A favor: '+fmt(Math.abs(saldo)):saldo===0?'Saldado ✓':'Debe: '+fmt(saldo)}
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-hist-cli');abrirEditMov('${m.id}')"><i class="ti ti-edit"></i></button>
         </div>
       </div>`;
     });
   });
-  document.getElementById('hist-cli-body').innerHTML=resumen+(itemsHtml||'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>');
+  // Deuda anterior al final (punto de partida histórico)
+  let deudaHtml='';
+  if(Number(c.deuda_anterior||0)>0){
+    const rev=c.deuda_revisada==='revisada';
+    deudaHtml=`<div style="margin-top:12px">
+      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;padding:8px 0 4px;display:flex;align-items:center;gap:6px">
+        Deuda anterior registrada <span style="flex:1;height:0.5px;background:var(--border);display:inline-block"></span>
+      </div>
+      <div class="hist-item" style="background:${rev?'var(--green-light)':'var(--amber-light)'};border-radius:var(--radius);padding:10px 12px;margin:4px 0;border-bottom:none">
+        <div class="hist-dot" style="background:${rev?'var(--green-light)':'var(--amber-light)'};color:${rev?'var(--green-text)':'var(--amber-text)'}">
+          <i class="ti ti-${rev?'circle-check':'clock'}"></i>
+        </div>
+        <div class="hist-info">
+          <div class="hist-nombre" style="color:${rev?'var(--green-text)':'var(--amber-text)'}">
+            ${rev?'✓ Deuda anterior revisada':'⚠ Deuda anterior sin revisar'}
+          </div>
+          <div class="hist-sub">${rev?'Confirmada del cuaderno':'Pendiente confirmar del cuaderno'}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="hist-val" style="color:var(--red)">+${fmt(c.deuda_anterior)}</div>
+          <button class="btn btn-secondary btn-sm" style="margin-top:4px" onclick="closeModal('modal-hist-cli');abrirEditCliente('${c.id}')"><i class="ti ti-edit"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }
+  document.getElementById('hist-cli-body').innerHTML=resumen+(itemsHtml||'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>')+deudaHtml;
   openModal('modal-hist-cli');
 }
 
@@ -1038,6 +1136,18 @@ function getValorFab(){
 }
 
 // ── Init ──
+// ── Orden de clientes ──
+let ordenCli='reciente';
+function setOrdenCli(btn,val){
+  ordenCli=val;
+  ['cord-reciente','cord-alfa','cord-deuda','cord-mora'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.classList.remove('active');
+  });
+  btn.classList.add('active');
+  renderClientes();
+}
+
 sbUrl=localStorage.getItem('sb_url')||'';sbKey=localStorage.getItem('sb_key')||'';
 if(sbUrl&&sbKey){document.getElementById('sb-url').value=sbUrl;document.getElementById('sb-key').value=sbKey;probarConexion();}
 </script>
