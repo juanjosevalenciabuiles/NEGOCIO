@@ -1087,9 +1087,12 @@ async function guardarCliente(){
   const data={nombre,nombre_whatsapp:document.getElementById('cli-wsp').value||null,telefono:document.getElementById('cli-tel').value||null,plataforma:document.getElementById('cli-cuenta').value,proveedor:document.getElementById('cli-prov').value,codigo_cliente:document.getElementById('cli-codigo').value||null,deuda_anterior:Number(document.getElementById('cli-deuda').value)||0,deuda_revisada:document.getElementById('cli-deuda-rev')?.value||'sin_revisar'};
   try{
     if(id){
-      await api('clientes_recarga?id=eq.'+id,'PATCH',data);
+      console.log('Enviando a Supabase:', data);
+      const patchResult=await api('clientes_recarga?id=eq.'+id,'PATCH',data);
+      console.log('Resultado PATCH:', patchResult);
       // Recargar datos frescos del cliente desde Supabase
-      const frescos=await api('clientes_recarga','GET',null,'id=eq.'+id);
+      const frescos=await api('clientes_recarga','GET',null,'id=eq.'+id+'&select=*');
+      console.log('Datos frescos:', frescos);
       const i=clientes.findIndex(x=>x.id===id);
       if(i>=0&&frescos.length)clientes[i]=frescos[0];
     }else{
