@@ -303,7 +303,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Cliente</th><th>Código</th><th>Cuenta</th><th>Saldo pendiente</th><th>Estado</th><th></th></tr></thead>
+        <thead><tr><th>Cliente</th><th>Código</th><th>Cuenta</th><th>Saldo</th><th>Últ. pago</th><th>Estado</th><th></th></tr></thead>
         <tbody id="tbody-clientes"><tr><td colspan="7"><div class="empty"><i class="ti ti-users"></i><p>Sin clientes.</p></div></td></tr></tbody>
       </table>
     </div>
@@ -387,12 +387,15 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 <div class="modal-bg" id="modal-importar" style="display:none"><div class="modal">
   <span class="modal-handle"></span>
   <div class="modal-title"><span style="display:flex;align-items:center;gap:8px"><i class="ti ti-file-spreadsheet" style="color:var(--blue)"></i> Importar Excel Megared</span><button class="close-btn" onclick="closeModal('modal-importar')"><i class="ti ti-x"></i></button></div>
-  <div class="alert alert-info"><i class="ti ti-info-circle" style="flex-shrink:0"></i><span>Sube el Excel de Megared. La app detecta la cuenta automáticamente y solo agrega lo nuevo sin duplicar.</span></div>
-  <div class="form-grid" style="margin-bottom:1rem">
-    <div class="form-group"><label class="form-label">Proveedor *</label><select id="imp-proveedor"><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select></div>
-    <div class="form-group"><label class="form-label">Archivo Excel *</label><input type="file" id="imp-archivo" accept=".xls,.xlsx" style="padding:6px"></div>
+  <div class="alert alert-info"><i class="ti ti-info-circle" style="flex-shrink:0"></i>
+    <span>Sube uno o varios archivos. El proveedor se detecta automáticamente por el nombre: <strong>MULTIPRODUCTO</strong> → Multiproducto, si no → Megared. Solo agrega lo nuevo sin duplicar.</span>
   </div>
-  <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="procesarImport()"><i class="ti ti-upload"></i> Procesar</button>
+  <div class="form-group" style="margin-bottom:10px">
+    <label class="form-label">Archivos Excel — puedes seleccionar varios a la vez</label>
+    <input type="file" id="imp-archivos" accept=".xls,.xlsx" multiple style="padding:8px;width:100%">
+  </div>
+  <div id="imp-lista-archivos" style="margin-bottom:10px"></div>
+  <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="procesarImportMultiple()"><i class="ti ti-upload"></i> Procesar todos</button>
   <div id="imp-msg" style="display:none;padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-top:10px"></div>
   <div id="imp-preview" style="display:none;margin-top:1rem"><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Vista previa</div><div id="imp-preview-body"></div></div>
 </div></div>
@@ -626,7 +629,18 @@ function buscarGlobal(){
   const items=[];
   clientes.filter(c=>c.nombre.toLowerCase().includes(q)||(c.codigo_cliente||'').includes(q)||(c.nombre_whatsapp||'').toLowerCase().includes(q)).slice(0,4).forEach(c=>{
     const pend=Math.max(0,pendiente(c));
-    items.push(`<div class="search-result-item" onclick="verHistCli('${c.id}');limpiarBusqueda()"><div class="search-result-icon" style="background:var(--blue-light);color:var(--blue-text)"><i class="ti ti-user"></i></div><div style="flex:1"><div style="font-size:13px;font-weight:600">${c.nombre}${c.nombre_whatsapp?` <span style="color:#25D366;font-size:11px">${c.nombre_whatsapp}</span>`:''}</div><div style="font-size:11px;color:var(--text2)">${cuentaLbl(c.plataforma)} · Pendiente: ${fmt(pend)}</div></div></div>`);
+    items.push(`<div class="search-result-item">
+      <div class="search-result-icon" style="background:var(--blue-light);color:var(--blue-text)"><i class="ti ti-user"></i></div>
+      <div style="flex:1;cursor:pointer" onclick="verHistCli('${c.id}');limpiarBusqueda()">
+        <div style="font-size:13px;font-weight:600">${c.nombre}${c.nombre_whatsapp?` <span style="color:#25D366;font-size:11px">${c.nombre_whatsapp}</span>`:''}</div>
+        <div style="font-size:11px;color:var(--text2)">${cuentaLbl(c.plataforma)} · ${fmtSaldo(pend)}</div>
+      </div>
+      <div style="display:flex;gap:5px;flex-shrink:0">
+        <button class="btn btn-secondary btn-sm" onclick="verHistCli('${c.id}');limpiarBusqueda()" title="Historial"><i class="ti ti-history"></i></button>
+        <button class="btn btn-secondary btn-sm" onclick="abrirEditCliente('${c.id}');limpiarBusqueda()" title="Editar"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-primary btn-sm" onclick="abrirFabModal('pago');selCliFab('${c.id}');limpiarBusqueda()" title="Registrar pago"><i class="ti ti-cash"></i></button>
+      </div>
+    </div>`);
   });
   movimientos.filter(m=>(m.codigo_transaccion||'').includes(q)||(m.comprobante||'').includes(q)||(m.nota||'').toLowerCase().includes(q)).slice(0,4).forEach(m=>{
     const cli=clientes.find(c=>c.id===m.cliente_id);
@@ -684,12 +698,32 @@ function renderClientes(){
   const prov=document.getElementById('f-prov').value;
   const est=document.getElementById('f-est').value;
   const extra=document.getElementById('f-extra')?.value||'';
-  const buscar=document.getElementById('f-buscar').value.toLowerCase();
-  let lista=clientes;
-  if(cuenta)lista=lista.filter(c=>c.plataforma===cuenta);
-  if(prov)lista=lista.filter(c=>c.proveedor===prov);
-  if(est)lista=lista.filter(c=>{const e=estadoCli(c);return est==='mora'?e.cls==='badge-red':est==='pendiente'?e.cls==='badge-amber':e.cls==='badge-green';});
-  // Filtro extra
+  const buscar=(document.getElementById('f-buscar')?.value||'').toLowerCase().trim();
+  let lista=[...clientes];
+
+  // Filtros base
+  if(buscar){
+    lista=lista.filter(c=>
+      c.nombre.toLowerCase().includes(buscar)||
+      (c.codigo_cliente||'').toLowerCase().includes(buscar)||
+      (c.nombre_whatsapp||'').toLowerCase().includes(buscar)||
+      (c.telefono||'').includes(buscar)
+    );
+  } else {
+    if(cuenta)lista=lista.filter(c=>c.plataforma===cuenta);
+    if(prov)lista=lista.filter(c=>c.proveedor===prov);
+    if(est){
+      lista=lista.filter(c=>{
+        const e=estadoCli(c);
+        if(est==='mora')return e.cls==='badge-red';
+        if(est==='pendiente')return e.cls==='badge-amber';
+        if(est==='pagado')return e.cls==='badge-green'||e.cls==='badge-blue';
+        return true;
+      });
+    }
+  }
+
+  // Filtro extra (siempre aplica)
   if(extra==='con_wsp')lista=lista.filter(c=>c.nombre_whatsapp);
   else if(extra==='sin_wsp')lista=lista.filter(c=>!c.nombre_whatsapp);
   else if(extra==='deuda_ant')lista=lista.filter(c=>Number(c.deuda_anterior||0)>0);
@@ -697,15 +731,11 @@ function renderClientes(){
   else if(extra==='con_codigo')lista=lista.filter(c=>c.codigo_cliente);
   else if(extra==='sin_codigo')lista=lista.filter(c=>!c.codigo_cliente);
 
-  if(buscar)lista=lista.filter(c=>c.nombre.toLowerCase().includes(buscar)||(c.codigo_cliente||'').includes(buscar)||(c.nombre_whatsapp||'').toLowerCase().includes(buscar));
-  document.getElementById('clientes-count').textContent=lista.length;
-  // Aplicar orden
-  if(ordenCli==='alfa'){
-    lista=[...lista].sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
-  } else if(ordenCli==='deuda'){
-    lista=[...lista].sort((a,b)=>pendiente(b)-pendiente(a));
-  } else if(ordenCli==='mora'){
-    lista=[...lista].sort((a,b)=>{
+  // Orden
+  if(ordenCli==='alfa')lista.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+  else if(ordenCli==='deuda')lista.sort((a,b)=>pendiente(b)-pendiente(a));
+  else if(ordenCli==='mora'){
+    lista.sort((a,b)=>{
       const pa=movimientos.filter(m=>m.cliente_id===a.id&&m.tipo==='pago');
       const pb=movimientos.filter(m=>m.cliente_id===b.id&&m.tipo==='pago');
       const da=pa.length?Math.floor((new Date()-new Date(pa[0].fecha))/86400000):999;
@@ -713,37 +743,53 @@ function renderClientes(){
       return db-da;
     });
   }
-  // reciente: orden del servidor (creado_en desc)
-  const tb=document.getElementById('tbody-clientes');
-  tb.innerHTML=lista.length?lista.map(c=>{
-    const pend=Math.max(0,pendiente(c));
 
+  const count=document.getElementById('clientes-count');
+  if(count)count.textContent=lista.length;
+
+  const tb=document.getElementById('tbody-clientes');
+  if(!tb)return;
+
+  if(!lista.length){
+    tb.innerHTML='<tr><td colspan="7"><div class="empty"><i class="ti ti-users"></i><p>Sin resultados.</p></div></td></tr>';
+    return;
+  }
+
+  tb.innerHTML=lista.map(c=>{
+    const pend=pendiente(c);
     const e=estadoCli(c);
-    return`<tr>
-      <td><div style="display:flex;align-items:center;gap:4px">
-        ${(()=>{
-          const pags=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');
-          const dias=pags.length?Math.floor((new Date()-new Date(pags[0].fecha))/86400000):null;
-          const color=pend>0?(dias===null?'var(--amber)':dias<=1?'var(--green)':dias<=4?'var(--amber)':'var(--red)'):'var(--green)';
-          const anim=pend>0&&(dias===null||dias>4)?';animation:pulse 1s infinite':'';
-          return '<span class="semaforo" style="background:'+color+anim+'"></span>';
-        })()}
-        <div>
-          <strong>${c.nombre}</strong>
-          ${c.nombre_whatsapp?`<br><span style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span>`:''}
+    const pagos=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');
+    const dias=pagos.length?Math.floor((new Date()-new Date(pagos[0].fecha))/86400000):null;
+    const semColor=pend>0?(dias===null?'var(--amber)':dias<=1?'var(--green)':dias<=4?'var(--amber)':'var(--red)'):'var(--green)';
+    const semAnim=pend>0&&(dias===null||dias>4)?';animation:pulse 1s infinite':'';
+    const ultPago=dias!==null&&pend>0?(dias===0?'Hoy':dias===1?'Ayer':dias+' días'):'—';
+    const colUlt=dias!==null&&pend>0?(dias>4?'var(--red)':dias>1?'var(--amber)':'var(--green)'):'var(--text3)';
+    return `<tr style="cursor:pointer" onclick="verHistCli('${c.id}')">
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="semaforo" style="background:${semColor}${semAnim}"></span>
+          <div>
+            <strong>${c.nombre}</strong>
+            ${c.nombre_whatsapp?`<br><span style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span>`:''}
+          </div>
         </div>
-      </div></td>
-      <td><span style="font-family:monospace;font-size:12px;color:var(--text2)">${c.codigo_cliente||'—'}</span></td>
-      <td><span class="badge badge-blue">${cuentaLbl(c.plataforma)}</span></td>
+      </td>
+      <td style="font-family:monospace;font-size:12px;color:var(--text2)">${c.codigo_cliente||'—'}</td>
+      <td><span class="badge badge-blue" style="font-size:10px">${cuentaLbl(c.plataforma)}</span></td>
       <td>${fmtSaldo(pend)}</td>
-      <td>${cupoMax>0?`<div style="font-size:11px;color:var(--text2)">${pct}% de ${fmt(cupoMax)}</div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${colorBarra}"></div></div>`:'<span style="font-size:11px;color:var(--text3)">Sin cupo definido</span>'}</td>
+      <td style="font-size:12px;color:${colUlt}">${ultPago}</td>
       <td><span class="badge ${e.cls}">${e.txt}</span></td>
-      <td><div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="verHistCli('${c.id}')" title="Historial"><i class="ti ti-history"></i></button><button class="btn btn-secondary btn-sm" onclick="abrirEditCliente('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button></div></td>
+      <td onclick="event.stopPropagation()">
+        <div class="row-actions">
+          <button class="btn btn-secondary btn-sm" onclick="verHistCli('${c.id}')" title="Historial"><i class="ti ti-history"></i></button>
+          <button class="btn btn-secondary btn-sm" onclick="abrirEditCliente('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button>
+        </div>
+      </td>
     </tr>`;
-  }).join(''):'<tr><td colspan="7"><div class="empty"><i class="ti ti-users"></i><p>Sin resultados.</p></div></td></tr>';
+  }).join('');
 }
 
-// ── Historial ──
+
 function renderHistorial(){
   const r=getRango(periodoHistActivo,'h-');
   const cuenta=document.getElementById('h-cuenta').value;
@@ -1052,7 +1098,7 @@ function verHistCli(id){
       ${c.codigo_cliente?`<span style="font-family:monospace;font-size:11px;color:var(--text2);background:var(--surface);padding:2px 8px;border-radius:10px;border:0.5px solid var(--border)">Cód: ${c.codigo_cliente}</span>`:''}
       ${c.nombre_whatsapp?`<span style="color:#25D366;font-size:12px"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span>`:''}
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${cupoMax>0?'8px':'0'}">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:"10px" ">
       <span style="font-size:13px;color:var(--text2)">Saldo pendiente</span>
       <span style="font-size:18px">${fmtSaldo(pend)}</span>
     </div>
@@ -1147,6 +1193,126 @@ function setOrdenCli(btn,val){
   btn.classList.add('active');
   renderClientes();
 }
+
+// ── Importar múltiples Excel ──
+document.addEventListener('change',function(e){
+  if(e.target.id!=='imp-archivos')return;
+  const lista=document.getElementById('imp-lista-archivos');
+  if(!lista)return;
+  const files=Array.from(e.target.files);
+  lista.innerHTML=files.map(f=>{
+    const mult=f.name.toUpperCase().includes('MULTIPRODUCTO');
+    return`<div style="display:flex;align-items:center;gap:8px;padding:5px 10px;background:var(--bg);border-radius:var(--radius);margin-bottom:4px;font-size:12px">
+      <i class="ti ti-file-spreadsheet" style="color:var(--blue)"></i>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
+      <span class="badge ${mult?'badge-amber':'badge-blue'}">${mult?'Multiproducto':'Megared'}</span>
+    </div>`;
+  }).join('');
+});
+
+async function procesarImportMultiple(){
+  const inp=document.getElementById('imp-archivos');
+  if(!inp||!inp.files.length)return mostrarImpMsg('Selecciona al menos un archivo','error');
+  const files=Array.from(inp.files);
+  mostrarImpMsg('Leyendo '+files.length+' archivo(s)...','info');
+
+  const transExistentes=new Set(movimientos.map(m=>m.codigo_transaccion).filter(Boolean));
+  const clientesMap={};
+  clientes.forEach(cl=>{if(cl.codigo_cliente&&cl.plataforma)clientesMap[cl.codigo_cliente+'_'+cl.plataforma]=cl.id;});
+
+  const clientesNuevos=[];
+  const movsNuevos=[];
+  let dups=0;
+
+  for(const file of files){
+    const proveedor=file.name.toUpperCase().includes('MULTIPRODUCTO')?'Multiproducto':'Megared';
+    await new Promise(res=>{
+      const reader=new FileReader();
+      reader.onload=function(e){
+        try{
+          const html=new TextDecoder('latin1').decode(e.target.result);
+          const doc=new DOMParser().parseFromString(html,'text/html');
+          const table=doc.querySelector('table');
+          if(!table){res();return;}
+          const JUA='032442',MAR='028469';
+          Array.from(table.querySelectorAll('tr')).slice(1).forEach(row=>{
+            const cols=row.querySelectorAll('td');
+            if(cols.length<7)return;
+            if(cols[5].textContent.trim()!=='')return;
+            const fechaC=cols[0].textContent.trim();
+            const user=cols[2].textContent.trim();
+            const trans=cols[1].textContent.trim();
+            let cuenta,cod;
+            if(user.includes(JUA)||trans.includes(JUA)){cuenta='Juanito';cod=JUA;}
+            else if(user.includes(MAR)||trans.includes(MAR)){cuenta='Don Martin';cod=MAR;}
+            else{cuenta='Juanito';cod=JUA;}
+            const val=parseFloat(cols[6].textContent.trim().replace(/\./g,'').replace(',','.'))||0;
+            const key=cols[3].textContent.trim()+'_'+cuenta;
+            if(!clientesMap[key]&&!clientesNuevos.find(x=>x.key===key)){
+              const id=crypto.randomUUID();
+              clientesMap[key]=id;
+              clientesNuevos.push({key,id,nombre:cols[4].textContent.trim(),cuenta,cod,comercio:cols[3].textContent.trim()});
+            }
+            if(transExistentes.has(trans)){dups++;}
+            else{movsNuevos.push({fecha:fechaC.slice(0,10),hora:fechaC.length>10?fechaC.slice(11,19):null,trans,comercio:cols[3].textContent.trim(),valor:val,cuenta,cod,proveedor,clienteId:clientesMap[key]});transExistentes.add(trans);}
+          });
+        }catch(err){console.error(file.name,err);}
+        res();
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  // Mostrar preview
+  const prev=document.getElementById('imp-preview');
+  const body=document.getElementById('imp-preview-body');
+  if(prev)prev.style.display='block';
+  mostrarImpMsg(`✓ ${movsNuevos.length} nuevos · ${dups} ya existían`,'ok');
+  let html=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+    <span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-user-plus"></i> ${clientesNuevos.length} clientes nuevos</span>
+    <span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-plus"></i> ${movsNuevos.length} movimientos nuevos</span>
+    <span class="resumen-chip"><i class="ti ti-copy"></i> ${dups} ya existían</span>
+  </div>`;
+  if(clientesNuevos.length){
+    html+=clientesNuevos.slice(0,5).map(cl=>`<div class="hist-item"><div class="hist-dot entrega"><i class="ti ti-user-plus"></i></div><div class="hist-info"><div class="hist-nombre">${cl.nombre}</div><div class="hist-sub">${cl.cuenta==='Juanito'?'Juanito (0660)':'Don Martín (6945)'} · Cód: ${cl.comercio}</div></div></div>`).join('');
+  }
+  html+=`<button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;margin-top:12px" onclick="confirmarImportMultiple()"><i class="ti ti-database-import"></i> Confirmar e importar</button>`;
+  if(body)body.innerHTML=html;
+  window._impData={clientesNuevos,movsNuevos};
+}
+
+async function confirmarImportMultiple(){
+  if(!window._impData)return;
+  const {clientesNuevos,movsNuevos}=window._impData;
+  mostrarImpMsg('Importando...','info');
+  try{
+    if(clientesNuevos.length){
+      const rows=clientesNuevos.map(cl=>({id:cl.id,nombre:cl.nombre,plataforma:cl.cuenta,proveedor:'Megared / Multiproducto',codigo_cliente:cl.comercio,deuda_anterior:0,deuda_revisada:'sin_revisar'}));
+      const res=await api('clientes_recarga','POST',rows);
+      if(Array.isArray(res))clientes.push(...res);
+      clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+    }
+    if(movsNuevos.length){
+      const rows=movsNuevos.map(m=>({cliente_id:m.clienteId,tipo:'entrega',valor:m.valor,fecha:m.fecha,hora:m.hora||null,codigo_transaccion:m.trans,codigo_cliente:m.comercio,codigo_cuenta:m.cod,proveedor:m.proveedor,confirmado:false}));
+      for(let i=0;i<rows.length;i+=20){const r=await api('movimientos_recarga','POST',rows.slice(i,i+20));if(Array.isArray(r))movimientos.unshift(...r);}
+    }
+    mostrarImpMsg(`✅ ${clientesNuevos.length} clientes y ${movsNuevos.length} movimientos importados`,'ok');
+    document.getElementById('imp-preview').style.display='none';
+    const inp=document.getElementById('imp-archivos');if(inp)inp.value='';
+    const lista=document.getElementById('imp-lista-archivos');if(lista)lista.innerHTML='';
+    window._impData=null;
+    renderDash();renderClientes();renderHistorial();renderConfirmaciones();
+  }catch(err){mostrarImpMsg('Error: '+err.message,'error');}
+}
+
+// Actualizar abrirModalImportar para limpiar campos nuevos
+const _origAbrirImportar=abrirModalImportar;
+abrirModalImportar=function(){
+  _origAbrirImportar();
+  const lista=document.getElementById('imp-lista-archivos');if(lista)lista.innerHTML='';
+  const inp=document.getElementById('imp-archivos');if(inp)inp.value='';
+};
+
 
 sbUrl=localStorage.getItem('sb_url')||'';sbKey=localStorage.getItem('sb_key')||'';
 if(sbUrl&&sbKey){document.getElementById('sb-url').value=sbUrl;document.getElementById('sb-key').value=sbKey;probarConexion();}
