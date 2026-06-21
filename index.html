@@ -560,7 +560,32 @@ function getRango(p,pref=''){
   else if(p==='custom'){desde=document.getElementById(pref+'desde')?.value||'';hasta=document.getElementById(pref+'hasta')?.value||hoy();if(!desde)return null;}
   return{desde,hasta};
 }
-function filtrarF(arr,r,c='fecha'){if(!r)return arr;return arr.filter(m=>m[c]>=r.desde&&m[c]<=r.hasta);}
+function filtrarF(arr,r,c='fecha'){
+  if(!r)return arr;
+  return arr.filter(m=>{
+    const fecha=m[c]||'';
+    return fecha>=r.desde&&fecha<=r.hasta;
+  });
+}
+// Filtro recientes con hora — usa fecha+hora del Excel si existe
+function filtrarRecientes(arr){
+  const ahora=new Date();
+  const hace24h=new Date(ahora.getTime()-24*3600000);
+  return arr.filter(m=>{
+    // Construir datetime del movimiento
+    let dt;
+    if(m.hora){
+      dt=new Date(`${m.fecha}T${m.hora}`);
+    } else if(m.hora_manual){
+      dt=new Date(`${m.fecha}T${m.hora_manual}`);
+    } else if(m.creado_en){
+      dt=new Date(m.creado_en);
+    } else {
+      dt=new Date(m.fecha+'T23:59:59');
+    }
+    return dt>=hace24h;
+  });
+}
 
 // ── Chips ──
 function setChip(btn,p){document.querySelectorAll('#sec-dashboard .chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');periodoActivo=p;document.getElementById('custom-dates').style.display=p==='custom'?'flex':'none';renderDash();}
@@ -656,7 +681,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.search-bar')&&!e.ta
 // ── Dashboard ──
 function renderDash(){
   const r=getRango(periodoActivo,'d-');
-  const mF=filtrarF(movimientos,r);
+  const mF=r&&periodoActivo==='recientes'?filtrarRecientes(movimientos):filtrarF(movimientos,r);
   const cobrado=mF.filter(m=>m.tipo==='pago').reduce((a,m)=>a+Number(m.valor),0);
   const entregado=mF.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0);
   const totalPend=clientes.reduce((a,c)=>a+Math.max(0,pendiente(c)),0);
@@ -796,7 +821,7 @@ function renderHistorial(){
   const prov=document.getElementById('h-prov').value;
   const tipo=document.getElementById('h-tipo').value;
   const buscar=document.getElementById('h-buscar').value.toLowerCase();
-  let ms=filtrarF(movimientos,r);
+  let ms=r&&periodoHistActivo==='recientes'?filtrarRecientes(movimientos):filtrarF(movimientos,r);
   if(tipo)ms=ms.filter(m=>m.tipo===tipo);
   if(cuenta||prov||buscar)ms=ms.filter(m=>{const cli=clientes.find(c=>c.id===m.cliente_id);if(!cli)return false;if(cuenta&&cli.plataforma!==cuenta)return false;if(prov&&cli.proveedor!==prov)return false;if(buscar&&!cli.nombre.toLowerCase().includes(buscar)&&!(cli.nombre_whatsapp||'').toLowerCase().includes(buscar))return false;return true;});
   const cobrado=ms.filter(m=>m.tipo==='pago').reduce((a,m)=>a+Number(m.valor),0);
@@ -968,7 +993,13 @@ async function guardarFabMov(){
 function mostrarFabMsg(txt,tipo){const el=document.getElementById('fab-msg');el.textContent=txt;el.style.display='block';el.style.background=tipo==='ok'?'var(--green-light)':'var(--red-light)';el.style.color=tipo==='ok'?'var(--green-text)':'var(--red-text)';el.style.border=`0.5px solid ${tipo==='ok'?'#4ABEA0':'#E89070'}`;}
 
 // ── Importar ──
-function abrirModalImportar(){document.getElementById('imp-msg').style.display='none';document.getElementById('imp-preview').style.display='none';document.getElementById('imp-archivo').value='';openModal('modal-importar');}
+function abrirModalImportar(){
+  const msg=document.getElementById('imp-msg');if(msg)msg.style.display='none';
+  const prev=document.getElementById('imp-preview');if(prev)prev.style.display='none';
+  const inp=document.getElementById('imp-archivos');if(inp)inp.value='';
+  const lista=document.getElementById('imp-lista-archivos');if(lista)lista.innerHTML='';
+  openModal('modal-importar');
+}
 function procesarImport(){
   const file=document.getElementById('imp-archivo').files[0];
   const proveedor=document.getElementById('imp-proveedor').value;
@@ -1053,8 +1084,22 @@ function abrirEditCliente(id){
 async function guardarCliente(){
   const nombre=document.getElementById('cli-nombre').value.trim();if(!nombre)return alert('El nombre es obligatorio');
   const id=document.getElementById('cli-id').value;
-  const data={nombre,nombre_whatsapp:document.getElementById('cli-wsp').value||null,telefono:document.getElementById('cli-tel').value||null,plataforma:document.getElementById('cli-cuenta').value,proveedor:document.getElementById('cli-prov').value,codigo_cliente:document.getElementById('cli-codigo').value||null,deuda_anterior:Number(document.getElementById('cli-deuda').value)||0};
-  try{if(id){await api('clientes_recarga?id=eq.'+id,'PATCH',data);const i=clientes.findIndex(x=>x.id===id);if(i>=0)clientes[i]={...clientes[i],...data};}else{const n=await api('clientes_recarga','POST',data);clientes.push(n[0]);}clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));closeModal('modal-cliente');renderClientes();renderDash();}catch(e){alert('Error: '+e.message);}
+  const data={nombre,nombre_whatsapp:document.getElementById('cli-wsp').value||null,telefono:document.getElementById('cli-tel').value||null,plataforma:document.getElementById('cli-cuenta').value,proveedor:document.getElementById('cli-prov').value,codigo_cliente:document.getElementById('cli-codigo').value||null,deuda_anterior:Number(document.getElementById('cli-deuda').value)||0,deuda_revisada:document.getElementById('cli-deuda-rev')?.value||'sin_revisar'};
+  try{
+    if(id){
+      await api('clientes_recarga?id=eq.'+id,'PATCH',data);
+      // Recargar datos frescos del cliente desde Supabase
+      const frescos=await api('clientes_recarga','GET',null,'id=eq.'+id);
+      const i=clientes.findIndex(x=>x.id===id);
+      if(i>=0&&frescos.length)clientes[i]=frescos[0];
+    }else{
+      const n=await api('clientes_recarga','POST',data);
+      clientes.push(n[0]);
+    }
+    clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+    closeModal('modal-cliente');
+    renderClientes();renderDash();
+  }catch(e){alert('Error: '+e.message);}
 }
 function confirmarEliminarCliente(){
   const id=document.getElementById('cli-id').value;const c=clientes.find(x=>x.id===id);const movs=movimientos.filter(m=>m.cliente_id===id).length;
@@ -1305,13 +1350,7 @@ async function confirmarImportMultiple(){
   }catch(err){mostrarImpMsg('Error: '+err.message,'error');}
 }
 
-// Actualizar abrirModalImportar para limpiar campos nuevos
-const _origAbrirImportar=abrirModalImportar;
-abrirModalImportar=function(){
-  _origAbrirImportar();
-  const lista=document.getElementById('imp-lista-archivos');if(lista)lista.innerHTML='';
-  const inp=document.getElementById('imp-archivos');if(inp)inp.value='';
-};
+
 
 
 sbUrl=localStorage.getItem('sb_url')||'';sbKey=localStorage.getItem('sb_key')||'';
