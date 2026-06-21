@@ -197,6 +197,29 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 .fab-option-btn{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,.15);flex-shrink:0;transition:all .15s}
 .fab-option-btn.entrega{background:var(--amber);color:#fff}
 .fab-option-btn.pago{background:#25D366;color:#fff}
+/* ── Chips de filtro ── */
+.filter-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:6px 13px;border-radius:20px;border:1.5px solid var(--border2);cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.filter-chip.active{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 2px 6px rgba(26,158,110,.25)}
+.filter-chip.active-red{background:var(--red);color:#fff;border-color:var(--red)}
+.filter-chip.active-amber{background:var(--amber);color:#fff;border-color:var(--amber)}
+.filter-chip.active-blue{background:var(--blue);color:#fff;border-color:var(--blue)}
+.filter-chip:hover:not(.active):not(.active-red):not(.active-amber):not(.active-blue){border-color:var(--green);color:var(--green);background:var(--green-light)}
+.filter-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.filter-label{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.filter-search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--border2);border-radius:var(--radius-lg);padding:8px 12px;transition:border .15s;margin-bottom:8px}
+.filter-search:focus-within{border-color:var(--green)}
+.filter-search input{flex:1;border:none;background:transparent;font-size:13px;color:var(--text);outline:none}
+.filter-search input::placeholder{color:var(--text3)}
+/* ── Cards de cliente ── */
+.cliente-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)}
+.cliente-card:hover{border-color:var(--green);transform:translateX(2px)}
+.cliente-card:active{transform:scale(.99)}
+.cliente-card-info{flex:1;min-width:0}
+.cliente-card-nombre{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cliente-card-sub{font-size:11px;color:var(--text2);margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cliente-card-saldo{text-align:right;flex-shrink:0}
+.semaforo-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
 .fab-import{position:fixed;bottom:24px;left:24px;z-index:500;width:48px;height:48px;border-radius:50%;background:var(--blue);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 14px rgba(26,95,168,.4);transition:all .2s}
 .fab-import:hover{transform:scale(1.08)}
 
@@ -292,7 +315,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Cliente</th><th>Código</th><th>Cuenta</th><th>Saldo pendiente</th><th>Cupo usado</th><th>Estado</th><th></th></tr></thead>
+        <thead><tr><th>Cliente</th><th>Código</th><th>Cuenta</th><th>Saldo pendiente</th><th>Estado</th><th></th></tr></thead>
         <tbody id="tbody-clientes"><tr><td colspan="7"><div class="empty"><i class="ti ti-users"></i><p>Sin clientes.</p></div></td></tr></tbody>
       </table>
     </div>
@@ -314,11 +337,19 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
         <input type="date" id="h-desde" onchange="renderHistorial()"><span style="font-size:12px">→</span><input type="date" id="h-hasta" onchange="renderHistorial()">
       </span>
     </div>
-    <div class="filter-bar" style="margin-top:-6px">
-      <input class="search-inline" id="h-buscar" placeholder="Buscar cliente..." onkeyup="renderHistorial()" style="flex:1">
-      <select id="h-cuenta" onchange="renderHistorial()" style="width:auto"><option value="">Todas las cuentas</option><option value="Juanito">Juanito</option><option value="Don Martin">Don Martín</option></select>
-      <select id="h-prov" onchange="renderHistorial()" style="width:auto"><option value="">Todos</option><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select>
-      <select id="h-tipo" onchange="renderHistorial()" style="width:auto"><option value="">Entregas + Pagos</option><option value="entrega">Entregas</option><option value="pago">Pagos</option></select>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <div class="filter-search" style="flex:1;min-width:200px">
+        <i class="ti ti-search" style="color:var(--text3);font-size:15px"></i>
+        <input id="h-buscar" placeholder="Buscar cliente..." onkeyup="renderHistorial()">
+      </div>
+      <select id="h-cuenta" onchange="renderHistorial()" style="width:auto;padding:8px 10px;font-size:12px"><option value="">Todas las cuentas</option><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select>
+      <select id="h-prov" onchange="renderHistorial()" style="width:auto;padding:8px 10px;font-size:12px"><option value="">Megared + Multiproducto</option><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select>
+    </div>
+    <div class="filter-chips" style="margin-bottom:8px">
+      <button class="filter-chip active" id="htipo-todo" onclick="setFiltroHistTipo(this,'')">Todos</button>
+      <button class="filter-chip" id="htipo-entrega" onclick="setFiltroHistTipo(this,'entrega')"><i class="ti ti-arrow-up" style="color:var(--amber)"></i> Entregas</button>
+      <button class="filter-chip" id="htipo-pago" onclick="setFiltroHistTipo(this,'pago')"><i class="ti ti-arrow-down" style="color:var(--green)"></i> Pagos</button>
+      <button class="filter-chip" id="htipo-rev" onclick="setFiltroHistTipo(this,'reversion')"><i class="ti ti-arrow-back-up" style="color:var(--red)"></i> Reversiones</button>
     </div>
     <div class="resumen-chips" id="hist-resumen"></div>
     <div id="hist-lista"><div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div></div>
@@ -376,12 +407,15 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 <div class="modal-bg" id="modal-importar" style="display:none"><div class="modal">
   <span class="modal-handle"></span>
   <div class="modal-title"><span style="display:flex;align-items:center;gap:8px"><i class="ti ti-file-spreadsheet" style="color:var(--blue)"></i> Importar Excel Megared</span><button class="close-btn" onclick="closeModal('modal-importar')"><i class="ti ti-x"></i></button></div>
-  <div class="alert alert-info"><i class="ti ti-info-circle" style="flex-shrink:0"></i><span>Sube el Excel de Megared. La app detecta la cuenta automáticamente y solo agrega lo nuevo sin duplicar.</span></div>
-  <div class="form-grid" style="margin-bottom:1rem">
-    <div class="form-group"><label class="form-label">Proveedor *</label><select id="imp-proveedor"><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select></div>
-    <div class="form-group"><label class="form-label">Archivo Excel *</label><input type="file" id="imp-archivo" accept=".xls,.xlsx" style="padding:6px"></div>
+  <div class="alert alert-info"><i class="ti ti-info-circle" style="flex-shrink:0"></i>
+    <span>Sube uno o varios archivos de Megared. El proveedor se detecta automáticamente por el nombre: si contiene <strong>MULTIPRODUCTO</strong> → Multiproducto, si no → Megared. Solo agrega lo nuevo sin duplicar.</span>
   </div>
-  <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="procesarImport()"><i class="ti ti-upload"></i> Procesar</button>
+  <div class="form-group" style="margin-bottom:10px">
+    <label class="form-label">Archivos Excel — puedes seleccionar varios a la vez</label>
+    <input type="file" id="imp-archivos" accept=".xls,.xlsx" multiple style="padding:8px;width:100%">
+  </div>
+  <div id="imp-lista-archivos" style="margin-bottom:10px"></div>
+  <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="procesarImportMultiple()"><i class="ti ti-upload"></i> Procesar todos</button>
   <div id="imp-msg" style="display:none;padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-top:10px"></div>
   <div id="imp-preview" style="display:none;margin-top:1rem"><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">Vista previa</div><div id="imp-preview-body"></div></div>
 </div></div>
@@ -411,6 +445,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     </div>
     <div class="form-group"><label class="form-label">Fecha</label><input type="date" id="fab-fecha"></div>
     <div class="form-group"><label class="form-label">No. transacción</label><input type="text" id="fab-trans" placeholder="Opcional"></div>
+    <div class="form-group"><label class="form-label">Hora (opcional)</label><input type="time" id="fab-hora-manual" placeholder="HH:MM"></div>
     <div class="form-group"><label class="form-label">Nota</label><input type="text" id="fab-nota" placeholder="Opcional"></div>
     <div class="form-group" id="fab-motivo-grp" style="grid-column:1/-1;display:none">
       <label class="form-label">Motivo de la reversión *</label>
@@ -454,8 +489,14 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div class="form-group"><label class="form-label">Código cliente</label><input id="cli-codigo" placeholder="Ej: 029804"></div>
     <div class="form-group"><label class="form-label">Cuenta *</label><select id="cli-cuenta"><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select></div>
     <div class="form-group"><label class="form-label">Proveedor *</label><select id="cli-prov"><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select></div>
-    <div class="form-group"><label class="form-label">Deuda anterior ($)</label><input id="cli-deuda" type="number" placeholder="0" min="0"></div>
-    <div class="form-group"><label class="form-label">Cupo máximo ($)</label><input id="cli-cupo" type="number" placeholder="500000" min="0"></div>
+    <div class="form-group"><label class="form-label">Deuda anterior ($)</label><input id="cli-deuda-display" placeholder="0" oninput="formatValor(this,'cli-deuda')" style="font-size:15px"><input type="hidden" id="cli-deuda"></div>
+    <div class="form-group">
+      <label class="form-label">Estado deuda anterior</label>
+      <select id="cli-deuda-revisada">
+        <option value="sin_revisar">Sin revisar (no confirmada)</option>
+        <option value="revisada">Revisada ✓ (confirmada del cuaderno)</option>
+      </select>
+    </div>
   </div>
   <div class="divider"></div>
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
@@ -481,10 +522,17 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <input type="hidden" id="em-id">
   <div class="form-grid">
     <div class="form-group"><label class="form-label">Tipo</label><select id="em-tipo"><option value="entrega">Entrega de saldo</option><option value="pago">Pago recibido</option><option value="reversion">Reversión de saldo</option></select></div>
-    <div class="form-group"><label class="form-label">Valor ($) *</label><input id="em-valor" type="number" min="0"></div>
+    <div class="form-group"><label class="form-label">Valor ($) *</label>
+      <div style="position:relative">
+        <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--text2)">$</span>
+        <input id="em-valor-display" placeholder="0" oninput="formatValor(this,'em-valor')" style="padding-left:26px;font-size:15px;font-weight:600">
+        <input type="hidden" id="em-valor">
+      </div>
+    </div>
     <div class="form-group"><label class="form-label">Fecha</label><input id="em-fecha" type="date"></div>
     <div class="form-group"><label class="form-label">No. transacción</label><input id="em-trans"></div>
     <div class="form-group"><label class="form-label">Comprobante</label><input id="em-comp"></div>
+    <div class="form-group"><label class="form-label">Hora manual (HH:MM)</label><input type="time" id="em-hora"></div>
     <div class="form-group"><label class="form-label">Nota</label><input id="em-nota"></div>
   </div>
   <div class="divider"></div>
@@ -522,6 +570,12 @@ const fmt=v=>'$'+Number(v||0).toLocaleString('es-CO');
 const hoy=()=>{const n=new Date();const c=new Date(n.toLocaleString('en-US',{timeZone:'America/Bogota'}));return c.getFullYear()+'-'+String(c.getMonth()+1).padStart(2,'0')+'-'+String(c.getDate()).padStart(2,'0');};
 const cuentaLbl=c=>c==='Juanito'?'Juanito (0660)':'Don Martín (6945)';
 const fmtFecha=f=>{if(!f)return'';const[y,mo,d]=f.split('-');return`${d}/${mo}/${y}`;};
+function horaEfectiva(m){
+  if(m.hora_manual)return m.hora_manual.slice(0,5);
+  if(m.hora)return m.hora.slice(0,5);
+  if(m.creado_en){const col=new Date(new Date(m.creado_en).toLocaleString('en-US',{timeZone:'America/Bogota'}));return String(col.getHours()).padStart(2,'0')+':'+String(col.getMinutes()).padStart(2,'0');}
+  return '';
+}
 
 function getRango(p,pref=''){
   const n=new Date();let desde,hasta=hoy();
@@ -537,6 +591,13 @@ function filtrarF(arr,r,c='fecha'){if(!r)return arr;return arr.filter(m=>m[c]>=r
 
 // ── Chips ──
 function setChip(btn,p){document.querySelectorAll('#sec-dashboard .chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');periodoActivo=p;document.getElementById('custom-dates').style.display=p==='custom'?'flex':'none';renderDash();}
+let histTipo='';
+function setFiltroHistTipo(btn,val){
+  histTipo=val;
+  ['htipo-todo','htipo-entrega','htipo-pago','htipo-rev'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
+  btn.classList.add('active');
+  renderHistorial();
+}
 function setChipHist(btn,p){
   ['hchip-recientes','hchip-semana','hchip-mes','hchip-todo','hchip-custom'].forEach(id=>{
     const el=document.getElementById(id);
@@ -578,7 +639,20 @@ async function cargarDatos(){try{[clientes,movimientos]=await Promise.all([api('
 
 // ── Lógica saldos ──
 function pendiente(c){const ms=movimientos.filter(m=>m.cliente_id===c.id);return Number(c.deuda_anterior||0)+ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0)-ms.filter(m=>m.tipo==='pago'||m.tipo==='reversion').reduce((a,m)=>a+Number(m.valor),0);}
-function estadoCli(c){const p=pendiente(c);if(p<=0)return{txt:'Pagado',cls:'badge-green'};const pg=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');if(!pg.length)return{txt:'Sin pago',cls:'badge-amber'};const dias=Math.floor((new Date()-new Date(pg[0].fecha))/86400000);return dias>7?{txt:'En mora',cls:'badge-red'}:{txt:'Pendiente',cls:'badge-amber'};}
+function estadoCli(c){
+  const p=pendiente(c);
+  if(p<0)return{txt:'A favor',cls:'badge-blue'};
+  if(p===0)return{txt:'Al día',cls:'badge-green'};
+  const pg=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');
+  if(!pg.length)return{txt:'Sin pago',cls:'badge-amber'};
+  const dias=Math.floor((new Date()-new Date(pg[0].fecha))/86400000);
+  return dias>4?{txt:'En mora',cls:'badge-red'}:dias>1?{txt:'Pendiente',cls:'badge-amber'}:{txt:'Al día',cls:'badge-green'};
+}
+function fmtSaldo(v){
+  if(v<0)return `<strong style="color:var(--blue)">A favor ${fmt(Math.abs(v))}</strong>`;
+  if(v===0)return `<strong style="color:var(--green)">Saldado</strong>`;
+  return `<strong style="color:var(--red)">${fmt(v)}</strong>`;
+}
 
 // ── Búsqueda global ──
 function buscarGlobal(){
@@ -588,8 +662,8 @@ function buscarGlobal(){
   if(!q){res.style.display='none';return;}
   const items=[];
   clientes.filter(c=>c.nombre.toLowerCase().includes(q)||(c.codigo_cliente||'').includes(q)||(c.nombre_whatsapp||'').toLowerCase().includes(q)).slice(0,4).forEach(c=>{
-    const pend=Math.max(0,pendiente(c));
-    items.push(`<div class="search-result-item" onclick="verHistCli('${c.id}');limpiarBusqueda()"><div class="search-result-icon" style="background:var(--blue-light);color:var(--blue-text)"><i class="ti ti-user"></i></div><div style="flex:1"><div style="font-size:13px;font-weight:600">${c.nombre}${c.nombre_whatsapp?` <span style="color:#25D366;font-size:11px">${c.nombre_whatsapp}</span>`:''}</div><div style="font-size:11px;color:var(--text2)">${cuentaLbl(c.plataforma)} · Pendiente: ${fmt(pend)}</div></div></div>`);
+    const pend=pendiente(c);
+    items.push(`<div class="search-result-item"><div class="search-result-icon" style="background:var(--blue-light);color:var(--blue-text)"><i class="ti ti-user"></i></div><div style="flex:1;cursor:pointer" onclick="verHistCli('${c.id}');limpiarBusqueda()"><div style="font-size:13px;font-weight:600">${c.nombre}${c.nombre_whatsapp?` <span style="color:#25D366;font-size:11px">${c.nombre_whatsapp}</span>`:''}</div><div style="font-size:11px;color:var(--text2)">${cuentaLbl(c.plataforma)} · ${pend<0?'<span style=color:var(--blue)>A favor '+fmt(Math.abs(pend))+'</span>':pend===0?'Saldado':'Debe: '+fmt(pend)}</div></div><div style="display:flex;gap:5px"><button class="btn btn-secondary btn-sm" onclick="verHistCli('${c.id}');limpiarBusqueda()" title="Historial"><i class="ti ti-history"></i></button><button class="btn btn-secondary btn-sm" onclick="abrirEditCliente('${c.id}');limpiarBusqueda()" title="Editar"><i class="ti ti-edit"></i></button></div></div>`);
   });
   movimientos.filter(m=>(m.codigo_transaccion||'').includes(q)||(m.comprobante||'').includes(q)||(m.nota||'').toLowerCase().includes(q)).slice(0,4).forEach(m=>{
     const cli=clientes.find(c=>c.id===m.cliente_id);
@@ -632,7 +706,7 @@ function renderDash(){
   document.getElementById('dash-recientes').innerHTML=rec5.length?rec5.map(m=>{
     const eP=m.tipo==='pago';const cli=clientes.find(c=>c.id===m.cliente_id);
     const nc=eP&&!m.confirmado?`<span class="badge badge-purple">Sin confirmar</span>`:'';
-    return`<div class="hist-item"><div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div><div class="hist-info"><div class="hist-nombre">${cli?cli.nombre:'—'} ${nc}</div><div class="hist-sub"><strong>${fmtFecha(m.fecha)}</strong>${m.hora?' · '+m.hora.slice(0,5):''}${m.cuenta_destino?' · '+m.cuenta_destino:''}</div></div><div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div></div>`;
+    return`<div class="hist-item"><div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div><div class="hist-info"><div class="hist-nombre">${cli?cli.nombre:'—'} ${nc}</div><div class="hist-sub"><strong>${fmtFecha(m.fecha)}</strong>${horaEfectiva(m)?' · '+horaEfectiva(m):''}${m.cuenta_destino?' · '+m.cuenta_destino:''}</div></div><div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div></div>`;
   }).join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>';
   // Atención
   const at=[];
@@ -642,319 +716,181 @@ function renderDash(){
 }
 
 // ── Clientes ──
+let vistaCli='cards';
+let filtroEst='', filtroCuenta='', filtrosExtra=new Set();
+
+function setVistaCli(v){
+  vistaCli=v;
+  document.getElementById('btn-vista-cards').style.background=v==='cards'?'var(--green)':'';
+  document.getElementById('btn-vista-cards').style.color=v==='cards'?'#fff':'';
+  document.getElementById('btn-vista-tabla').style.background=v==='tabla'?'var(--green)':'';
+  document.getElementById('btn-vista-tabla').style.color=v==='tabla'?'#fff':'';
+  renderClientes();
+}
+let filtroOrden='reciente';
+function setFiltroOrden(btn,val){
+  filtroOrden=val;
+  ['forden-reciente','forden-alfa','forden-deuda','forden-mora'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.classList.remove('active');
+  });
+  btn.classList.add('active');
+  renderClientes();
+}
+function setFiltroEst(btn,val){
+  filtroEst=val;
+  ['fest-todos','fest-mora','fest-pendiente','fest-pagado'].forEach(id=>document.getElementById(id)?.classList.remove('active'));
+  btn.classList.add('active');
+  renderClientes();
+}
+function setFiltroCuenta(btn,val){
+  filtroCuenta=val;
+  ['fcuenta-todos','fcuenta-juanito','fcuenta-martin'].forEach(id=>document.getElementById(id)?.classList.remove('active'));
+  btn.classList.add('active');
+  renderClientes();
+}
+function toggleFiltroExtra(btn,val){
+  if(filtrosExtra.has(val)){filtrosExtra.delete(val);btn.classList.remove('active-blue');}
+  else{filtrosExtra.add(val);btn.classList.add('active-blue');}
+  renderClientes();
+}
+function limpiarFiltrosCli(){
+  filtroEst='';filtroCuenta='';filtroOrden='reciente';filtrosExtra=new Set();
+  document.getElementById('f-buscar').value='';
+  ['fest-todos','fcuenta-todos','forden-reciente'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('active');});
+  ['fest-mora','fest-pendiente','fest-pagado','fcuenta-juanito','fcuenta-martin','forden-alfa','forden-deuda','forden-mora'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
+  ['fextra-wsp','fextra-sinwsp','fextra-deuda','fextra-sinrev','fextra-cod'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active-blue');});
+  renderClientes();
+}
+
 function renderClientes(){
-  const cuenta=document.getElementById('f-cuenta').value;
-  const prov=document.getElementById('f-prov').value;
-  const est=document.getElementById('f-est').value;
-  const buscar=document.getElementById('f-buscar').value.toLowerCase();
-  let lista=clientes;
-  if(cuenta)lista=lista.filter(c=>c.plataforma===cuenta);
-  if(prov)lista=lista.filter(c=>c.proveedor===prov);
-  if(est)lista=lista.filter(c=>{const e=estadoCli(c);return est==='mora'?e.cls==='badge-red':est==='pendiente'?e.cls==='badge-amber':e.cls==='badge-green';});
-  if(buscar)lista=lista.filter(c=>c.nombre.toLowerCase().includes(buscar)||(c.codigo_cliente||'').includes(buscar)||(c.nombre_whatsapp||'').toLowerCase().includes(buscar));
+  const buscar=(document.getElementById('f-buscar')?.value||'').toLowerCase().trim();
+  let lista=[...clientes];
+  if(buscar){
+    lista=lista.filter(c=>c.nombre.toLowerCase().includes(buscar)||(c.codigo_cliente||'').includes(buscar)||(c.nombre_whatsapp||'').toLowerCase().includes(buscar)||(c.telefono||'').includes(buscar));
+  } else {
+    if(filtroCuenta)lista=lista.filter(c=>c.plataforma===filtroCuenta);
+    if(filtroEst){
+      if(filtroEst==='mora')lista=lista.filter(c=>estadoCli(c).cls==='badge-red');
+      else if(filtroEst==='pendiente')lista=lista.filter(c=>estadoCli(c).cls==='badge-amber');
+      else if(filtroEst==='pagado')lista=lista.filter(c=>estadoCli(c).cls==='badge-green'||estadoCli(c).cls==='badge-blue');
+    }
+  }
+  // Filtros extra (siempre aplican)
+  if(filtrosExtra.has('con_wsp'))lista=lista.filter(c=>c.nombre_whatsapp);
+  if(filtrosExtra.has('sin_wsp'))lista=lista.filter(c=>!c.nombre_whatsapp);
+  if(filtrosExtra.has('con_deuda_ant'))lista=lista.filter(c=>Number(c.deuda_anterior||0)>0);
+  if(filtrosExtra.has('deuda_sin_revisar'))lista=lista.filter(c=>Number(c.deuda_anterior||0)>0&&c.deuda_revisada!=='revisada');
+  if(filtrosExtra.has('con_codigo'))lista=lista.filter(c=>c.codigo_cliente);
+
+  // Aplicar orden
+  if(filtroOrden==='alfa'){
+    lista=[...lista].sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+  } else if(filtroOrden==='deuda'){
+    lista=[...lista].sort((a,b)=>pendiente(b)-pendiente(a));
+  } else if(filtroOrden==='mora'){
+    lista=[...lista].sort((a,b)=>{
+      const pa=movimientos.filter(m=>m.cliente_id===a.id&&m.tipo==='pago');
+      const pb=movimientos.filter(m=>m.cliente_id===b.id&&m.tipo==='pago');
+      const da=pa.length?Math.floor((new Date()-new Date(pa[0].fecha))/86400000):999;
+      const db=pb.length?Math.floor((new Date()-new Date(pb[0].fecha))/86400000):999;
+      return db-da;
+    });
+  }
+  // 'reciente' ya viene ordenado por creado_en.desc desde Supabase
+
+  const lbl=document.getElementById('cli-count-label');
+  if(lbl)lbl.textContent=`${lista.length} cliente${lista.length!==1?'s':''}${lista.length<clientes.length?' (filtrado)':''}`;
   document.getElementById('clientes-count').textContent=lista.length;
   const tb=document.getElementById('tbody-clientes');
-  tb.innerHTML=lista.length?lista.map(c=>{
-    const pend=Math.max(0,pendiente(c));
-    const cupoMax=Number(c.cupo_maximo)||0;
-    const pct=cupoMax>0?Math.min(100,Math.round(pend/cupoMax*100)):0;
-    const colorBarra=pct>80?'var(--red)':pct>50?'var(--amber)':'var(--green)';
-    const e=estadoCli(c);
-    return`<tr>
-      <td><strong>${c.nombre}</strong>${c.nombre_whatsapp?`<br><span style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span>`:''}</td>
-      <td><span style="font-family:monospace;font-size:12px;color:var(--text2)">${c.codigo_cliente||'—'}</span></td>
-      <td><span class="badge badge-blue">${cuentaLbl(c.plataforma)}</span></td>
-      <td><strong style="color:${pend>0?'var(--red)':'var(--green)'}">${fmt(pend)}</strong></td>
-      <td>${cupoMax>0?`<div style="font-size:11px;color:var(--text2)">${pct}% de ${fmt(cupoMax)}</div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${colorBarra}"></div></div>`:'<span style="font-size:11px;color:var(--text3)">Sin cupo definido</span>'}</td>
-      <td><span class="badge ${e.cls}">${e.txt}</span></td>
-      <td><div class="row-actions"><button class="btn btn-secondary btn-sm" onclick="verHistCli('${c.id}')" title="Historial"><i class="ti ti-history"></i></button><button class="btn btn-secondary btn-sm" onclick="abrirEditCliente('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button></div></td>
-    </tr>`;
-  }).join(''):'<tr><td colspan="7"><div class="empty"><i class="ti ti-users"></i><p>Sin resultados.</p></div></td></tr>';
-}
 
-// ── Historial ──
-function renderHistorial(){
-  const r=getRango(periodoHistActivo,'h-');
-  const cuenta=document.getElementById('h-cuenta').value;
-  const prov=document.getElementById('h-prov').value;
-  const tipo=document.getElementById('h-tipo').value;
-  const buscar=document.getElementById('h-buscar').value.toLowerCase();
-  let ms=filtrarF(movimientos,r);
-  if(tipo)ms=ms.filter(m=>m.tipo===tipo);
-  if(cuenta||prov||buscar)ms=ms.filter(m=>{const cli=clientes.find(c=>c.id===m.cliente_id);if(!cli)return false;if(cuenta&&cli.plataforma!==cuenta)return false;if(prov&&cli.proveedor!==prov)return false;if(buscar&&!cli.nombre.toLowerCase().includes(buscar)&&!(cli.nombre_whatsapp||'').toLowerCase().includes(buscar))return false;return true;});
-  const cobrado=ms.filter(m=>m.tipo==='pago').reduce((a,m)=>a+Number(m.valor),0);
-  const entregado=ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0);
-  const neto=cobrado-entregado;
-  document.getElementById('hist-resumen').innerHTML=`
-    <span class="resumen-chip hl" style="color:var(--green-text);border-color:#4ABEA0"><i class="ti ti-arrow-down"></i> Cobrado: ${fmt(cobrado)}</span>
-    <span class="resumen-chip hl" style="color:var(--red-text);border-color:#E89070"><i class="ti ti-arrow-up"></i> Entregado: ${fmt(entregado)}</span>
-    <span class="resumen-chip hl" style="color:${neto>=0?'var(--green-text)':'var(--red-text)'};border-color:${neto>=0?'#4ABEA0':'#E89070'}"><i class="ti ti-scale"></i> Neto: ${neto>=0?'+':''}${fmt(neto)}</span>
-    <span class="resumen-chip"><i class="ti ti-list"></i> ${ms.length} movimiento${ms.length!==1?'s':''}</span>`;
-  // Agrupar por fecha
-  const grupos={};
-  ms.forEach(m=>{if(!grupos[m.fecha])grupos[m.fecha]=[];grupos[m.fecha].push(m);});
-  const fechasOrdenadas=Object.keys(grupos).sort((a,b)=>b.localeCompare(a));
-  let html='';
-  fechasOrdenadas.forEach(fecha=>{
-    html+=`<div class="fecha-grupo">${fmtFecha(fecha)}</div>`;
-    grupos[fecha].forEach(m=>{
-      const eP=m.tipo==='pago';const esRev=m.tipo==='reversion';const cli=clientes.find(c=>c.id===m.cliente_id);
-      const nc=eP&&!m.confirmado?`<span class="badge badge-purple">Sin confirmar</span>`:'';
-      const revBadge=esRev?`<span class="badge badge-red"><i class="ti ti-arrow-back-up"></i> Reversión</span>`:'';
-      const cdBadge=m.cuenta_destino?`<span class="badge badge-blue"><i class="ti ti-arrow-narrow-right"></i>${m.cuenta_destino}</span>`:'';
-      html+=`<div class="hist-item">
-        <div class="hist-dot ${esRev?'entrega':eP?'pago':'entrega'}" style="${esRev?'background:var(--red-light);color:var(--red-text)':''}"><i class="ti ti-${esRev?'arrow-back-up':eP?'arrow-down':'arrow-up'}"></i></div>
-        <div class="hist-info">
-          <div class="hist-nombre">${cli?cli.nombre:'—'} ${nc}${revBadge}</div>
-          <div class="hist-sub">${m.hora?m.hora.slice(0,5):''} ${cdBadge} ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px">#${m.codigo_transaccion}</span>`:''} ${m.nota?`<em>${m.nota}</em>`:''}</div>
-          <div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">
-            ${cli?`<span class="badge badge-blue">${cuentaLbl(cli.plataforma)}</span><span class="badge badge-gray">${m.proveedor||cli.proveedor||'—'}</span>`:''}
+  if(vistaCli==='cards'){
+    // ── Vista tarjetas ──
+    const container=document.getElementById('tbody-clientes').closest('.table-wrap');
+    container.innerHTML='<div id="cli-cards"></div>';
+    const div=document.getElementById('cli-cards');
+    if(!lista.length){div.innerHTML='<div class="empty"><i class="ti ti-users"></i><p>Sin resultados.</p></div>';return;}
+    div.innerHTML=lista.map(c=>{
+      const pend=pendiente(c);
+      const e=estadoCli(c);
+      const pagos=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');
+      const dias=pagos.length?Math.floor((new Date()-new Date(pagos[0].fecha))/86400000):null;
+      let semColor=pend>0?(dias===null?'var(--amber)':dias<=1?'var(--green)':dias<=4?'var(--amber)':'var(--red)'):'var(--green)';
+      const ultPago=dias!==null&&pend>0?(dias===0?'hoy':dias===1?'ayer':dias+' días'):null;
+      return`<div class="cliente-card" onclick="verHistCli('${c.id}')">
+        <span class="semaforo-dot" style="background:${semColor}${dias>4||dias===null&&pend>0?';animation:pulse 1s infinite':''}"></span>
+        <div class="cliente-card-info">
+          <div class="cliente-card-nombre">
+            ${c.nombre}
+            ${c.es_vip?'<span style="color:#B8860B">⭐</span>':''}
+            ${Number(c.deuda_anterior||0)>0&&c.deuda_revisada!=='revisada'?'<span class="badge badge-amber" style="font-size:9px">⚠ Deuda</span>':''}
+          </div>
+          <div class="cliente-card-sub">
+            <span class="badge badge-blue" style="font-size:10px">${cuentaLbl(c.plataforma)}</span>
+            <span class="badge badge-gray" style="font-size:10px">${c.proveedor||'—'}</span>
+            ${c.nombre_whatsapp?`<span style="color:#25D366;font-size:11px"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span>`:''}
+            ${c.codigo_cliente?`<span style="font-family:monospace;font-size:10px;color:var(--text3)">${c.codigo_cliente}</span>`:''}
+            ${ultPago?`<span style="font-size:11px;color:${dias>4?'var(--red)':dias>1?'var(--amber)':'var(--green)'}"><i class="ti ti-clock"></i> ${ultPago}</span>`:''}
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
-          <div class="hist-val" style="color:${eP?'var(--green)':esRev?'var(--red)':'var(--red)'}">${eP?'+':esRev?'-':'-'}${fmt(m.valor)}</div>
-          <button class="btn btn-secondary btn-sm" onclick="abrirEditMov('${m.id}')"><i class="ti ti-edit"></i></button>
+        <div class="cliente-card-saldo">
+          ${fmtSaldo(pend)}
+          <div style="display:flex;gap:4px;margin-top:6px;justify-content:flex-end" onclick="event.stopPropagation()">
+            <button class="btn btn-secondary btn-sm" onclick="abrirEditCliente('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button>
+            <button class="btn btn-primary btn-sm" onclick="closeModal('modal-hist-cli');abrirFabModal('pago');selCliFab('${c.id}')" title="Pago"><i class="ti ti-cash"></i></button>
+          </div>
         </div>
       </div>`;
-    });
-  });
-  document.getElementById('hist-lista').innerHTML=html||'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>';
-}
-
-// ── Confirmaciones ──
-function renderConfirmaciones(){
-  const rango=getRango(periodoConfFecha);
-  const buscar=document.getElementById('conf-buscar').value.toLowerCase();
-  let ms=movimientos.filter(m=>m.tipo==='pago');
-  if(vistaConf==='pendientes')ms=ms.filter(m=>!m.confirmado);
-  else if(vistaConf==='confirmados')ms=ms.filter(m=>m.confirmado);
-  if(rango)ms=filtrarF(ms,rango);
-  if(buscar)ms=ms.filter(m=>{const cli=clientes.find(c=>c.id===m.cliente_id);return cli&&(cli.nombre.toLowerCase().includes(buscar)||(cli.nombre_whatsapp||'').toLowerCase().includes(buscar)||(m.comprobante||'').includes(buscar)||(m.codigo_transaccion||'').includes(buscar));});
-  const totalPend=ms.filter(m=>!m.confirmado).reduce((a,m)=>a+Number(m.valor),0);
-  const totalConf=ms.filter(m=>m.confirmado).reduce((a,m)=>a+Number(m.valor),0);
-  document.getElementById('conf-resumen').innerHTML=`
-    <span class="resumen-chip" style="color:var(--purple-text)"><i class="ti ti-clock"></i> Pendientes: ${ms.filter(m=>!m.confirmado).length} · ${fmt(totalPend)}</span>
-    <span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-checks"></i> Confirmados: ${ms.filter(m=>m.confirmado).length} · ${fmt(totalConf)}</span>`;
-  // Agrupar por fecha
-  const grupos={};
-  ms.sort((a,b)=>b.fecha.localeCompare(a.fecha)).forEach(m=>{if(!grupos[m.fecha])grupos[m.fecha]=[];grupos[m.fecha].push(m);});
-  const fechas=Object.keys(grupos).sort((a,b)=>b.localeCompare(a));
-  let html='';
-  fechas.forEach(fecha=>{
-    html+=`<div class="fecha-grupo">${fmtFecha(fecha)}</div>`;
-    grupos[fecha].forEach(m=>{
-      const cli=clientes.find(c=>c.id===m.cliente_id);
-      const sub=[m.hora?m.hora.slice(0,5):null,m.codigo_transaccion?'Trans: '+m.codigo_transaccion:null,m.comprobante?'Comp: #'+m.comprobante:null,m.cuenta_destino?'→ '+m.cuenta_destino:null,m.nota].filter(Boolean).join(' · ');
-      html+=`<div class="conf-card ${m.confirmado?'conf':'pend'}">
-        <div class="hist-dot ${m.confirmado?'pago':'pendiente'}"><i class="ti ti-${m.confirmado?'check':'clock'}"></i></div>
-        <div class="conf-info"><div class="conf-nombre">${cli?cli.nombre:'—'}</div><div class="conf-sub">${sub||'Sin detalles'}</div></div>
-        <div style="text-align:right">
-          <div style="font-size:14px;font-weight:700;color:var(--green)">${fmt(m.valor)}</div>
-          ${!m.confirmado?`<button class="btn btn-confirm btn-sm" style="margin-top:6px" onclick="confirmarPago('${m.id}')"><i class="ti ti-circle-check"></i> Confirmar</button>`:'<div style="font-size:11px;color:var(--green-text);margin-top:4px"><i class="ti ti-check"></i> Confirmado</div>'}
-        </div>
-      </div>`;
-    });
-  });
-  document.getElementById('conf-lista').innerHTML=html||'<div class="empty"><i class="ti ti-circle-check"></i><p>No hay pagos en esta vista</p></div>';
-}
-
-async function confirmarPago(id){
-  try{await api('movimientos_recarga?id=eq.'+id,'PATCH',{confirmado:true,confirmado_en:new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T')});const m=movimientos.find(x=>x.id===id);if(m)m.confirmado=true;renderConfirmaciones();renderDash();}catch(e){alert('Error: '+e.message);}
-}
-
-// ── FAB ──
-function selMotivo(btn, motivo){
-  document.querySelectorAll('#fab-motivo-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
-  fabMotivo = motivo;
-  const custom = document.getElementById('fab-motivo-custom');
-  custom.style.display = motivo === 'Otro' ? 'block' : 'none';
-  if(motivo !== 'Otro') custom.value = '';
-}
-
-function toggleFab(){fabAbierto=!fabAbierto;document.getElementById('fab-options').classList.toggle('hidden',!fabAbierto);document.getElementById('fab-main').classList.toggle('open',fabAbierto);}
-function abrirFabModal(tipo){
-  fabTipo=tipo;fabAbierto=false;fabClienteSeleccionado=null;fabCuentaDestino=null;
-  document.getElementById('fab-options').classList.add('hidden');document.getElementById('fab-main').classList.remove('open');
-  ['fab-buscar-cli','fab-valor','fab-trans','fab-nota'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('fab-auto-list').style.display='none';
-  document.getElementById('fab-cli-sel-box').style.display='none';
-  document.getElementById('fab-fecha').value=hoy();
-  document.getElementById('fab-confirmado').checked=false;
-  document.getElementById('fab-msg').style.display='none';
-  document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
-  const esPago=tipo==='pago';
-  const esReversion = tipo === 'reversion';
-  document.getElementById('fab-confirm-grp').style.display=esPago?'block':'none';
-  document.getElementById('fab-cuenta-destino-grp').style.display=esPago?'block':'none';
-  document.getElementById('fab-motivo-grp').style.display=esReversion?'block':'none';
-  fabMotivo=null;
-  document.querySelectorAll('#fab-motivo-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
-  document.getElementById('fab-motivo-custom').style.display='none';
-  document.getElementById('fab-motivo-custom').value='';
-  const esReversion2 = tipo === 'reversion';
-  const color = esPago ? '#25D366' : esReversion2 ? 'var(--red)' : 'var(--amber)';
-  const icono = esPago ? 'cash' : esReversion2 ? 'arrow-back-up' : 'arrow-up';
-  const titulo = esPago ? 'Pago recibido' : esReversion2 ? 'Revertir saldo' : 'Entregar saldo';
-  document.getElementById('fab-modal-title').innerHTML=`<span style="display:flex;align-items:center;gap:10px"><span style="width:34px;height:34px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px"><i class="ti ti-${icono}"></i></span><span>${titulo}</span></span><button class="close-btn" onclick="closeFabModal()"><i class="ti ti-x"></i></button>`;
-  document.getElementById('fab-submit-btn').style.background=color;
-  document.getElementById('fab-submit-btn').innerHTML=`<i class="ti ti-device-floppy"></i> ${titulo}`;
-  openModal('modal-fab');
-}
-function closeFabModal(){closeModal('modal-fab');fabAbierto=false;document.getElementById('fab-options').classList.add('hidden');document.getElementById('fab-main').classList.remove('open');}
-
-function buscarCliFab(){
-  const q=document.getElementById('fab-buscar-cli').value.toLowerCase().trim();
-  const list=document.getElementById('fab-auto-list');
-  if(!q){list.style.display='none';return;}
-  const res=clientes.filter(c=>c.nombre.toLowerCase().includes(q)||(c.codigo_cliente||'').includes(q)||(c.nombre_whatsapp||'').toLowerCase().includes(q)).slice(0,8);
-  if(!res.length){list.style.display='none';return;}
-  list.innerHTML=res.map(c=>`<div class="auto-item" onclick="selCliFab('${c.id}')">
-    <div style="flex:1"><div style="font-weight:600">${c.nombre}</div>${c.nombre_whatsapp?`<div style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</div>`:''}<div style="font-size:11px;color:var(--text2)">${cuentaLbl(c.plataforma)} · ${c.proveedor}</div></div>
-    ${c.codigo_cliente?`<span style="font-family:monospace;font-size:11px;color:var(--text2);background:var(--bg);padding:2px 6px;border-radius:4px">${c.codigo_cliente}</span>`:''}
-  </div>`).join('');
-  list.style.display='block';
-}
-function selCliFab(id){
-  fabClienteSeleccionado=clientes.find(c=>c.id===id);
-  document.getElementById('fab-buscar-cli').value='';document.getElementById('fab-auto-list').style.display='none';
-  const box=document.getElementById('fab-cli-sel-box');box.style.display='flex';
-  document.getElementById('fab-cli-sel-nombre').textContent=fabClienteSeleccionado.nombre+(fabClienteSeleccionado.nombre_whatsapp?' · '+fabClienteSeleccionado.nombre_whatsapp:'');
-  document.getElementById('fab-cli-sel-info').textContent=cuentaLbl(fabClienteSeleccionado.plataforma)+' · '+fabClienteSeleccionado.proveedor+(fabClienteSeleccionado.codigo_cliente?' · Cód: '+fabClienteSeleccionado.codigo_cliente:'');
-}
-function limpiarCliFab(){fabClienteSeleccionado=null;document.getElementById('fab-cli-sel-box').style.display='none';document.getElementById('fab-buscar-cli').value='';}
-function selCuentaDestino(btn,cuenta){document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');fabCuentaDestino=cuenta;}
-
-document.addEventListener('click',e=>{
-  if(!e.target.closest('#fab-auto-list')&&!e.target.closest('#fab-buscar-cli'))document.getElementById('fab-auto-list').style.display='none';
-  if(!e.target.closest('.fab-container')&&fabAbierto){fabAbierto=false;document.getElementById('fab-options').classList.add('hidden');document.getElementById('fab-main').classList.remove('open');}
-});
-
-async function guardarFabMov(){
-  if(!fabClienteSeleccionado)return mostrarFabMsg('Selecciona un cliente primero','error');
-  const valor=getValorFab();
-  if(!valor||valor<=0)return mostrarFabMsg('Ingresa un valor válido','error');
-  const confirmado=fabTipo==='pago'&&document.getElementById('fab-confirmado').checked;
-  // Validar motivo si es reversión
-  if(fabTipo==='reversion'){
-    const motivoCustom=document.getElementById('fab-motivo-custom').value.trim();
-    if(fabMotivo==='Otro')fabMotivo=motivoCustom||'Otro';
-    if(!fabMotivo)return mostrarFabMsg('Selecciona el motivo de la reversión','error');
+    }).join('');
+  } else {
+    // ── Vista tabla ──
+    let tableWrap=document.getElementById('tbody-clientes')?.closest('.table-wrap');
+    if(tableWrap&&!tableWrap.querySelector('table')){
+      tableWrap.innerHTML='<table><thead><tr><th>Cliente</th><th>Código</th><th>Cuenta</th><th>Saldo</th><th>Últ. pago</th><th>Estado</th><th></th></tr></thead><tbody id="tbody-clientes"></tbody></table>';
+    }
+    const tb=document.getElementById('tbody-clientes');
+    if(!tb)return;
+    tb.innerHTML=lista.length?lista.map(c=>{
+      const pend=pendiente(c);
+      const e=estadoCli(c);
+      const pagos=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');
+      const dias=pagos.length?Math.floor((new Date()-new Date(pagos[0].fecha))/86400000):null;
+      let semColor=pend>0?(dias===null?'var(--amber)':dias<=1?'var(--green)':dias<=4?'var(--amber)':'var(--red)'):'var(--green)';
+      return`<tr onclick="verHistCli('${c.id}')" style="cursor:pointer">
+        <td><div style="display:flex;align-items:center;gap:6px">
+          <span class="semaforo-dot" style="background:${semColor}"></span>
+          <div>
+            <strong>${c.nombre}</strong>${c.es_vip?' ⭐':''}
+            ${Number(c.deuda_anterior||0)>0&&c.deuda_revisada!=='revisada'?'<span class="badge badge-amber" style="font-size:9px;margin-left:4px">⚠</span>':''}
+            ${c.nombre_whatsapp?`<br><span style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span>`:''}
+          </div>
+        </div></td>
+        <td style="font-family:monospace;font-size:12px;color:var(--text2)">${c.codigo_cliente||'—'}</td>
+        <td><span class="badge badge-blue" style="font-size:10px">${cuentaLbl(c.plataforma)}</span></td>
+        <td>${fmtSaldo(pend)}</td>
+        <td style="font-size:12px;color:${dias>4?'var(--red)':dias>1?'var(--amber)':'var(--green)'}">${dias!==null&&pend>0?(dias===0?'Hoy':dias===1?'Ayer':dias+' días'):'—'}</td>
+        <td><span class="badge ${e.cls}">${e.txt}</span></td>
+        <td onclick="event.stopPropagation()"><div class="row-actions">
+          <button class="btn btn-secondary btn-sm" onclick="verHistCli('${c.id}')" title="Historial"><i class="ti ti-history"></i></button>
+          <button class="btn btn-secondary btn-sm" onclick="abrirEditCliente('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button>
+        </div></td>
+      </tr>`;
+    }).join(''):'<tr><td colspan="7"><div class="empty"><i class="ti ti-users"></i><p>Sin resultados.</p></div></td></tr>';
   }
-  const notaFinal = fabTipo==='reversion' ? (fabMotivo+(document.getElementById('fab-nota').value?(' — '+document.getElementById('fab-nota').value):'')) : (document.getElementById('fab-nota').value||null);
-  // Reversión actúa como pago (resta saldo) pero se guarda como 'reversion'
-  const tipoGuardar = fabTipo==='reversion' ? 'reversion' : fabTipo;
-  const payload={cliente_id:fabClienteSeleccionado.id,tipo:tipoGuardar,valor,fecha:document.getElementById('fab-fecha').value||hoy(),codigo_transaccion:document.getElementById('fab-trans').value||null,nota:notaFinal,codigo_cliente:fabClienteSeleccionado.codigo_cliente||null,codigo_cuenta:fabClienteSeleccionado.plataforma==='Juanito'?'032442':'028469',proveedor:fabClienteSeleccionado.proveedor||null,cuenta_destino:fabTipo==='pago'?(fabCuentaDestino||null):null,confirmado,confirmado_en:confirmado?new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T'):null};
-  try{const n=await api('movimientos_recarga','POST',payload);movimientos.unshift(n[0]);mostrarFabMsg(`✓ ${fabTipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${fabClienteSeleccionado.nombre}`,'ok');document.getElementById('fab-valor').value='';document.getElementById('fab-valor-display').value='';document.getElementById('fab-trans').value='';document.getElementById('fab-nota').value='';document.getElementById('fab-confirmado').checked=false;limpiarCliFab();fabCuentaDestino=null;document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));renderDash();renderClientes();renderHistorial();renderConfirmaciones();setTimeout(()=>closeFabModal(),1800);}catch(e){mostrarFabMsg('Error: '+e.message,'error');}
-}
-function mostrarFabMsg(txt,tipo){const el=document.getElementById('fab-msg');el.textContent=txt;el.style.display='block';el.style.background=tipo==='ok'?'var(--green-light)':'var(--red-light)';el.style.color=tipo==='ok'?'var(--green-text)':'var(--red-text)';el.style.border=`0.5px solid ${tipo==='ok'?'#4ABEA0':'#E89070'}`;}
 
-// ── Importar ──
-function abrirModalImportar(){document.getElementById('imp-msg').style.display='none';document.getElementById('imp-preview').style.display='none';document.getElementById('imp-archivo').value='';openModal('modal-importar');}
-function procesarImport(){
-  const file=document.getElementById('imp-archivo').files[0];
-  const proveedor=document.getElementById('imp-proveedor').value;
-  if(!file)return mostrarImpMsg('Selecciona un archivo primero','error');
-  mostrarImpMsg('Leyendo archivo...','info');
-  const reader=new FileReader();
-  reader.onload=async function(e){
-    try{
-      const html=new TextDecoder('latin1').decode(e.target.result);
-      const doc=new DOMParser().parseFromString(html,'text/html');
-      const table=doc.querySelector('table');
-      if(!table)return mostrarImpMsg('No se encontró tabla en el archivo','error');
-      const JUANITO='032442',DON_MARTIN='028469';
-      const transacciones=[];
-      Array.from(table.querySelectorAll('tr')).slice(1).forEach(row=>{
-        const cols=row.querySelectorAll('td');
-        if(cols.length<7)return;
-        if(cols[5].textContent.trim()!=='')return;
-        const fechaC=cols[0].textContent.trim();
-        const usuarioEnvia=cols[2].textContent.trim();
-        const trans=cols[1].textContent.trim();
-        let cuenta=null,codigoCuenta=null;
-        if(usuarioEnvia.includes(JUANITO)||trans.includes(JUANITO)){cuenta='Juanito';codigoCuenta=JUANITO;}
-        else if(usuarioEnvia.includes(DON_MARTIN)||trans.includes(DON_MARTIN)){cuenta='Don Martin';codigoCuenta=DON_MARTIN;}
-        else{cuenta='Juanito';codigoCuenta=JUANITO;}
-        const valorTxt=cols[6].textContent.trim().replace(/\./g,'').replace(',','.');
-        transacciones.push({fecha:fechaC.slice(0,10),hora:fechaC.length>10?fechaC.slice(11,19):null,transaccion:trans,comercio:cols[3].textContent.trim(),razonSocial:cols[4].textContent.trim(),valor:parseFloat(valorTxt)||0,cuenta,codigoCuenta,proveedor});
-      });
-      if(!transacciones.length)return mostrarImpMsg('No se encontraron transacciones tuyas (sin observación)','error');
-      const transExistentes=new Set(movimientos.map(m=>m.codigo_transaccion).filter(Boolean));
-      const clientesNuevos=[];const movsNuevos=[];const movsdup=[];const clientesMap={};
-      clientes.forEach(c=>{if(c.codigo_cliente&&c.plataforma)clientesMap[c.codigo_cliente+'_'+c.plataforma]=c.id;});
-      transacciones.forEach(t=>{
-        const key=t.comercio+'_'+t.cuenta;
-        if(!clientesMap[key]&&!clientesNuevos.find(c=>c.key===key)){const newId=crypto.randomUUID();clientesMap[key]=newId;clientesNuevos.push({key,id:newId,nombre:t.razonSocial,cuenta:t.cuenta,codigoCuenta:t.codigoCuenta,comercio:t.comercio});}
-        if(transExistentes.has(t.transaccion))movsdup.push(t);
-        else movsNuevos.push({...t,clienteId:clientesMap[key]});
-      });
-      mostrarPreview(clientesNuevos,movsNuevos,movsdup);
-    }catch(err){mostrarImpMsg('Error: '+err.message,'error');}
-  };
-  reader.readAsArrayBuffer(file);
 }
-function mostrarPreview(clientesNuevos,movsNuevos,movsdup){
-  document.getElementById('imp-preview').style.display='block';
-  mostrarImpMsg(`✓ Encontradas: ${movsNuevos.length} nuevas, ${movsdup.length} ya existían`,'ok');
-  let html=`<div class="resumen-chips" style="margin-bottom:12px">
-    <span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-user-plus"></i> ${clientesNuevos.length} clientes nuevos</span>
-    <span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-plus"></i> ${movsNuevos.length} movimientos nuevos</span>
-    <span class="resumen-chip"><i class="ti ti-copy"></i> ${movsdup.length} ya existían (se omiten)</span>
-  </div>`;
-  if(clientesNuevos.length){html+=`<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Clientes nuevos</div>`;html+=clientesNuevos.map(c=>`<div class="hist-item"><div class="hist-dot entrega"><i class="ti ti-user-plus"></i></div><div class="hist-info"><div class="hist-nombre">${c.nombre}</div><div class="hist-sub">Cód: ${c.comercio} · ${c.cuenta==='Juanito'?'Juanito (0660)':'Don Martín (6945)'}</div></div></div>`).join('');}
-  html+=`<button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;margin-top:1rem" onclick="confirmarImport(${JSON.stringify(clientesNuevos).replace(/"/g,"'")},${JSON.stringify(movsNuevos).replace(/"/g,"'")})"><i class="ti ti-database-import"></i> Confirmar e importar</button>`;
-  document.getElementById('imp-preview-body').innerHTML=html;
+function limpiarEditMov(){
+  ['em-valor-display','em-trans','em-comp','em-nota'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('em-valor').value='';
 }
-async function confirmarImport(clientesNuevos,movsNuevos){
-  mostrarImpMsg('Importando...','info');
-  try{
-    if(clientesNuevos.length){const cData=clientesNuevos.map(c=>({id:c.id,nombre:c.nombre,plataforma:c.cuenta,proveedor:'Megared / Multiproducto',codigo_cliente:c.comercio,deuda_anterior:0}));const nuevos=await api('clientes_recarga','POST',cData);if(Array.isArray(nuevos))clientes.push(...nuevos);clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));}
-    if(movsNuevos.length){const mData=movsNuevos.map(m=>({cliente_id:m.clienteId,tipo:'entrega',valor:m.valor,fecha:m.fecha,hora:m.hora||null,codigo_transaccion:m.transaccion,codigo_cliente:m.comercio,codigo_cuenta:m.codigoCuenta,proveedor:m.proveedor,confirmado:false}));for(let i=0;i<mData.length;i+=20){const nuevos=await api('movimientos_recarga','POST',mData.slice(i,i+20));if(Array.isArray(nuevos))movimientos.unshift(...nuevos);}}
-    mostrarImpMsg(`✅ Importado: ${clientesNuevos.length} clientes y ${movsNuevos.length} movimientos`,'ok');
-    document.getElementById('imp-preview').style.display='none';document.getElementById('imp-archivo').value='';
-    renderDash();renderClientes();renderHistorial();renderConfirmaciones();
-  }catch(e){mostrarImpMsg('Error: '+e.message,'error');}
-}
-function mostrarImpMsg(txt,tipo){const el=document.getElementById('imp-msg');el.textContent=txt;el.style.display='block';el.style.background=tipo==='ok'?'var(--green-light)':tipo==='error'?'var(--red-light)':'var(--blue-light)';el.style.color=tipo==='ok'?'var(--green-text)':tipo==='error'?'var(--red-text)':'var(--blue-text)';el.style.border=`0.5px solid ${tipo==='ok'?'#4ABEA0':tipo==='error'?'#E89070':'#70A8E8'}`;}
-
-// ── Guardar cliente ──
-function abrirModalCliente(){
-  document.getElementById('modal-cli-title').innerHTML='Nuevo cliente <button class="close-btn" onclick="closeModal(\'modal-cliente\')"><i class="ti ti-x"></i></button>';
-  document.getElementById('cli-id').value='';document.getElementById('btn-eliminar-cli').style.display='none';
-  ['cli-nombre','cli-wsp','cli-tel','cli-codigo'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('cli-deuda').value=0;document.getElementById('cli-cupo').value=0;
-  openModal('modal-cliente');
-}
-function abrirEditCliente(id){
-  const c=clientes.find(x=>x.id===id);
-  document.getElementById('modal-cli-title').innerHTML='Editar cliente <button class="close-btn" onclick="closeModal(\'modal-cliente\')"><i class="ti ti-x"></i></button>';
-  document.getElementById('cli-id').value=c.id;document.getElementById('cli-nombre').value=c.nombre||'';document.getElementById('cli-wsp').value=c.nombre_whatsapp||'';document.getElementById('cli-tel').value=c.telefono||'';document.getElementById('cli-codigo').value=c.codigo_cliente||'';document.getElementById('cli-cuenta').value=c.plataforma||'Juanito';document.getElementById('cli-prov').value=c.proveedor||'Megared';document.getElementById('cli-deuda').value=c.deuda_anterior||0;document.getElementById('cli-cupo').value=c.cupo_maximo||0;document.getElementById('btn-eliminar-cli').style.display='inline-flex';
-  openModal('modal-cliente');
-}
-async function guardarCliente(){
-  const nombre=document.getElementById('cli-nombre').value.trim();if(!nombre)return alert('El nombre es obligatorio');
-  const id=document.getElementById('cli-id').value;
-  const data={nombre,nombre_whatsapp:document.getElementById('cli-wsp').value||null,telefono:document.getElementById('cli-tel').value||null,plataforma:document.getElementById('cli-cuenta').value,proveedor:document.getElementById('cli-prov').value,codigo_cliente:document.getElementById('cli-codigo').value||null,deuda_anterior:Number(document.getElementById('cli-deuda').value)||0,cupo_maximo:Number(document.getElementById('cli-cupo').value)||0};
-  try{if(id){await api('clientes_recarga?id=eq.'+id,'PATCH',data);const i=clientes.findIndex(x=>x.id===id);if(i>=0)clientes[i]={...clientes[i],...data};}else{const n=await api('clientes_recarga','POST',data);clientes.push(n[0]);}clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));closeModal('modal-cliente');renderClientes();renderDash();}catch(e){alert('Error: '+e.message);}
-}
-function confirmarEliminarCliente(){
-  const id=document.getElementById('cli-id').value;const c=clientes.find(x=>x.id===id);const movs=movimientos.filter(m=>m.cliente_id===id).length;
-  document.getElementById('conf-del-title').innerHTML='¿Eliminar cliente? <button class="close-btn" onclick="closeModal(\'modal-confirmar\')"><i class="ti ti-x"></i></button>';
-  document.getElementById('conf-del-body').innerHTML=`Vas a eliminar a <strong>${c.nombre}</strong>${movs>0?` y sus <strong>${movs} movimiento${movs>1?'s':''}</strong>`:''}.`;
-  document.getElementById('conf-del-btn').onclick=async()=>{try{await api('clientes_recarga?id=eq.'+id,'DELETE');clientes=clientes.filter(x=>x.id!==id);movimientos=movimientos.filter(m=>m.cliente_id!==id);closeModal('modal-confirmar');closeModal('modal-cliente');renderClientes();renderDash();}catch(e){alert('Error: '+e.message);}};
-  closeModal('modal-cliente');openModal('modal-confirmar');
-}
-
-// ── Editar movimiento ──
 function abrirEditMov(id){
   const m=movimientos.find(x=>x.id===id);
-  document.getElementById('em-id').value=m.id;document.getElementById('em-tipo').value=m.tipo||'entrega';document.getElementById('em-valor').value=m.valor||0;document.getElementById('em-fecha').value=m.fecha||'';document.getElementById('em-trans').value=m.codigo_transaccion||'';document.getElementById('em-comp').value=m.comprobante||'';document.getElementById('em-nota').value=m.nota||'';
+  limpiarEditMov();
+  document.getElementById('em-id').value=m.id;document.getElementById('em-tipo').value=m.tipo||'entrega';document.getElementById('em-valor').value=m.valor||0;document.getElementById('em-valor-display').value=m.valor>0?Number(m.valor).toLocaleString('es-CO'):'';document.getElementById('em-fecha').value=m.fecha||'';document.getElementById('em-trans').value=m.codigo_transaccion||'';document.getElementById('em-comp').value=m.comprobante||'';document.getElementById('em-nota').value=m.nota||'';
   openModal('modal-edit-mov');
 }
 async function guardarEditMov(){
   const id=document.getElementById('em-id').value;const valor=Number(document.getElementById('em-valor').value);if(!valor||valor<=0)return alert('El valor debe ser mayor a 0');
-  const patch={tipo:document.getElementById('em-tipo').value,valor,fecha:document.getElementById('em-fecha').value,codigo_transaccion:document.getElementById('em-trans').value||null,comprobante:document.getElementById('em-comp').value||null,nota:document.getElementById('em-nota').value||null};
+  const patch={tipo:document.getElementById('em-tipo').value,valor,fecha:document.getElementById('em-fecha').value,codigo_transaccion:document.getElementById('em-trans').value||null,comprobante:document.getElementById('em-comp').value||null,nota:document.getElementById('em-nota').value||null,hora_manual:document.getElementById('em-hora').value||null};
   try{await api('movimientos_recarga?id=eq.'+id,'PATCH',patch);const i=movimientos.findIndex(x=>x.id===id);if(i>=0)movimientos[i]={...movimientos[i],...patch};closeModal('modal-edit-mov');renderClientes();renderHistorial();renderDash();renderConfirmaciones();}catch(e){alert('Error: '+e.message);}
 }
 function confirmarEliminarMov(){
@@ -984,9 +920,9 @@ function verHistCli(id){
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${cupoMax>0?'8px':'0'}">
       <span style="font-size:13px;color:var(--text2)">Saldo pendiente</span>
-      <strong style="font-size:18px;color:${pend>0?'var(--red)':'var(--green)'}">${fmt(pend)}</strong>
+      <span style="font-size:18px">${fmtSaldo(pend)}</span>
     </div>
-    ${cupoMax>0?`<div style="font-size:11px;color:var(--text2);margin-bottom:4px">${pct}% del cupo usado (${fmt(pend)} de ${fmt(cupoMax)})</div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${colorBarra}"></div></div>`:''}
+
   </div>
   <div style="display:flex;gap:8px;margin-bottom:1rem">
     <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="closeModal('modal-hist-cli');abrirFabModal('entrega');selCliFab('${c.id}')"><i class="ti ti-arrow-up"></i> Entregar</button>
@@ -1009,16 +945,42 @@ function verHistCli(id){
         <div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div>
         <div class="hist-info">
           <div class="hist-nombre">${esRevC?'Reversión de saldo':eP?'Pago recibido':'Entrega de saldo'} ${nc}${revBadgeC}</div>
-          <div class="hist-sub">${m.hora?m.hora.slice(0,5):''} ${cdBadge} ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px">#${m.codigo_transaccion}</span>`:''} ${m.nota?`<em>${m.nota}</em>`:''}</div>
+          <div class="hist-sub">${horaEfectiva(m)} ${cdBadge} ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px">#${m.codigo_transaccion}</span>`:''} ${m.nota?`<em>${m.nota}</em>`:''}</div>
         </div>
-        <div style="text-align:right">
+        <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px">
           <div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div>
-          <div style="font-size:11px;color:var(--text2)">Saldo: ${fmt(Math.max(0,saldo))}</div>
+          <div style="font-size:11px;color:${saldo<0?'var(--blue)':saldo===0?'var(--green)':'var(--text2)'}">
+            ${saldo<0?'A favor: '+fmt(Math.abs(saldo)):saldo===0?'Saldado ✓':'Debe: '+fmt(saldo)}
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-hist-cli');abrirEditMov('${m.id}')"><i class="ti ti-edit"></i></button>
         </div>
       </div>`;
     });
   });
-  document.getElementById('hist-cli-body').innerHTML=resumen+(itemsHtml||'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>');
+  // Deuda anterior al final (es el punto de partida histórico)
+  let deudaAntHtml = '';
+  if(Number(c.deuda_anterior||0)>0){
+    const revisada=c.deuda_revisada==='revisada';
+    deudaAntHtml=`<div style="margin-top:12px">
+      <div class="fecha-grupo">Saldo inicial (deuda anterior)</div>
+      <div class="hist-item" style="background:${revisada?'var(--green-light)':'var(--amber-light)'};border-radius:var(--radius);padding:10px;margin:4px 0">
+        <div class="hist-dot" style="background:${revisada?'var(--green-light)':'var(--amber-light)'};color:${revisada?'var(--green-text)':'var(--amber-text)'}">
+          <i class="ti ti-${revisada?'circle-check':'clock'}"></i>
+        </div>
+        <div class="hist-info">
+          <div class="hist-nombre">Deuda anterior registrada</div>
+          <div class="hist-sub" style="color:${revisada?'var(--green-text)':'var(--amber-text)'}">
+            ${revisada?'✓ Revisada del cuaderno':'⚠ Sin revisar — pendiente confirmar del cuaderno'}
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="hist-val" style="color:var(--red)">+${fmt(c.deuda_anterior)}</div>
+          <button class="btn btn-secondary btn-sm" style="margin-top:4px" onclick="closeModal('modal-hist-cli');abrirEditCliente('${c.id}')"><i class="ti ti-edit"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }
+  document.getElementById('hist-cli-body').innerHTML=resumen+(itemsHtml||'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>')+deudaAntHtml;
   openModal('modal-hist-cli');
 }
 
@@ -1038,6 +1000,289 @@ function getValorFab(){
 }
 
 // ── Init ──
+function limpiarFiltrosCli(){
+  ['f-cuenta','f-prov','f-est','f-extra'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const b=document.getElementById('f-buscar');if(b)b.value='';
+  renderClientes();
+}
+// ── Historial global ──
+function renderHistorial(){
+  const r=getRango(periodoHistActivo,'h-');
+  const cuenta=document.getElementById('h-cuenta')?.value||'';
+  const prov=document.getElementById('h-prov')?.value||'';
+  const buscar=(document.getElementById('h-buscar')?.value||'').toLowerCase();
+  const tipo=histTipo||'';
+  let ms=filtrarF(movimientos,r);
+  if(tipo)ms=ms.filter(m=>m.tipo===tipo);
+  if(buscar){
+    ms=ms.filter(m=>{const cli=clientes.find(c=>c.id===m.cliente_id);if(!cli)return false;return cli.nombre.toLowerCase().includes(buscar)||(cli.nombre_whatsapp||'').toLowerCase().includes(buscar)||(cli.codigo_cliente||'').includes(buscar);});
+  } else if(cuenta||prov){
+    ms=ms.filter(m=>{const cli=clientes.find(c=>c.id===m.cliente_id);if(!cli)return false;if(cuenta&&cli.plataforma!==cuenta)return false;if(prov&&cli.proveedor!==prov)return false;return true;});
+  }
+  const cobrado=ms.filter(m=>m.tipo==='pago').reduce((a,m)=>a+Number(m.valor),0);
+  const entregado=ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0);
+  const neto=cobrado-entregado;
+  const el=document.getElementById('hist-resumen');
+  if(el)el.innerHTML=`
+    <span class="resumen-chip hl" style="color:var(--green-text);border-color:#4ABEA0"><i class="ti ti-arrow-down"></i> Cobrado: ${fmt(cobrado)}</span>
+    <span class="resumen-chip hl" style="color:var(--red-text);border-color:#E89070"><i class="ti ti-arrow-up"></i> Entregado: ${fmt(entregado)}</span>
+    <span class="resumen-chip hl" style="color:${neto>=0?'var(--green-text)':'var(--red-text)'};border-color:${neto>=0?'#4ABEA0':'#E89070'}"><i class="ti ti-scale"></i> Neto: ${neto>=0?'+':''}${fmt(neto)}</span>
+    <span class="resumen-chip"><i class="ti ti-list"></i> ${ms.length} movimiento${ms.length!==1?'s':''}</span>`;
+  // Agrupar por fecha
+  const grupos={};
+  ms.forEach(m=>{if(!grupos[m.fecha])grupos[m.fecha]=[];grupos[m.fecha].push(m);});
+  const fechas=Object.keys(grupos).sort((a,b)=>b.localeCompare(a));
+  let html='';
+  fechas.forEach(fecha=>{
+    html+=`<div class="fecha-grupo">${fmtFecha(fecha)}</div>`;
+    grupos[fecha].forEach(m=>{
+      const eP=m.tipo==='pago';const esRev=m.tipo==='reversion';
+      const cli=clientes.find(c=>c.id===m.cliente_id);
+      const nc=eP&&!m.confirmado?'<span class="badge badge-purple">Sin confirmar</span>':'';
+      const cdBadge=m.cuenta_destino?`<span class="badge badge-blue"><i class="ti ti-arrow-narrow-right"></i>${m.cuenta_destino}</span>`:'';
+      const revBadge=esRev?'<span class="badge badge-red"><i class="ti ti-arrow-back-up"></i> Reversión</span>':'';
+      const sub=[m.hora?m.hora.slice(0,5):null,m.hora_manual?m.hora_manual.slice(0,5):null].filter(Boolean).join(' ');
+      html+=`<div class="hist-item">
+        <div class="hist-dot ${eP?'pago':esRev?'entrega':'entrega'}" style="${esRev?'background:var(--red-light);color:var(--red-text)':''}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div>
+        <div class="hist-info">
+          <div class="hist-nombre">${cli?cli.nombre:'—'} ${nc}${revBadge}</div>
+          <div class="hist-sub"><strong>${fmtFecha(m.fecha)}</strong>${horaEfectiva(m)?' · '+horaEfectiva(m):''} ${cdBadge} ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px">#${m.codigo_transaccion}</span>`:''} ${m.nota?`<em>${m.nota}</em>`:''}</div>
+          <div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">
+            ${cli?`<span class="badge badge-blue" style="font-size:10px">${cuentaLbl(cli.plataforma)}</span><span class="badge badge-gray" style="font-size:10px">${m.proveedor||cli.proveedor||'—'}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+          <div class="hist-val" style="color:${eP?'var(--green)':esRev?'var(--red)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div>
+          <button class="btn btn-secondary btn-sm" onclick="abrirEditMov('${m.id}')"><i class="ti ti-edit"></i></button>
+        </div>
+      </div>`;
+    });
+  });
+  const listaEl=document.getElementById('hist-lista');
+  if(listaEl)listaEl.innerHTML=html||'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>';
+}
+
+// ── Confirmaciones ──
+function renderConfirmaciones(){
+  const rango=getRango(periodoConfFecha);
+  const buscar=(document.getElementById('conf-buscar')?.value||'').toLowerCase();
+  let ms=movimientos.filter(m=>m.tipo==='pago'||m.tipo==='reversion');
+  if(buscar){
+    ms=ms.filter(m=>{const cli=clientes.find(c=>c.id===m.cliente_id);return cli&&(cli.nombre.toLowerCase().includes(buscar)||(cli.nombre_whatsapp||'').toLowerCase().includes(buscar)||(m.comprobante||'').includes(buscar)||(m.codigo_transaccion||'').includes(buscar));});
+  } else {
+    if(vistaConf==='pendientes')ms=ms.filter(m=>!m.confirmado);
+    else if(vistaConf==='confirmados')ms=ms.filter(m=>m.confirmado);
+    if(rango)ms=filtrarF(ms,rango);
+  }
+  const totalPend=ms.filter(m=>!m.confirmado).reduce((a,m)=>a+Number(m.valor),0);
+  const totalConf=ms.filter(m=>m.confirmado).reduce((a,m)=>a+Number(m.valor),0);
+  const resumenEl=document.getElementById('conf-resumen');
+  if(resumenEl)resumenEl.innerHTML=`
+    <span class="resumen-chip" style="color:var(--purple-text)"><i class="ti ti-clock"></i> Sin confirmar: ${ms.filter(m=>!m.confirmado).length} · ${fmt(totalPend)}</span>
+    <span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-checks"></i> Confirmados: ${ms.filter(m=>m.confirmado).length} · ${fmt(totalConf)}</span>`;
+  // Agrupar por fecha
+  const grupos={};
+  ms.sort((a,b)=>b.fecha.localeCompare(a.fecha)).forEach(m=>{if(!grupos[m.fecha])grupos[m.fecha]=[];grupos[m.fecha].push(m);});
+  const fechas=Object.keys(grupos).sort((a,b)=>b.localeCompare(a));
+  let html='';
+  fechas.forEach(fecha=>{
+    html+=`<div class="fecha-grupo">${fmtFecha(fecha)}</div>`;
+    grupos[fecha].forEach(m=>{
+      const cli=clientes.find(c=>c.id===m.cliente_id);
+      const sub=[horaEfectiva(m)||null,m.codigo_transaccion?'#'+m.codigo_transaccion:null,m.comprobante?'Comp: '+m.comprobante:null,m.cuenta_destino?'→ '+m.cuenta_destino:null,m.nota].filter(Boolean).join(' · ');
+      html+=`<div class="conf-card ${m.confirmado?'conf':'pend'}">
+        <div class="hist-dot ${m.confirmado?'pago':'pendiente'}"><i class="ti ti-${m.confirmado?'check':'clock'}"></i></div>
+        <div class="conf-info" style="cursor:pointer" onclick="verHistCli('${m.cliente_id}')">
+          <div class="conf-nombre">${cli?cli.nombre:'—'}${cli&&cli.nombre_whatsapp?`<span style="color:#25D366;font-size:11px;margin-left:6px"><i class="ti ti-brand-whatsapp"></i> ${cli.nombre_whatsapp}</span>`:''}</div>
+          <div class="conf-sub">${sub||fmtFecha(m.fecha)}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:14px;font-weight:700;color:var(--green)">${fmt(m.valor)}</div>
+          <div style="display:flex;gap:5px;margin-top:6px;justify-content:flex-end">
+            <button class="btn btn-secondary btn-sm" onclick="abrirEditMov('${m.id}')"><i class="ti ti-edit"></i></button>
+            ${!m.confirmado?`<button class="btn btn-confirm btn-sm" onclick="confirmarPago('${m.id}')"><i class="ti ti-circle-check"></i> Confirmar</button>`:'<span style="font-size:11px;color:var(--green-text)"><i class="ti ti-check"></i> Confirmado</span>'}
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+  const listaEl=document.getElementById('conf-lista');
+  if(listaEl)listaEl.innerHTML=html||'<div class="empty"><i class="ti ti-circle-check"></i><p>Sin resultados en esta vista</p></div>';
+}
+
+async function confirmarPago(id){
+  try{
+    await api('movimientos_recarga?id=eq.'+id,'PATCH',{confirmado:true,confirmado_en:new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T')});
+    const m=movimientos.find(x=>x.id===id);if(m)m.confirmado=true;
+    renderConfirmaciones();renderDash();
+  }catch(e){alert('Error: '+e.message);}
+}
+
+// ── Clientes modals ──
+async function cargarEstadosSelect(selId,valorActual=''){
+  try{const estados=await api('estados_personalizados','GET',null,'order=orden');const sel=document.getElementById(selId);if(!sel)return;sel.innerHTML='<option value="">Sin estado</option>'+estados.map(e=>`<option value="${e.nombre}" ${valorActual===e.nombre?'selected':''}>${e.nombre}</option>`).join('');}catch(e){console.log('Sin estados');}
+}
+function abrirModalCliente(){
+  document.getElementById("modal-cli-title").innerHTML=`Nuevo cliente <button class="close-btn" onclick="closeModal('modal-cliente')"><i class="ti ti-x"></i></button>`;
+  document.getElementById('cli-id').value='';document.getElementById('btn-eliminar-cli').style.display='none';
+  ['cli-nombre','cli-wsp','cli-tel','cli-codigo'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  ['cli-deuda','cli-deuda-display'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  const rev=document.getElementById('cli-deuda-revisada');if(rev)rev.value='sin_revisar';
+  openModal('modal-cliente');
+}
+function abrirEditCliente(id){
+  const c=clientes.find(x=>x.id===id);if(!c)return;
+  document.getElementById("modal-cli-title").innerHTML=`Editar cliente <button class="close-btn" onclick="closeModal('modal-cliente')"><i class="ti ti-x"></i></button>`;
+  document.getElementById('cli-id').value=c.id;
+  document.getElementById('cli-nombre').value=c.nombre||'';
+  document.getElementById('cli-wsp').value=c.nombre_whatsapp||'';
+  document.getElementById('cli-tel').value=c.telefono||'';
+  document.getElementById('cli-codigo').value=c.codigo_cliente||'';
+  document.getElementById('cli-cuenta').value=c.plataforma||'Juanito';
+  document.getElementById('cli-prov').value=c.proveedor||'Megared';
+  document.getElementById('cli-deuda').value=c.deuda_anterior||0;
+  document.getElementById('cli-deuda-display').value=Number(c.deuda_anterior||0)>0?Number(c.deuda_anterior).toLocaleString('es-CO'):'';
+  const rev=document.getElementById('cli-deuda-revisada');if(rev)rev.value=c.deuda_revisada||'sin_revisar';
+  document.getElementById('btn-eliminar-cli').style.display='inline-flex';
+  openModal('modal-cliente');
+}
+async function guardarCliente(){
+  const nombre=document.getElementById('cli-nombre').value.trim();if(!nombre)return alert('El nombre es obligatorio');
+  const id=document.getElementById('cli-id').value;
+  const data={nombre,nombre_whatsapp:document.getElementById('cli-wsp').value||null,telefono:document.getElementById('cli-tel').value||null,plataforma:document.getElementById('cli-cuenta').value,proveedor:document.getElementById('cli-prov').value,codigo_cliente:document.getElementById('cli-codigo').value||null,deuda_anterior:Number(document.getElementById('cli-deuda').value)||0,deuda_revisada:document.getElementById('cli-deuda-revisada')?.value||'sin_revisar'};
+  try{
+    if(id){await api('clientes_recarga?id=eq.'+id,'PATCH',data);const i=clientes.findIndex(x=>x.id===id);if(i>=0)clientes[i]={...clientes[i],...data};}
+    else{const n=await api('clientes_recarga','POST',data);clientes.push(n[0]);}
+    clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+    closeModal('modal-cliente');renderClientes();renderDash();
+  }catch(e){alert('Error: '+e.message);}
+}
+function confirmarEliminarCliente(){
+  const id=document.getElementById('cli-id').value;const c=clientes.find(x=>x.id===id);if(!c)return;
+  const movs=movimientos.filter(m=>m.cliente_id===id).length;
+  document.getElementById('conf-del-title').innerHTML=`¿Eliminar cliente? <button class="close-btn" onclick="closeModal('modal-confirmar')"><i class="ti ti-x"></i></button>`;
+  document.getElementById('conf-del-body').innerHTML='Vas a eliminar a <strong>'+c.nombre+'</strong>'+(movs>0?' y sus <strong>'+movs+' movimiento'+(movs>1?'s':'')+'</strong>':'')+'.';
+  document.getElementById('conf-del-btn').onclick=async()=>{try{await api('clientes_recarga?id=eq.'+id,'DELETE');clientes=clientes.filter(x=>x.id!==id);movimientos=movimientos.filter(m=>m.cliente_id!==id);closeModal('modal-confirmar');closeModal('modal-cliente');renderClientes();renderDash();}catch(e){alert('Error: '+e.message);}};
+  closeModal('modal-cliente');openModal('modal-confirmar');
+}
+
+
+// ── Importar Excel múltiple ──
+document.addEventListener('change',function(e){
+  if(e.target.id==='imp-archivos'){
+    const lista=document.getElementById('imp-lista-archivos');
+    if(!lista)return;
+    const files=Array.from(e.target.files);
+    lista.innerHTML=files.length?files.map(f=>{
+      const esMult=f.name.toUpperCase().includes('MULTIPRODUCTO');
+      return`<div style="display:flex;align-items:center;gap:8px;padding:5px 10px;background:var(--bg);border-radius:var(--radius);margin-bottom:4px;font-size:12px">
+        <i class="ti ti-file-spreadsheet" style="color:var(--blue)"></i>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
+        <span class="badge ${esMult?'badge-amber':'badge-blue'}">${esMult?'Multiproducto':'Megared'}</span>
+      </div>`;
+    }).join(''):'';
+  }
+});
+
+async function procesarImportMultiple(){
+  const files=document.getElementById('imp-archivos')?.files;
+  if(!files||!files.length)return mostrarImpMsg('Selecciona al menos un archivo','error');
+  mostrarImpMsg('Leyendo '+files.length+' archivo(s)...','info');
+  const transExistentes=new Set(movimientos.map(m=>m.codigo_transaccion).filter(Boolean));
+  const clientesMapGlobal={};
+  clientes.forEach(cl=>{if(cl.codigo_cliente&&cl.plataforma)clientesMapGlobal[cl.codigo_cliente+'_'+cl.plataforma]=cl.id;});
+  const todosClientesNuevos=[];const todosMovsNuevos=[];let totalDups=0;
+  for(const file of Array.from(files)){
+    const proveedor=file.name.toUpperCase().includes('MULTIPRODUCTO')?'Multiproducto':'Megared';
+    await new Promise(resolve=>{
+      const reader=new FileReader();
+      reader.onload=async function(e){
+        try{
+          const html=new TextDecoder('latin1').decode(e.target.result);
+          const doc=new DOMParser().parseFromString(html,'text/html');
+          const table=doc.querySelector('table');
+          if(!table){resolve();return;}
+          const JUANITO='032442',DON_MARTIN='028469';
+          Array.from(table.querySelectorAll('tr')).slice(1).forEach(row=>{
+            const cols=row.querySelectorAll('td');
+            if(cols.length<7)return;
+            if(cols[5].textContent.trim()!=='')return;
+            const fechaC=cols[0].textContent.trim();
+            const usuarioEnvia=cols[2].textContent.trim();
+            const trans=cols[1].textContent.trim();
+            let cuenta=null,codigoCuenta=null;
+            if(usuarioEnvia.includes(JUANITO)||trans.includes(JUANITO)){cuenta='Juanito';codigoCuenta=JUANITO;}
+            else if(usuarioEnvia.includes(DON_MARTIN)||trans.includes(DON_MARTIN)){cuenta='Don Martin';codigoCuenta=DON_MARTIN;}
+            else{cuenta='Juanito';codigoCuenta=JUANITO;}
+            const valorTxt=cols[6].textContent.trim().replace(/\./g,'').replace(',','.');
+            const t={fecha:fechaC.slice(0,10),hora:fechaC.length>10?fechaC.slice(11,19):null,transaccion:trans,comercio:cols[3].textContent.trim(),razonSocial:cols[4].textContent.trim(),valor:parseFloat(valorTxt)||0,cuenta,codigoCuenta,proveedor};
+            const key=t.comercio+'_'+t.cuenta;
+            if(!clientesMapGlobal[key]&&!todosClientesNuevos.find(x=>x.key===key)){const newId=crypto.randomUUID();clientesMapGlobal[key]=newId;todosClientesNuevos.push({key,id:newId,nombre:t.razonSocial,cuenta:t.cuenta,codigoCuenta:t.codigoCuenta,comercio:t.comercio});}
+            if(transExistentes.has(t.transaccion)){totalDups++;}
+            else{todosMovsNuevos.push({...t,clienteId:clientesMapGlobal[key]});transExistentes.add(t.transaccion);}
+          });
+        }catch(err){console.error('Error en',file.name,err);}
+        resolve();
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+  mostrarPreview(todosClientesNuevos,todosMovsNuevos,totalDups);
+}
+
+function mostrarPreview(clientesNuevos,movsNuevos,totalDups){
+  const el=document.getElementById('imp-preview');
+  const body=document.getElementById('imp-preview-body');
+  if(!el||!body)return;
+  el.style.display='block';
+  mostrarImpMsg(`✓ Encontrado: ${movsNuevos.length} nuevo${movsNuevos.length!==1?'s':''}, ${totalDups} ya existían`,'ok');
+  let html=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-user-plus"></i> ${clientesNuevos.length} clientes nuevos</span>
+    <span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-plus"></i> ${movsNuevos.length} movimientos nuevos</span>
+    <span class="resumen-chip"><i class="ti ti-copy"></i> ${totalDups} ya existían</span>
+  </div>`;
+  if(clientesNuevos.length){
+    html+=`<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Clientes nuevos</div>`;
+    html+=clientesNuevos.slice(0,5).map(c=>`<div class="hist-item"><div class="hist-dot entrega"><i class="ti ti-user-plus"></i></div><div class="hist-info"><div class="hist-nombre">${c.nombre}</div><div class="hist-sub">${c.cuenta==='Juanito'?'Juanito (0660)':'Don Martín (6945)'} · Cód: ${c.comercio}</div></div></div>`).join('');
+  }
+  html+=`<button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;margin-top:12px" onclick="confirmarImport()"><i class="ti ti-database-import"></i> Confirmar e importar</button>`;
+  body.innerHTML=html;
+  // Guardar para confirmarImport
+  window._importData={clientesNuevos,movsNuevos};
+}
+
+async function confirmarImport(){
+  if(!window._importData)return;
+  const {clientesNuevos,movsNuevos}=window._importData;
+  mostrarImpMsg('Importando...','info');
+  try{
+    if(clientesNuevos.length){
+      const cData=clientesNuevos.map(c=>({id:c.id,nombre:c.nombre,plataforma:c.cuenta,proveedor:'Megared / Multiproducto',codigo_cliente:c.comercio,deuda_anterior:0,deuda_revisada:'sin_revisar'}));
+      const nuevos=await api('clientes_recarga','POST',cData);
+      if(Array.isArray(nuevos))clientes.push(...nuevos);
+      clientes.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+    }
+    if(movsNuevos.length){
+      const mData=movsNuevos.map(m=>({cliente_id:m.clienteId,tipo:'entrega',valor:m.valor,fecha:m.fecha,hora:m.hora||null,codigo_transaccion:m.transaccion,codigo_cliente:m.comercio,codigo_cuenta:m.codigoCuenta,proveedor:m.proveedor,confirmado:false}));
+      for(let i=0;i<mData.length;i+=20){const nuevos=await api('movimientos_recarga','POST',mData.slice(i,i+20));if(Array.isArray(nuevos))movimientos.unshift(...nuevos);}
+    }
+    mostrarImpMsg(`✅ Importado: ${clientesNuevos.length} clientes y ${movsNuevos.length} movimientos`,'ok');
+    document.getElementById('imp-preview').style.display='none';
+    const inp=document.getElementById('imp-archivos');if(inp)inp.value='';
+    const lista=document.getElementById('imp-lista-archivos');if(lista)lista.innerHTML='';
+    window._importData=null;
+    renderDash();renderClientes();renderHistorial();renderConfirmaciones();
+  }catch(e){mostrarImpMsg('Error: '+e.message,'error');}
+}
+
+function mostrarImpMsg(txt,tipo){
+  const el=document.getElementById('imp-msg');if(!el)return;
+  el.textContent=txt;el.style.display='block';
+  el.style.background=tipo==='ok'?'var(--green-light)':tipo==='error'?'var(--red-light)':'var(--blue-light)';
+  el.style.color=tipo==='ok'?'var(--green-text)':tipo==='error'?'var(--red-text)':'var(--blue-text)';
+  el.style.border=`0.5px solid ${tipo==='ok'?'#4ABEA0':tipo==='error'?'#E89070':'#70A8E8'}`;
+}
+
 sbUrl=localStorage.getItem('sb_url')||'';sbKey=localStorage.getItem('sb_key')||'';
 if(sbUrl&&sbKey){document.getElementById('sb-url').value=sbUrl;document.getElementById('sb-key').value=sbKey;probarConexion();}
 </script>
