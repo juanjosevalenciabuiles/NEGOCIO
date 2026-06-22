@@ -126,7 +126,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 @media(min-width:600px){.modal{border-radius:var(--radius-xl);border:0.5px solid var(--border)}}
 @keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-handle{width:36px;height:4px;border-radius:4px;background:var(--border2);margin:0 auto 1.25rem;display:block}
-.modal-title{font-size:16px;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .close-btn{background:var(--bg);border:none;cursor:pointer;color:var(--text2);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px}
 
 /* ── Empty ── */
@@ -223,6 +223,9 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 <div class="topbar">
   <div class="logo-icon"><i class="ti ti-building-store"></i></div>
   <div><div class="logo-text">Cartera Negocios</div><div class="logo-sub">Gestión de recargas</div></div>
+  <button onclick="abrirCaja()" style="background:var(--blue);border:none;color:#fff;border-radius:var(--radius);padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(26,95,168,.3)" title="Caja / Finanzas">
+    <i class="ti ti-wallet"></i><span style="display:none" id="caja-badge"></span>
+  </button>
   <div class="conn"><span class="dot" id="connDot"></span><span id="connTxt">Sin configurar</span></div>
 </div>
 
@@ -379,6 +382,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div class="fab-option" onclick="abrirFabModal('entrega')"><span class="fab-option-label">Entregar saldo</span><button class="fab-option-btn entrega"><i class="ti ti-arrow-up"></i></button></div>
     <div class="fab-option" onclick="abrirFabModal('pago')"><span class="fab-option-label">Registrar pago recibido</span><button class="fab-option-btn pago"><i class="ti ti-cash"></i></button></div>
     <div class="fab-option" onclick="abrirFabModal('reversion')"><span class="fab-option-label">Revertir saldo</span><button class="fab-option-btn" style="background:var(--red);color:#fff"><i class="ti ti-arrow-back-up"></i></button></div>
+    <div class="fab-option" onclick="abrirModalMover()"><span class="fab-option-label">Mover dinero</span><button class="fab-option-btn" style="background:var(--blue);color:#fff"><i class="ti ti-transfer"></i></button></div>
   </div>
   <button class="fab-main" id="fab-main" onclick="toggleFab()"><i class="ti ti-plus"></i></button>
 </div>
@@ -444,6 +448,8 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
         <button type="button" class="cuenta-btn" onclick="selCuentaDestino(this,'Don Martín (6945)')"><i class="ti ti-building-bank"></i> Don Martín (6945)</button>
         <button type="button" class="cuenta-btn" onclick="selCuentaDestino(this,'Bancolombia')"><i class="ti ti-credit-card"></i> Bancolombia</button>
         <button type="button" class="cuenta-btn" onclick="selCuentaDestino(this,'Nequi')"><i class="ti ti-device-mobile"></i> Nequi</button>
+        <button type="button" class="cuenta-btn" onclick="selCuentaDestino(this,'Efectivo')" style="grid-column:1/-1"><i class="ti ti-cash"></i> Efectivo</button>
+        <button type="button" class="cuenta-btn" onclick="selCuentaDestino(this,'Efectivo')" style="grid-column:1/-1"><i class="ti ti-cash"></i> Efectivo</button>
       </div>
     </div>
     <div class="form-group" id="fab-confirm-grp" style="grid-column:1/-1;display:none">
@@ -518,6 +524,97 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   </div>
 </div></div>
 
+<!-- MODAL MOVER DINERO -->
+<div class="modal-bg" id="modal-mover" style="display:none"><div class="modal" style="max-width:420px">
+  <span class="modal-handle"></span>
+  <div class="modal-title">
+    <span style="display:flex;align-items:center;gap:8px"><span style="width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px"><i class="ti ti-transfer"></i></span> Mover dinero</span>
+    <button class="close-btn" onclick="closeModal('modal-mover')"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="form-group" style="margin-bottom:12px">
+    <label class="form-label">Tipo de movimiento</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="mover-tipo-btns">
+      <button type="button" class="cuenta-btn active" id="mbtn-traslado" onclick="selMoverTipo(this,'traslado')" style="border-color:var(--blue);background:var(--blue);color:#fff"><i class="ti ti-arrows-exchange"></i> Traslado</button>
+      <button type="button" class="cuenta-btn" id="mbtn-retiro" onclick="selMoverTipo(this,'retiro')"><i class="ti ti-wallet"></i> Retiro personal</button>
+    </div>
+  </div>
+  <div class="form-group" style="margin-bottom:12px">
+    <label class="form-label">Desde (origen) *</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="mover-origen-btns">
+      <button type="button" class="cuenta-btn" onclick="selMoverOrigen(this,'Juanito (0660)')"><i class="ti ti-building-bank"></i> Juanito (0660)</button>
+      <button type="button" class="cuenta-btn" onclick="selMoverOrigen(this,'Don Martín (6945)')"><i class="ti ti-building-bank"></i> Don Martín (6945)</button>
+      <button type="button" class="cuenta-btn" onclick="selMoverOrigen(this,'Bancolombia')"><i class="ti ti-credit-card"></i> Bancolombia</button>
+      <button type="button" class="cuenta-btn" onclick="selMoverOrigen(this,'Nequi')"><i class="ti ti-device-mobile"></i> Nequi</button>
+      <button type="button" class="cuenta-btn" onclick="selMoverOrigen(this,'Efectivo')" style="grid-column:1/-1"><i class="ti ti-cash"></i> Efectivo</button>
+    </div>
+  </div>
+  <div class="form-group" id="mover-destino-grp" style="margin-bottom:12px">
+    <label class="form-label">Hacia (destino) *</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="mover-destino-btns">
+      <button type="button" class="cuenta-btn" onclick="selMoverDestino(this,'Juanito (0660)')"><i class="ti ti-building-bank"></i> Juanito (0660)</button>
+      <button type="button" class="cuenta-btn" onclick="selMoverDestino(this,'Don Martín (6945)')"><i class="ti ti-building-bank"></i> Don Martín (6945)</button>
+      <button type="button" class="cuenta-btn" onclick="selMoverDestino(this,'Bancolombia')"><i class="ti ti-credit-card"></i> Bancolombia</button>
+      <button type="button" class="cuenta-btn" onclick="selMoverDestino(this,'Nequi')"><i class="ti ti-device-mobile"></i> Nequi</button>
+      <button type="button" class="cuenta-btn" onclick="selMoverDestino(this,'Efectivo')" style="grid-column:1/-1"><i class="ti ti-cash"></i> Efectivo</button>
+    </div>
+  </div>
+  <div class="form-grid" style="margin-bottom:12px">
+    <div class="form-group">
+      <label class="form-label">Valor ($) *</label>
+      <div style="position:relative">
+        <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--text2)">$</span>
+        <input id="mover-valor-display" placeholder="0" oninput="formatValor(this,'mover-valor')" style="padding-left:26px;font-size:16px;font-weight:700;text-align:right">
+        <input type="hidden" id="mover-valor">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fecha</label>
+      <input type="date" id="mover-fecha">
+    </div>
+    <div class="form-group" style="grid-column:1/-1">
+      <label class="form-label">Nota (opcional)</label>
+      <input type="text" id="mover-nota" placeholder="Ej: Para mercado, pago arriendo...">
+    </div>
+  </div>
+  <div class="divider"></div>
+  <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;background:var(--blue)" onclick="guardarMovimiento()"><i class="ti ti-device-floppy"></i> Registrar movimiento</button>
+  <div id="mover-msg" style="display:none;margin-top:10px;padding:10px 14px;border-radius:var(--radius);font-size:13px;font-weight:500"></div>
+</div></div>
+
+<!-- MODAL CAJA / FINANZAS -->
+<div class="modal-bg" id="modal-caja" style="display:none"><div class="modal" style="max-width:600px">
+  <span class="modal-handle"></span>
+  <div class="modal-title">
+    <span style="display:flex;align-items:center;gap:8px">
+      <span style="width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px"><i class="ti ti-wallet"></i></span>
+      Caja y finanzas
+    </span>
+    <button class="close-btn" onclick="closeModal('modal-caja')"><i class="ti ti-x"></i></button>
+  </div>
+
+  <!-- Resumen de saldos por cuenta -->
+  <div id="caja-resumen-cuentas" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem"></div>
+
+  <!-- Tabs internos -->
+  <div style="display:flex;gap:4px;background:var(--bg);border-radius:var(--radius);padding:4px;margin-bottom:1rem">
+    <button class="chip active" id="ctab-movimientos" onclick="setCajaTab(this,'movimientos')" style="flex:1;justify-content:center">Movimientos</button>
+    <button class="chip" id="ctab-pagos" onclick="setCajaTab(this,'pagos')" style="flex:1;justify-content:center">Pagos recibidos</button>
+  </div>
+
+  <!-- Filtro de fechas -->
+  <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+    <button class="chip active" id="cchip-todo" onclick="setCajaFecha(this,'todo')"><i class="ti ti-infinity"></i> Todo</button>
+    <button class="chip" id="cchip-mes" onclick="setCajaFecha(this,'mes')"><i class="ti ti-calendar-month"></i> Este mes</button>
+    <button class="chip" id="cchip-semana" onclick="setCajaFecha(this,'semana')"><i class="ti ti-calendar-week"></i> Esta semana</button>
+  </div>
+
+  <div id="caja-lista"></div>
+
+  <button class="btn" style="width:100%;justify-content:center;margin-top:12px;background:var(--blue);color:#fff;padding:11px" onclick="closeModal('modal-caja');abrirModalMover()">
+    <i class="ti ti-transfer"></i> Nuevo movimiento de caja
+  </button>
+</div></div>
+
 <!-- MODAL CONFIRMAR ELIMINACIÓN -->
 <div class="modal-bg" id="modal-confirmar" style="display:none"><div class="modal" style="max-width:380px">
   <span class="modal-handle"></span>
@@ -560,31 +657,29 @@ function getRango(p,pref=''){
   else if(p==='custom'){desde=document.getElementById(pref+'desde')?.value||'';hasta=document.getElementById(pref+'hasta')?.value||hoy();if(!desde)return null;}
   return{desde,hasta};
 }
-function filtrarF(arr,r,c='fecha'){
+// ── Datetime efectivo del movimiento (prioridad: hora Excel > hora manual > creado_en > fin del día) ──
+function dtMovimiento(m){
+  if(m.hora) return new Date(m.fecha+'T'+m.hora);
+  if(m.hora_manual) return new Date(m.fecha+'T'+m.hora_manual);
+  if(m.creado_en) return new Date(m.creado_en);
+  return new Date(m.fecha+'T23:59:59');
+}
+
+// ── Filtrar por rango de fecha — usa datetime completo ──
+function filtrarF(arr,r){
   if(!r)return arr;
+  const desde=new Date(r.desde+'T00:00:00');
+  const hasta=new Date(r.hasta+'T23:59:59');
   return arr.filter(m=>{
-    const fecha=m[c]||'';
-    return fecha>=r.desde&&fecha<=r.hasta;
+    const dt=dtMovimiento(m);
+    return dt>=desde && dt<=hasta;
   });
 }
-// Filtro recientes con hora — usa fecha+hora del Excel si existe
+
+// ── Filtrar recientes (últimas 24h) con hora exacta ──
 function filtrarRecientes(arr){
-  const ahora=new Date();
-  const hace24h=new Date(ahora.getTime()-24*3600000);
-  return arr.filter(m=>{
-    // Construir datetime del movimiento
-    let dt;
-    if(m.hora){
-      dt=new Date(`${m.fecha}T${m.hora}`);
-    } else if(m.hora_manual){
-      dt=new Date(`${m.fecha}T${m.hora_manual}`);
-    } else if(m.creado_en){
-      dt=new Date(m.creado_en);
-    } else {
-      dt=new Date(m.fecha+'T23:59:59');
-    }
-    return dt>=hace24h;
-  });
+  const hace24h=new Date(new Date().getTime()-24*3600000);
+  return arr.filter(m=>dtMovimiento(m)>=hace24h);
 }
 
 // ── Chips ──
@@ -626,7 +721,16 @@ function guardarConfig(){sbUrl=document.getElementById('sb-url').value.trim().re
 async function probarConexion(){if(!sbUrl||!sbKey){setConn(false,'Sin configurar');return;}try{const r=await fetch(sbUrl+'/rest/v1/clientes_recarga?select=id&limit=1',{headers:{apikey:sbKey,Authorization:'Bearer '+sbKey}});if(r.ok){setConn(true,'Conectado');cargarDatos();}else setConn(false,'Error de conexión');}catch{setConn(false,'Sin conexión');}}
 function setConn(ok,txt){document.getElementById('connDot').className='dot'+(ok?' on':'');document.getElementById('connTxt').textContent=txt;}
 async function api(tabla,method='GET',body=null,qs=''){const url=sbUrl+'/rest/v1/'+tabla+(qs?'?'+qs:'');const h={apikey:sbKey,Authorization:'Bearer '+sbKey,'Content-Type':'application/json',Prefer:'return=representation'};const r=await fetch(url,{method,headers:h,body:body?JSON.stringify(body):null});if(!r.ok)throw new Error(await r.text());const txt=await r.text();return txt?JSON.parse(txt):[];}
-async function cargarDatos(){try{[clientes,movimientos]=await Promise.all([api('clientes_recarga','GET',null,'order=creado_en.desc'),api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc')]);renderDash();renderClientes();renderHistorial();renderConfirmaciones();}catch(e){console.error(e);}}
+async function cargarDatos(){try{
+  [clientes,movimientos]=await Promise.all([
+    api('clientes_recarga','GET',null,'order=creado_en.desc'),
+    api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc')
+  ]);
+  // Cargar movimientos de caja (puede no existir la tabla aún)
+  try{window._movCaja=await api('movimientos_caja','GET',null,'order=fecha.desc');}
+  catch{window._movCaja=[];}
+  renderDash();renderClientes();renderHistorial();renderConfirmaciones();
+}catch(e){console.error(e);}}
 
 // ── Lógica saldos ──
 function pendiente(c){const ms=movimientos.filter(m=>m.cliente_id===c.id);return Number(c.deuda_anterior||0)+ms.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0)-ms.filter(m=>m.tipo==='pago'||m.tipo==='reversion').reduce((a,m)=>a+Number(m.valor),0);}
@@ -686,6 +790,19 @@ function renderDash(){
   const entregado=mF.filter(m=>m.tipo==='entrega').reduce((a,m)=>a+Number(m.valor),0);
   const totalPend=clientes.reduce((a,c)=>a+Math.max(0,pendiente(c)),0);
   const sinConf=movimientos.filter(m=>m.tipo==='pago'&&!m.confirmado).length;
+  // Resumen por cuenta destino para el período
+  const pagosPeriodo=mF.filter(m=>m.tipo==='pago'&&m.confirmado);
+  const resXCuenta={'Bancolombia':0,'Nequi':0,'Efectivo':0,'Juanito (0660)':0,'Don Martín (6945)':0};
+  pagosPeriodo.forEach(m=>{if(m.cuenta_destino&&resXCuenta.hasOwnProperty(m.cuenta_destino))resXCuenta[m.cuenta_destino]+=Number(m.valor);});
+  // Restar traslados/retiros
+  if(window._movCaja){
+    window._movCaja.forEach(mv=>{
+      const mvFecha=mv.fecha||'';
+      if(r&&(mvFecha<r.desde||mvFecha>r.hasta))return;
+      if(mv.origen&&resXCuenta.hasOwnProperty(mv.origen))resXCuenta[mv.origen]-=Number(mv.valor||0);
+      if(mv.destino&&resXCuenta.hasOwnProperty(mv.destino))resXCuenta[mv.destino]+=Number(mv.valor||0);
+    });
+  }
   const mora=clientes.filter(c=>estadoCli(c).cls==='badge-red').length;
   document.getElementById('m-cobrado').textContent=fmt(cobrado);
   document.getElementById('m-entregado').textContent=fmt(entregado);
@@ -706,14 +823,51 @@ function renderDash(){
   // Recientes
   const rec5=movimientos.slice(0,5);
   document.getElementById('dash-recientes').innerHTML=rec5.length?rec5.map(m=>{
-    const eP=m.tipo==='pago';const cli=clientes.find(c=>c.id===m.cliente_id);
-    const nc=eP&&!m.confirmado?`<span class="badge badge-purple">Sin confirmar</span>`:'';
-    return`<div class="hist-item"><div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div><div class="hist-info"><div class="hist-nombre">${cli?cli.nombre:'—'} ${nc}</div><div class="hist-sub"><strong>${fmtFecha(m.fecha)}</strong>${m.hora?' · '+m.hora.slice(0,5):''}${m.cuenta_destino?' · '+m.cuenta_destino:''}</div></div><div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div></div>`;
-  }).join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos</p></div>';
-  // Atención
-  const at=[];
-  if(sinConf)at.push({nombre:`${sinConf} pago${sinConf>1?'s':''} sin confirmar en banco`,detalle:'Ve a "Confirmar" para verificarlos',txt:'Pendiente',cls:'badge-purple'});
-  clientes.filter(c=>estadoCli(c).cls!=='badge-green').slice(0,8).forEach(c=>at.push({nombre:c.nombre+(c.nombre_whatsapp?' ('+c.nombre_whatsapp+')':''),detalle:fmt(Math.max(0,pendiente(c)))+' pendiente · '+cuentaLbl(c.plataforma),...estadoCli(c)}));
+    const eP=m.tipo==='pago';const esRev=m.tipo==='reversion';
+    const cli=clientes.find(x=>x.id===m.cliente_id);
+    const nc=eP&&!m.confirmado?'<span class="badge badge-purple" style="font-size:10px">Sin confirmar</span>':'';
+    const hora=horaEfectiva(m);
+    return`<div class="hist-item" style="cursor:pointer" onclick="verHistCli('${cli?cli.id:''}')">
+      <div class="hist-dot ${eP?'pago':'entrega'}" style="${esRev?'background:var(--red-light);color:var(--red-text)':''}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div>
+      <div class="hist-info">
+        <div class="hist-nombre">
+          ${cli?cli.nombre:'—'}
+          ${cli&&cli.nombre_whatsapp?`<span style="color:#25D366;font-size:11px;margin-left:5px"><i class="ti ti-brand-whatsapp"></i> ${cli.nombre_whatsapp}</span>`:''}
+          ${nc}
+        </div>
+        <div class="hist-sub"><strong>${fmtFecha(m.fecha)}</strong>${hora?' · '+hora:''}${m.cuenta_destino?' · '+m.cuenta_destino:''}</div>
+      </div>
+      <div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div>
+    </div>`;
+  }).join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin movimientos recientes</p></div>';
+
+  // Panel resumen por cuenta
+  const resumenEl=document.getElementById('dash-cuentas-resumen');
+  if(resumenEl){
+    const iconMap={'Bancolombia':'ti-credit-card','Nequi':'ti-device-mobile','Efectivo':'ti-cash','Juanito (0660)':'ti-building-bank','Don Martín (6945)':'ti-building-bank'};
+    const items=Object.entries(resXCuenta).filter(([,v])=>v!==0);
+    // Movimientos recientes de caja
+    const movCajaRecientes=(window._movCaja||[]).slice(0,3);
+    let html=items.length?items.map(([k,v])=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border)">
+        <span style="font-size:13px;display:flex;align-items:center;gap:7px"><i class="ti ${iconMap[k]||'ti-wallet'}" style="color:var(--text2)"></i>${k}</span>
+        <strong style="color:${v>=0?'var(--green)':'var(--red)'}">${v>=0?'':'-'}${fmt(Math.abs(v))}</strong>
+      </div>`).join(''):'<div style="font-size:13px;color:var(--text3);padding:8px 0">Sin pagos confirmados en este período</div>';
+    if(movCajaRecientes.length){
+      html+=`<div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">
+        <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Últimos movimientos de caja</div>
+        ${movCajaRecientes.map(mv=>`<div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:4px 0">
+          <span style="color:var(--text2)">${mv.tipo==='retiro'?'↑ Retiro':'⇄ Traslado'} ${mv.origen}${mv.destino?' → '+mv.destino:''}</span>
+          <strong style="color:var(--red)">${fmt(mv.valor)}</strong>
+        </div>`).join('')}
+        <button class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;margin-top:6px" onclick="abrirModalMover()"><i class="ti ti-transfer"></i> Nuevo movimiento</button>
+      </div>`;
+    } else {
+      html+=`<button class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="abrirModalMover()"><i class="ti ti-transfer"></i> Mover dinero</button>`;
+    }
+    resumenEl.innerHTML=html;
+  }
+
   document.getElementById('atencion-list').innerHTML=at.length?at.map(a=>`<div class="hist-item"><div class="hist-dot entrega"><i class="ti ti-user"></i></div><div class="hist-info"><div class="hist-nombre">${a.nombre}</div><div class="hist-sub">${a.detalle}</div></div><span class="badge ${a.cls}">${a.txt}</span></div>`).join(''):'<div class="empty"><i class="ti ti-circle-check"></i><p>Todo al día 🎉</p></div>';
 }
 
@@ -752,7 +906,7 @@ function renderClientes(){
   if(extra==='con_wsp')lista=lista.filter(c=>c.nombre_whatsapp);
   else if(extra==='sin_wsp')lista=lista.filter(c=>!c.nombre_whatsapp);
   else if(extra==='deuda_ant')lista=lista.filter(c=>Number(c.deuda_anterior||0)>0);
-  else if(extra==='deuda_sinrev')lista=lista.filter(c=>c.deuda_revisada!=='revisada');
+  else if(extra==='deuda_sinrev')lista=lista.filter(c=>!c.deuda_revisada||c.deuda_revisada!=='revisada');
   else if(extra==='con_codigo')lista=lista.filter(c=>c.codigo_cliente);
   else if(extra==='sin_codigo')lista=lista.filter(c=>!c.codigo_cliente);
 
@@ -821,7 +975,7 @@ function renderHistorial(){
   const prov=document.getElementById('h-prov').value;
   const tipo=document.getElementById('h-tipo').value;
   const buscar=document.getElementById('h-buscar').value.toLowerCase();
-  let ms=r&&periodoHistActivo==='recientes'?filtrarRecientes(movimientos):filtrarF(movimientos,r);
+  let ms=periodoHistActivo==='recientes'?filtrarRecientes(movimientos):(r?filtrarF(movimientos,r):movimientos);
   if(tipo)ms=ms.filter(m=>m.tipo===tipo);
   if(cuenta||prov||buscar)ms=ms.filter(m=>{const cli=clientes.find(c=>c.id===m.cliente_id);if(!cli)return false;if(cuenta&&cli.plataforma!==cuenta)return false;if(prov&&cli.proveedor!==prov)return false;if(buscar&&!cli.nombre.toLowerCase().includes(buscar)&&!(cli.nombre_whatsapp||'').toLowerCase().includes(buscar))return false;return true;});
   const cobrado=ms.filter(m=>m.tipo==='pago').reduce((a,m)=>a+Number(m.valor),0);
@@ -847,7 +1001,11 @@ function renderHistorial(){
       html+=`<div class="hist-item">
         <div class="hist-dot ${esRev?'entrega':eP?'pago':'entrega'}" style="${esRev?'background:var(--red-light);color:var(--red-text)':''}"><i class="ti ti-${esRev?'arrow-back-up':eP?'arrow-down':'arrow-up'}"></i></div>
         <div class="hist-info">
-          <div class="hist-nombre">${cli?cli.nombre:'—'} ${nc}${revBadge}</div>
+          <div class="hist-nombre">
+            <span style="cursor:pointer" onclick="verHistCli('${cli?.id}')">${cli?cli.nombre:'—'}</span>
+            ${cli&&cli.nombre_whatsapp?`<span style="color:#25D366;font-size:11px;margin-left:6px"><i class="ti ti-brand-whatsapp"></i> ${cli.nombre_whatsapp}</span>`:''}
+            ${nc}${revBadge}
+          </div>
           <div class="hist-sub">${m.hora?m.hora.slice(0,5):''} ${cdBadge} ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px">#${m.codigo_transaccion}</span>`:''} ${m.nota?`<em>${m.nota}</em>`:''}</div>
           <div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">
             ${cli?`<span class="badge badge-blue">${cuentaLbl(cli.plataforma)}</span><span class="badge badge-gray">${m.proveedor||cli.proveedor||'—'}</span>`:''}
@@ -870,29 +1028,57 @@ function renderConfirmaciones(){
   let ms=movimientos.filter(m=>m.tipo==='pago');
   if(vistaConf==='pendientes')ms=ms.filter(m=>!m.confirmado);
   else if(vistaConf==='confirmados')ms=ms.filter(m=>m.confirmado);
-  if(rango)ms=filtrarF(ms,rango);
+  if(rango)ms=periodoConfFecha==='recientes'?filtrarRecientes(ms):filtrarF(ms,rango);
   if(buscar)ms=ms.filter(m=>{const cli=clientes.find(c=>c.id===m.cliente_id);return cli&&(cli.nombre.toLowerCase().includes(buscar)||(cli.nombre_whatsapp||'').toLowerCase().includes(buscar)||(m.comprobante||'').includes(buscar)||(m.codigo_transaccion||'').includes(buscar));});
   const totalPend=ms.filter(m=>!m.confirmado).reduce((a,m)=>a+Number(m.valor),0);
   const totalConf=ms.filter(m=>m.confirmado).reduce((a,m)=>a+Number(m.valor),0);
+
+  // Resumen por cuenta destino (solo confirmados)
+  const conf=ms.filter(m=>m.confirmado);
+  const cuentas=['Juanito (0660)','Don Martín (6945)','Bancolombia','Nequi','Efectivo'];
+  const iconos={'Juanito (0660)':'ti-building-bank','Don Martín (6945)':'ti-building-bank','Bancolombia':'ti-credit-card','Nequi':'ti-device-mobile','Efectivo':'ti-cash'};
+  const resumenCuentas=cuentas.map(ct=>{
+    const total=conf.filter(m=>m.cuenta_destino===ct).reduce((a,m)=>a+Number(m.valor),0);
+    return total>0?`<span class="resumen-chip" style="color:var(--text)"><i class="ti ${iconos[ct]}"></i> ${ct}: <strong>${fmt(total)}</strong></span>`:'';
+  }).filter(Boolean).join('');
+  const sinCuenta=conf.filter(m=>!m.cuenta_destino).reduce((a,m)=>a+Number(m.valor),0);
+
   document.getElementById('conf-resumen').innerHTML=`
     <span class="resumen-chip" style="color:var(--purple-text)"><i class="ti ti-clock"></i> Pendientes: ${ms.filter(m=>!m.confirmado).length} · ${fmt(totalPend)}</span>
-    <span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-checks"></i> Confirmados: ${ms.filter(m=>m.confirmado).length} · ${fmt(totalConf)}</span>`;
+    <span class="resumen-chip" style="color:var(--green-text)"><i class="ti ti-checks"></i> Confirmados: ${ms.filter(m=>m.confirmado).length} · ${fmt(totalConf)}</span>
+    ${resumenCuentas}
+    ${sinCuenta>0?`<span class="resumen-chip" style="color:var(--text2)"><i class="ti ti-question-mark"></i> Sin especificar: ${fmt(sinCuenta)}</span>`:''}`;
   // Agrupar por fecha
   const grupos={};
-  ms.sort((a,b)=>b.fecha.localeCompare(a.fecha)).forEach(m=>{if(!grupos[m.fecha])grupos[m.fecha]=[];grupos[m.fecha].push(m);});
+  ms.sort((a,b)=>dtMovimiento(b)-dtMovimiento(a)).forEach(m=>{if(!grupos[m.fecha])grupos[m.fecha]=[];grupos[m.fecha].push(m);});
   const fechas=Object.keys(grupos).sort((a,b)=>b.localeCompare(a));
   let html='';
   fechas.forEach(fecha=>{
     html+=`<div class="fecha-grupo">${fmtFecha(fecha)}</div>`;
     grupos[fecha].forEach(m=>{
       const cli=clientes.find(c=>c.id===m.cliente_id);
-      const sub=[m.hora?m.hora.slice(0,5):null,m.codigo_transaccion?'Trans: '+m.codigo_transaccion:null,m.comprobante?'Comp: #'+m.comprobante:null,m.cuenta_destino?'→ '+m.cuenta_destino:null,m.nota].filter(Boolean).join(' · ');
+      const hora=horaEfectiva(m);
       html+=`<div class="conf-card ${m.confirmado?'conf':'pend'}">
         <div class="hist-dot ${m.confirmado?'pago':'pendiente'}"><i class="ti ti-${m.confirmado?'check':'clock'}"></i></div>
-        <div class="conf-info"><div class="conf-nombre" style="cursor:pointer" onclick="verHistCli('${m.cliente_id}')">${cli?cli.nombre:'—'}${cli&&cli.nombre_whatsapp?`<span style="color:#25D366;font-size:11px;margin-left:6px"><i class="ti ti-brand-whatsapp"></i> ${cli.nombre_whatsapp}</span>`:''}</div><div class="conf-sub">${sub||'Sin detalles'}</div></div>
-        <div style="text-align:right">
-          <div style="font-size:14px;font-weight:700;color:var(--green)">${fmt(m.valor)}</div>
-          ${!m.confirmado?`<button class="btn btn-confirm btn-sm" style="margin-top:6px" onclick="confirmarPago('${m.id}')"><i class="ti ti-circle-check"></i> Confirmar</button>`:'<div style="font-size:11px;color:var(--green-text);margin-top:4px"><i class="ti ti-check"></i> Confirmado</div>'}
+        <div class="conf-info" style="flex:1;min-width:0">
+          <div class="conf-nombre" style="cursor:pointer" onclick="verHistCli('${m.cliente_id}')">
+            ${cli?cli.nombre:'—'}
+            ${cli&&cli.nombre_whatsapp?`<span style="color:#25D366;font-size:11px;margin-left:6px"><i class="ti ti-brand-whatsapp"></i> ${cli.nombre_whatsapp}</span>`:''}
+          </div>
+          <div class="conf-sub" style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+            <span style="font-weight:600;color:var(--text)">${fmtFecha(m.fecha)}${hora?' · <strong>'+hora+'</strong>':''}</span>
+            ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:11px;background:var(--bg);padding:1px 6px;border-radius:4px">#${m.codigo_transaccion}</span>`:''}
+            ${m.cuenta_destino?`<span class="badge badge-blue" style="font-size:10px"><i class="ti ti-arrow-narrow-right"></i>${m.cuenta_destino}</span>`:''}
+            ${m.comprobante?`<span style="font-size:11px;color:var(--text2)">Comp: ${m.comprobante}</span>`:''}
+            ${m.nota?`<span style="font-size:11px;font-style:italic;color:var(--text2)">${m.nota}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+          <div style="font-size:15px;font-weight:700;color:var(--green)">${fmt(m.valor)}</div>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-secondary btn-sm" onclick="abrirEditMov('${m.id}')" title="Editar"><i class="ti ti-edit"></i></button>
+            ${!m.confirmado?`<button class="btn btn-confirm btn-sm" onclick="confirmarPago('${m.id}')"><i class="ti ti-circle-check"></i> Confirmar</button>`:'<span style="font-size:11px;color:var(--green-text);padding-top:4px"><i class="ti ti-check"></i> Confirmado</span>'}
+          </div>
         </div>
       </div>`;
     });
@@ -1134,26 +1320,34 @@ function verHistCli(id){
   const c=clientes.find(x=>x.id===id);
   const ms=movimientos.filter(m=>m.cliente_id===id).sort((a,b)=>a.fecha.localeCompare(b.fecha));
   let saldo=Number(c.deuda_anterior||0);
-  document.getElementById('hist-cli-title').innerHTML=`${c.nombre} <button class="close-btn" onclick="closeModal('modal-hist-cli')"><i class="ti ti-x"></i></button>`;
   const pend=pendiente(c);
-  const resumen=`<div style="background:var(--bg);border-radius:var(--radius);padding:12px 14px;margin-bottom:1rem">
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+  // Título con nombre siempre visible + WhatsApp
+  document.getElementById('hist-cli-title').innerHTML=`
+    <div style="flex:1;min-width:0">
+      <div style="font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.nombre}</div>
+      ${c.nombre_whatsapp?`<div style="color:#25D366;font-size:12px;margin-top:1px"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</div>`:''}
+    </div>
+    <button class="close-btn" onclick="closeModal('modal-hist-cli')"><i class="ti ti-x"></i></button>`;
+  const resumen=`
+  <div style="background:var(--bg);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px">
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">
       <span class="badge badge-blue">${cuentaLbl(c.plataforma)}</span>
       <span class="badge badge-gray">${c.proveedor||'—'}</span>
-      ${c.codigo_cliente?`<span style="font-family:monospace;font-size:11px;color:var(--text2);background:var(--surface);padding:2px 8px;border-radius:10px;border:0.5px solid var(--border)">Cód: ${c.codigo_cliente}</span>`:''}
-      ${c.nombre_whatsapp?`<span style="color:#25D366;font-size:12px"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span>`:''}
+      ${c.codigo_cliente?`<span style="font-family:monospace;font-size:11px;color:var(--text2);background:var(--surface);padding:2px 7px;border-radius:8px;border:0.5px solid var(--border)">Cód: ${c.codigo_cliente}</span>`:''}
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:"10px" ">
-      <span style="font-size:13px;color:var(--text2)">Saldo pendiente</span>
-      <span style="font-size:18px">${fmtSaldo(pend)}</span>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12px;color:var(--text2)">Saldo total</span>
+      <span style="font-size:17px">${fmtSaldo(pend)}</span>
     </div>
-
   </div>
-  <div style="display:flex;gap:8px;margin-bottom:1rem">
-    <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="closeModal('modal-hist-cli');abrirFabModal('entrega');selCliFab('${c.id}')"><i class="ti ti-arrow-up"></i> Entregar</button>
-    <button class="btn" style="flex:1;justify-content:center;background:#25D366;color:#fff" onclick="closeModal('modal-hist-cli');abrirFabModal('pago');selCliFab('${c.id}')"><i class="ti ti-cash"></i> Registrar pago</button>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px">
+    <button class="btn btn-primary" style="justify-content:center;padding:9px 6px;font-size:12px" onclick="closeModal('modal-hist-cli');abrirFabModal('entrega');selCliFab('${c.id}')"><i class="ti ti-arrow-up"></i> Entregar</button>
+    <button class="btn" style="justify-content:center;padding:9px 6px;font-size:12px;background:#25D366;color:#fff" onclick="closeModal('modal-hist-cli');abrirFabModal('pago');selCliFab('${c.id}')"><i class="ti ti-cash"></i> Pago</button>
+    <button class="btn btn-secondary" style="justify-content:center;padding:9px 6px;font-size:12px" onclick="closeModal('modal-hist-cli');abrirEditCliente('${c.id}')"><i class="ti ti-edit"></i> Editar</button>
   </div>`;
   // Agrupar por fecha
+  // Ordenar por datetime completo (fecha + hora del Excel)
+  ms.sort((a,b)=>dtMovimiento(b)-dtMovimiento(a));
   const grupos={};
   ms.forEach(m=>{if(!grupos[m.fecha])grupos[m.fecha]=[];grupos[m.fecha].push(m);});
   const fechas=Object.keys(grupos).sort((a,b)=>b.localeCompare(a));
@@ -1170,7 +1364,11 @@ function verHistCli(id){
         <div class="hist-dot ${eP?'pago':'entrega'}"><i class="ti ti-arrow-${eP?'down':'up'}"></i></div>
         <div class="hist-info">
           <div class="hist-nombre">${esRevC?'Reversión de saldo':eP?'Pago recibido':'Entrega de saldo'} ${nc}${revBadgeC}</div>
-          <div class="hist-sub">${m.hora?m.hora.slice(0,5):''} ${cdBadge} ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px">#${m.codigo_transaccion}</span>`:''} ${m.nota?`<em>${m.nota}</em>`:''}</div>
+          <div class="hist-sub">
+            ${horaEfectiva(m)?`<strong>${horaEfectiva(m)}</strong> · `:''}${cdBadge}
+            ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px;background:var(--bg);padding:1px 5px;border-radius:3px">#${m.codigo_transaccion}</span>`:''}
+            ${m.nota?`<em style="color:var(--text2)">${m.nota}</em>`:''}
+          </div>
         </div>
         <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px">
           <div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div>
@@ -1351,6 +1549,205 @@ async function confirmarImportMultiple(){
 }
 
 
+
+
+// ── Mover dinero ──
+let moverTipo='traslado', moverOrigen=null, moverDestino=null;
+
+function abrirModalMover(){
+  // Cerrar FAB
+  fabAbierto=false;
+  document.getElementById('fab-options').classList.add('hidden');
+  document.getElementById('fab-main').classList.remove('open');
+  // Reset
+  moverTipo='traslado'; moverOrigen=null; moverDestino=null;
+  document.getElementById('mover-valor').value='';
+  document.getElementById('mover-valor-display').value='';
+  document.getElementById('mover-nota').value='';
+  document.getElementById('mover-fecha').value=hoy();
+  document.getElementById('mover-msg').style.display='none';
+  document.querySelectorAll('#mover-origen-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('#mover-destino-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  // Activar tipo traslado por defecto
+  document.getElementById('mbtn-traslado').classList.add('selected');
+  document.getElementById('mbtn-traslado').style.background='var(--blue)';
+  document.getElementById('mbtn-traslado').style.color='#fff';
+  document.getElementById('mbtn-traslado').style.borderColor='var(--blue)';
+  document.getElementById('mbtn-retiro').classList.remove('selected');
+  document.getElementById('mbtn-retiro').style.background='';
+  document.getElementById('mbtn-retiro').style.color='';
+  document.getElementById('mbtn-retiro').style.borderColor='';
+  document.getElementById('mover-destino-grp').style.display='block';
+  openModal('modal-mover');
+}
+
+function selMoverTipo(btn,tipo){
+  moverTipo=tipo;
+  ['mbtn-traslado','mbtn-retiro'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.classList.remove('selected');
+    el.style.background=''; el.style.color=''; el.style.borderColor='';
+  });
+  btn.classList.add('selected');
+  btn.style.background='var(--blue)'; btn.style.color='#fff'; btn.style.borderColor='var(--blue)';
+  document.getElementById('mover-destino-grp').style.display=tipo==='traslado'?'block':'none';
+  if(tipo==='retiro'){moverDestino=null;document.querySelectorAll('#mover-destino-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));}
+}
+
+function selMoverOrigen(btn,cuenta){
+  moverOrigen=cuenta;
+  document.querySelectorAll('#mover-origen-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function selMoverDestino(btn,cuenta){
+  moverDestino=cuenta;
+  document.querySelectorAll('#mover-destino-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+async function guardarMovimiento(){
+  const valor=Number(document.getElementById('mover-valor').value);
+  if(!moverOrigen)return mostrarMoverMsg('Selecciona la cuenta de origen','error');
+  if(!valor||valor<=0)return mostrarMoverMsg('Ingresa un valor válido','error');
+  if(moverTipo==='traslado'&&!moverDestino)return mostrarMoverMsg('Selecciona la cuenta de destino','error');
+  if(moverTipo==='traslado'&&moverOrigen===moverDestino)return mostrarMoverMsg('Origen y destino no pueden ser iguales','error');
+
+  const nota=document.getElementById('mover-nota').value||null;
+  const fecha=document.getElementById('mover-fecha').value||hoy();
+  const descripcion=moverTipo==='retiro'
+    ?`Retiro desde ${moverOrigen}${nota?' — '+nota:''}`
+    :`Traslado de ${moverOrigen} → ${moverDestino}${nota?' — '+nota:''}`;
+
+  try{
+    // Guardar en tabla de movimientos de caja
+    await api('movimientos_caja','POST',{
+      tipo:moverTipo,
+      origen:moverOrigen,
+      destino:moverTipo==='traslado'?moverDestino:null,
+      valor,fecha,
+      nota:descripcion,
+      creado_en:new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T')
+    });
+    mostrarMoverMsg(`✓ ${moverTipo==='retiro'?'Retiro':'Traslado'} de ${fmt(valor)} registrado`,'ok');
+    setTimeout(()=>{closeModal('modal-mover');renderDash();},1500);
+  }catch(e){mostrarMoverMsg('Error: '+e.message,'error');}
+}
+
+function mostrarMoverMsg(txt,tipo){
+  const el=document.getElementById('mover-msg');
+  el.textContent=txt; el.style.display='block';
+  el.style.background=tipo==='ok'?'var(--green-light)':'var(--red-light)';
+  el.style.color=tipo==='ok'?'var(--green-text)':'var(--red-text)';
+  el.style.border=`0.5px solid ${tipo==='ok'?'#4ABEA0':'#E89070'}`;
+}
+
+
+// ── Caja / Finanzas ──
+let cajaTab='movimientos', cajaFecha='todo';
+const CUENTAS=['Juanito (0660)','Don Martín (6945)','Bancolombia','Nequi','Efectivo'];
+const CUENTA_ICONOS={'Juanito (0660)':'ti-building-bank','Don Martín (6945)':'ti-building-bank','Bancolombia':'ti-credit-card','Nequi':'ti-device-mobile','Efectivo':'ti-cash'};
+
+function abrirCaja(){
+  renderCaja();
+  openModal('modal-caja');
+}
+
+function setCajaTab(btn,tab){
+  cajaTab=tab;
+  ['ctab-movimientos','ctab-pagos'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
+  btn.classList.add('active');
+  renderCaja();
+}
+
+function setCajaFecha(btn,f){
+  cajaFecha=f;
+  ['cchip-todo','cchip-mes','cchip-semana'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
+  btn.classList.add('active');
+  renderCaja();
+}
+
+function filtrarCaja(arr){
+  if(cajaFecha==='todo')return arr;
+  const r=getRango(cajaFecha==='mes'?'mes':cajaFecha==='semana'?'semana':'todo');
+  if(!r)return arr;
+  return arr.filter(x=>(x.fecha||'')>=r.desde&&(x.fecha||'')<=r.hasta);
+}
+
+function renderCaja(){
+  // ── Resumen de saldos por cuenta ──
+  const saldos={};
+  CUENTAS.forEach(ct=>saldos[ct]=0);
+  // Sumar pagos confirmados
+  movimientos.filter(m=>m.tipo==='pago'&&m.confirmado&&m.cuenta_destino&&saldos.hasOwnProperty(m.cuenta_destino))
+    .forEach(m=>saldos[m.cuenta_destino]+=Number(m.valor||0));
+  // Aplicar traslados y retiros
+  (window._movCaja||[]).forEach(mv=>{
+    if(mv.origen&&saldos.hasOwnProperty(mv.origen))saldos[mv.origen]-=Number(mv.valor||0);
+    if(mv.destino&&saldos.hasOwnProperty(mv.destino))saldos[mv.destino]+=Number(mv.valor||0);
+  });
+  // Render cards de saldo
+  const resEl=document.getElementById('caja-resumen-cuentas');
+  if(resEl)resEl.innerHTML=CUENTAS.map(ct=>`
+    <div style="background:var(--bg);border-radius:var(--radius);padding:10px 12px;text-align:center;border:0.5px solid var(--border)">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:4px">
+        <i class="ti ${CUENTA_ICONOS[ct]}"></i>${ct.split(' ')[0]}
+      </div>
+      <div style="font-size:15px;font-weight:700;color:${saldos[ct]>=0?'var(--green)':'var(--red)'}">
+        ${saldos[ct]>=0?'':'-'}${fmt(Math.abs(saldos[ct]))}
+      </div>
+    </div>`).join('');
+
+  const listaEl=document.getElementById('caja-lista');
+  if(!listaEl)return;
+
+  if(cajaTab==='movimientos'){
+    // Traslados y retiros
+    const movs=filtrarCaja(window._movCaja||[]);
+    if(!movs.length){listaEl.innerHTML='<div class="empty"><i class="ti ti-transfer"></i><p>Sin movimientos de caja</p></div>';return;}
+    listaEl.innerHTML=movs.map(mv=>`
+      <div class="hist-item">
+        <div class="hist-dot" style="background:var(--blue-light);color:var(--blue-text)">
+          <i class="ti ti-${mv.tipo==='retiro'?'wallet':'arrows-exchange'}"></i>
+        </div>
+        <div class="hist-info">
+          <div class="hist-nombre">${mv.tipo==='retiro'?'Retiro':'Traslado'} — ${mv.origen}${mv.destino?' → '+mv.destino:''}</div>
+          <div class="hist-sub">${fmtFecha(mv.fecha)}${mv.nota?' · '+mv.nota:''}</div>
+        </div>
+        <div class="hist-val" style="color:var(--red)">-${fmt(mv.valor)}</div>
+      </div>`).join('');
+
+  } else {
+    // Pagos recibidos confirmados por cuenta
+    const pagos=filtrarCaja(movimientos.filter(m=>m.tipo==='pago'&&m.confirmado));
+    if(!pagos.length){listaEl.innerHTML='<div class="empty"><i class="ti ti-cash"></i><p>Sin pagos confirmados</p></div>';return;}
+    // Agrupar por cuenta_destino
+    const grupos={};
+    pagos.forEach(m=>{const ct=m.cuenta_destino||'Sin especificar';if(!grupos[ct])grupos[ct]=[];grupos[ct].push(m);});
+    listaEl.innerHTML=Object.entries(grupos).sort((a,b)=>{
+      const ta=CUENTAS.indexOf(a[0]),tb=CUENTAS.indexOf(b[0]);
+      return(ta===-1?99:ta)-(tb===-1?99:tb);
+    }).map(([ct,ms])=>{
+      const total=ms.reduce((a,m)=>a+Number(m.valor),0);
+      const icono=CUENTA_ICONOS[ct]||'ti-wallet';
+      return`<div style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);border-radius:var(--radius);margin-bottom:4px">
+          <span style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px"><i class="ti ${icono}"></i>${ct}</span>
+          <strong style="color:var(--green)">${fmt(total)} (${ms.length})</strong>
+        </div>
+        ${ms.slice(0,3).map(m=>{
+          const cli=clientes.find(x=>x.id===m.cliente_id);
+          return`<div class="hist-item" style="padding:7px 0">
+            <div class="hist-dot pago" style="width:24px;height:24px;font-size:12px"><i class="ti ti-arrow-down"></i></div>
+            <div class="hist-info"><div style="font-size:12px;font-weight:600">${cli?cli.nombre:'—'}</div><div class="hist-sub">${fmtFecha(m.fecha)}</div></div>
+            <div style="font-size:12px;font-weight:700;color:var(--green)">${fmt(m.valor)}</div>
+          </div>`;
+        }).join('')}
+        ${ms.length>3?`<div style="font-size:11px;color:var(--text2);text-align:right;padding:2px 0">+${ms.length-3} más</div>`:''}
+      </div>`;
+    }).join('');
+  }
+}
 
 
 sbUrl=localStorage.getItem('sb_url')||'';sbKey=localStorage.getItem('sb_key')||'';
