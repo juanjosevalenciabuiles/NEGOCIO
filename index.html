@@ -641,9 +641,15 @@ const hoy=()=>{const n=new Date();const c=new Date(n.toLocaleString('en-US',{tim
 const cuentaLbl=c=>c==='Juanito'?'Juanito (0660)':'Don Martín (6945)';
 const fmtFecha=f=>{if(!f)return'';const[y,mo,d]=f.split('-');return`${d}/${mo}/${y}`;};
 function horaEfectiva(m){
-  if(m.hora_manual)return String(m.hora_manual).slice(0,5);
+  // Prioridad: hora Excel > hora manual > hora de Supabase
   if(m.hora)return String(m.hora).slice(0,5);
-  if(m.creado_en){const col=new Date(new Date(m.creado_en).toLocaleString('en-US',{timeZone:'America/Bogota'}));return String(col.getHours()).padStart(2,'0')+':'+String(col.getMinutes()).padStart(2,'0');}
+  if(m.hora_manual)return String(m.hora_manual).slice(0,5);
+  if(m.creado_en){
+    try{
+      const col=new Date(new Date(m.creado_en).toLocaleString('en-US',{timeZone:'America/Bogota'}));
+      return String(col.getHours()).padStart(2,'0')+':'+String(col.getMinutes()).padStart(2,'0');
+    }catch{return '';}
+  }
   return '';
 }
 
@@ -868,6 +874,9 @@ function renderDash(){
     resumenEl.innerHTML=html;
   }
 
+  const at=[];
+  if(sinConf)at.push({nombre:`${sinConf} pago${sinConf>1?'s':''} sin confirmar en banco`,detalle:'Ve a "Confirmar" para verificarlos',txt:'Pendiente',cls:'badge-purple'});
+  clientes.filter(c=>estadoCli(c).cls==='badge-red').slice(0,8).forEach(c=>at.push({nombre:c.nombre+(c.nombre_whatsapp?' ('+c.nombre_whatsapp+')':''),detalle:fmt(Math.max(0,pendiente(c)))+' pendiente · '+cuentaLbl(c.plataforma),...estadoCli(c)}));
   document.getElementById('atencion-list').innerHTML=at.length?at.map(a=>`<div class="hist-item"><div class="hist-dot entrega"><i class="ti ti-user"></i></div><div class="hist-info"><div class="hist-nombre">${a.nombre}</div><div class="hist-sub">${a.detalle}</div></div><span class="badge ${a.cls}">${a.txt}</span></div>`).join(''):'<div class="empty"><i class="ti ti-circle-check"></i><p>Todo al día 🎉</p></div>';
 }
 
@@ -1029,6 +1038,9 @@ function renderConfirmaciones(){
   if(vistaConf==='pendientes')ms=ms.filter(m=>!m.confirmado);
   else if(vistaConf==='confirmados')ms=ms.filter(m=>m.confirmado);
   if(rango)ms=periodoConfFecha==='recientes'?filtrarRecientes(ms):filtrarF(ms,rango);
+  const confCuentaDest=document.getElementById('conf-cuenta-destino')?.value||'';
+  if(confCuentaDest==='sin_cuenta')ms=ms.filter(m=>!m.cuenta_destino);
+  else if(confCuentaDest)ms=ms.filter(m=>m.cuenta_destino===confCuentaDest);
   if(buscar)ms=ms.filter(m=>{const cli=clientes.find(c=>c.id===m.cliente_id);return cli&&(cli.nombre.toLowerCase().includes(buscar)||(cli.nombre_whatsapp||'').toLowerCase().includes(buscar)||(m.comprobante||'').includes(buscar)||(m.codigo_transaccion||'').includes(buscar));});
   const totalPend=ms.filter(m=>!m.confirmado).reduce((a,m)=>a+Number(m.valor),0);
   const totalConf=ms.filter(m=>m.confirmado).reduce((a,m)=>a+Number(m.valor),0);
@@ -1318,7 +1330,7 @@ function confirmarEliminarMov(){
 // ── Historial de cliente ──
 function verHistCli(id){
   const c=clientes.find(x=>x.id===id);
-  const ms=movimientos.filter(m=>m.cliente_id===id).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const ms=movimientos.filter(m=>m.cliente_id===id).sort((a,b)=>dtMovimiento(a)-dtMovimiento(b));
   let saldo=Number(c.deuda_anterior||0);
   const pend=pendiente(c);
   // Título con nombre siempre visible + WhatsApp
@@ -1365,7 +1377,7 @@ function verHistCli(id){
         <div class="hist-info">
           <div class="hist-nombre">${esRevC?'Reversión de saldo':eP?'Pago recibido':'Entrega de saldo'} ${nc}${revBadgeC}</div>
           <div class="hist-sub">
-            ${horaEfectiva(m)?`<strong>${horaEfectiva(m)}</strong> · `:''}${cdBadge}
+            <strong>${fmtFecha(m.fecha)}</strong>${horaEfectiva(m)?' · <strong style=\"color:var(--text)\">'+ horaEfectiva(m)+'</strong>':''} ${cdBadge}
             ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px;background:var(--bg);padding:1px 5px;border-radius:3px">#${m.codigo_transaccion}</span>`:''}
             ${m.nota?`<em style="color:var(--text2)">${m.nota}</em>`:''}
           </div>
@@ -1648,6 +1660,40 @@ let cajaTab='movimientos', cajaFecha='todo';
 const CUENTAS=['Juanito (0660)','Don Martín (6945)','Bancolombia','Nequi','Efectivo'];
 const CUENTA_ICONOS={'Juanito (0660)':'ti-building-bank','Don Martín (6945)':'ti-building-bank','Bancolombia':'ti-credit-card','Nequi':'ti-device-mobile','Efectivo':'ti-cash'};
 
+function verHistorialCuenta(cuenta){
+  // Cambiar a tab de pagos y filtrar por cuenta
+  cajaTab='pagos';
+  // Activar tab pagos
+  document.getElementById('ctab-movimientos')?.classList.remove('active');
+  document.getElementById('ctab-pagos')?.classList.add('active');
+  // Cambiar select de cuenta en confirmar y abrir caja
+  renderCaja();
+  // Mostrar historial filtrado de esa cuenta
+  const listaEl=document.getElementById('caja-lista');
+  if(!listaEl)return;
+  const pagos=(cajaFecha==='todo'?movimientos:filtrarCaja(movimientos))
+    .filter(m=>m.tipo==='pago'&&m.confirmado&&m.cuenta_destino===cuenta);
+  const total=pagos.reduce((a,m)=>a+Number(m.valor),0);
+  const icono=CUENTA_ICONOS[cuenta]||'ti-wallet';
+  listaEl.innerHTML=`
+    <div style="background:var(--bg);border-radius:var(--radius);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px"><i class="ti ${icono}"></i>${cuenta}</span>
+      <strong style="color:var(--green);font-size:16px">${fmt(total)}</strong>
+    </div>
+    ${pagos.length?pagos.map(m=>{
+      const cli=clientes.find(x=>x.id===m.cliente_id);
+      const hora=horaEfectiva(m);
+      return`<div class="hist-item" style="cursor:pointer" onclick="closeModal('modal-caja');verHistCli('${cli?.id}')">
+        <div class="hist-dot pago"><i class="ti ti-arrow-down"></i></div>
+        <div class="hist-info">
+          <div class="hist-nombre">${cli?cli.nombre:'—'}${cli?.nombre_whatsapp?'<span style=\"color:#25D366;font-size:11px;margin-left:5px\"><i class=\"ti ti-brand-whatsapp\"></i> '+cli.nombre_whatsapp+'</span>':''}</div>
+          <div class="hist-sub"><strong>${fmtFecha(m.fecha)}</strong>${hora?' · <strong>'+hora+'</strong>':''}${m.codigo_transaccion?' · #'+m.codigo_transaccion:''}</div>
+        </div>
+        <div class="hist-val" style="color:var(--green)">${fmt(m.valor)}</div>
+      </div>`;
+    }).join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin pagos en '+cuenta+'</p></div>'}`;
+}
+
 function abrirCaja(){
   renderCaja();
   openModal('modal-caja');
@@ -1689,13 +1735,14 @@ function renderCaja(){
   // Render cards de saldo
   const resEl=document.getElementById('caja-resumen-cuentas');
   if(resEl)resEl.innerHTML=CUENTAS.map(ct=>`
-    <div style="background:var(--bg);border-radius:var(--radius);padding:10px 12px;text-align:center;border:0.5px solid var(--border)">
-      <div style="font-size:11px;color:var(--text2);margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:4px">
+    <div onclick="verHistorialCuenta('${ct}')" style="background:var(--bg);border-radius:var(--radius);padding:10px 12px;text-align:center;border:0.5px solid var(--border);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:10px;color:var(--text2);margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:4px;font-weight:600">
         <i class="ti ${CUENTA_ICONOS[ct]}"></i>${ct.split(' ')[0]}
       </div>
       <div style="font-size:15px;font-weight:700;color:${saldos[ct]>=0?'var(--green)':'var(--red)'}">
         ${saldos[ct]>=0?'':'-'}${fmt(Math.abs(saldos[ct]))}
       </div>
+      <div style="font-size:9px;color:var(--text3);margin-top:2px">Ver historial</div>
     </div>`).join('');
 
   const listaEl=document.getElementById('caja-lista');
