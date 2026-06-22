@@ -1015,7 +1015,12 @@ function renderHistorial(){
             ${cli&&cli.nombre_whatsapp?`<span style="color:#25D366;font-size:11px;margin-left:6px"><i class="ti ti-brand-whatsapp"></i> ${cli.nombre_whatsapp}</span>`:''}
             ${nc}${revBadge}
           </div>
-          <div class="hist-sub">${m.hora?m.hora.slice(0,5):''} ${cdBadge} ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px">#${m.codigo_transaccion}</span>`:''} ${m.nota?`<em>${m.nota}</em>`:''}</div>
+          <div class="hist-sub">
+            <strong>${fmtFecha(m.fecha)}</strong>${horaEfectiva(m)?' · <strong>'+horaEfectiva(m)+'</strong>':''}
+            ${cdBadge}
+            ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px">#${m.codigo_transaccion}</span>`:''}
+            ${m.nota?`<em>${m.nota}</em>`:''}
+          </div>
           <div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">
             ${cli?`<span class="badge badge-blue">${cuentaLbl(cli.plataforma)}</span><span class="badge badge-gray">${m.proveedor||cli.proveedor||'—'}</span>`:''}
           </div>
