@@ -226,6 +226,9 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <button onclick="abrirCaja()" style="background:var(--blue);border:none;color:#fff;border-radius:var(--radius);padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(26,95,168,.3)" title="Caja / Finanzas">
     <i class="ti ti-wallet"></i><span style="display:none" id="caja-badge"></span>
   </button>
+  <button onclick="abrirListaCobros()" style="background:var(--amber);border:none;color:#fff;border-radius:var(--radius);padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(180,120,0,.3)" title="Lista de cobros">
+    <i class="ti ti-clipboard-list"></i><span id="cobros-badge" style="display:none;background:rgba(0,0,0,.2);border-radius:10px;padding:0 6px;font-size:11px"></span>
+  </button>
   <div class="conn"><span class="dot" id="connDot"></span><span id="connTxt">Sin configurar</span></div>
 </div>
 
@@ -533,6 +536,38 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   </div>
 </div></div>
 
+<!-- MODAL LISTA DE COBROS -->
+<div class="modal-bg" id="modal-cobros" style="display:none"><div class="modal" style="max-width:440px">
+  <span class="modal-handle"></span>
+  <div class="modal-title">
+    <span style="display:flex;align-items:center;gap:8px">
+      <span style="width:32px;height:32px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px"><i class="ti ti-clipboard-list"></i></span>
+      Lista de cobros
+    </span>
+    <button class="close-btn" onclick="closeModal('modal-cobros')"><i class="ti ti-x"></i></button>
+  </div>
+  <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Lista temporal — se borra al cerrar la app. Marca los que ya cobraste.</p>
+
+  <!-- Buscar y agregar cliente -->
+  <div style="position:relative;margin-bottom:12px">
+    <div class="filter-search">
+      <i class="ti ti-search" style="color:var(--text3);font-size:15px"></i>
+      <input id="cobros-buscar" placeholder="Buscar cliente para agregar..." oninput="buscarClienteCobro()" autocomplete="off">
+      <button onclick="limpiarBusquedaCobro()" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:0"><i class="ti ti-x" style="font-size:14px"></i></button>
+    </div>
+    <div id="cobros-resultados" style="position:absolute;top:100%;left:0;right:0;background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:100;max-height:180px;overflow-y:auto;display:none"></div>
+  </div>
+
+  <!-- Lista -->
+  <div id="cobros-lista" style="min-height:60px"></div>
+
+  <!-- Footer -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border)">
+    <span id="cobros-contador" style="font-size:12px;color:var(--text2)">0 pendientes</span>
+    <button onclick="limpiarCobrosCompletados()" class="btn btn-secondary btn-sm"><i class="ti ti-check"></i> Quitar completados</button>
+  </div>
+</div></div>
+
 <!-- MODAL MOVER DINERO -->
 <div class="modal-bg" id="modal-mover" style="display:none"><div class="modal" style="max-width:420px">
   <span class="modal-handle"></span>
@@ -744,7 +779,7 @@ async function cargarDatos(){try{
   // Cargar movimientos de caja (puede no existir la tabla aún)
   try{window._movCaja=await api('movimientos_caja','GET',null,'order=fecha.desc');}
   catch{window._movCaja=[];}
-  renderDash();renderClientes();renderHistorial();renderConfirmaciones();
+  renderDash();renderClientes();renderHistorial();renderConfirmaciones();guardarListaCobros();
 }catch(e){console.error(e);}}
 
 // ── Lógica saldos ──
@@ -1787,7 +1822,13 @@ function renderCaja(){
           <div class="hist-nombre">${mv.tipo==='retiro'?'Retiro':'Traslado'} — ${mv.origen}${mv.destino?' → '+mv.destino:''}</div>
           <div class="hist-sub">${fmtFecha(mv.fecha)}${mv.nota?' · '+mv.nota:''}</div>
         </div>
-        <div class="hist-val" style="color:var(--red)">-${fmt(mv.valor)}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+          <div class="hist-val" style="color:var(--red)">-${fmt(mv.valor)}</div>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-secondary btn-sm" onclick="abrirEditMovCaja('${mv.id}')" title="Editar"><i class="ti ti-edit"></i></button>
+            <button class="btn btn-secondary btn-sm" style="color:var(--red)" onclick="eliminarMovCaja('${mv.id}')" title="Eliminar"><i class="ti ti-trash"></i></button>
+          </div>
+        </div>
       </div>`).join('');
 
   } else {
@@ -1879,6 +1920,224 @@ async function recargarMovimientos(){
   const frescos=await api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc');
   movimientos.length=0;
   movimientos.push(...frescos);
+}
+
+
+// ── Lista de cobros (temporal, no se guarda en BD) ──
+let listaCobros = JSON.parse(localStorage.getItem('listaCobros')||'[]');
+
+function abrirListaCobros(){
+  renderListaCobros();
+  openModal('modal-cobros');
+}
+
+function buscarClienteCobro(){
+  const q=(document.getElementById('cobros-buscar')?.value||'').toLowerCase().trim();
+  const res=document.getElementById('cobros-resultados');
+  if(!res)return;
+  if(!q){res.style.display='none';return;}
+  const coinciden=clientes
+    .filter(c=>c.nombre.toLowerCase().includes(q)||(c.nombre_whatsapp||'').toLowerCase().includes(q))
+    .filter(c=>!listaCobros.find(x=>x.id===c.id))
+    .slice(0,6);
+  if(!coinciden.length){res.style.display='none';return;}
+  res.style.display='block';
+  res.innerHTML=coinciden.map(c=>{
+    const pend=pendiente(c);
+    return`<div onclick="agregarCobro('${c.id}')" style="padding:9px 14px;cursor:pointer;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
+      <div>
+        <div style="font-size:13px;font-weight:600">${c.nombre}</div>
+        ${c.nombre_whatsapp?`<div style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</div>`:''}
+      </div>
+      <div style="font-size:13px;font-weight:700;color:${pend>0?'var(--red)':'var(--green)'}">
+        ${fmtSaldo(pend)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function agregarCobro(id){
+  const cli=clientes.find(x=>x.id===id);
+  if(!cli||listaCobros.find(x=>x.id===id))return;
+  listaCobros.push({id:cli.id,nombre:cli.nombre,whatsapp:cli.nombre_whatsapp||'',completado:false});
+  guardarListaCobros();
+  document.getElementById('cobros-buscar').value='';
+  document.getElementById('cobros-resultados').style.display='none';
+  renderListaCobros();
+}
+
+function toggleCobro(id){
+  const item=listaCobros.find(x=>x.id===id);
+  if(item)item.completado=!item.completado;
+  guardarListaCobros();
+  renderListaCobros();
+}
+
+function quitarCobro(id){
+  listaCobros=listaCobros.filter(x=>x.id!==id);
+  guardarListaCobros();
+  renderListaCobros();
+}
+
+function limpiarCobrosCompletados(){
+  listaCobros=listaCobros.filter(x=>!x.completado);
+  guardarListaCobros();
+  renderListaCobros();
+}
+
+function limpiarBusquedaCobro(){
+  document.getElementById('cobros-buscar').value='';
+  document.getElementById('cobros-resultados').style.display='none';
+}
+
+function guardarListaCobros(){
+  localStorage.setItem('listaCobros', JSON.stringify(listaCobros));
+  // Actualizar badge del botón topbar
+  const badge=document.getElementById('cobros-badge');
+  const pendientes=listaCobros.filter(x=>!x.completado).length;
+  if(badge){badge.style.display=listaCobros.length>0?'inline':'none';badge.textContent=pendientes;}
+}
+function renderListaCobros(){
+  const lista=document.getElementById('cobros-lista');
+  const contador=document.getElementById('cobros-contador');
+  const badge=document.getElementById('cobros-badge');
+  const btnBadge=document.getElementById('cobros-badge');
+
+  const pendientes=listaCobros.filter(x=>!x.completado).length;
+  const completados=listaCobros.filter(x=>x.completado).length;
+
+  // Actualizar badge del botón
+  if(badge){
+    if(listaCobros.length>0){badge.style.display='inline';badge.textContent=pendientes;}
+    else{badge.style.display='none';}
+  }
+  if(contador)contador.textContent=`${pendientes} pendiente${pendientes!==1?'s':''}${completados?', '+completados+' completado'+(completados>1?'s':''):''}`;
+
+  if(!lista)return;
+  if(!listaCobros.length){
+    lista.innerHTML='<div class="empty" style="padding:1.5rem 0"><i class="ti ti-clipboard-list"></i><p>Agrega clientes para ir a cobrar</p></div>';
+    return;
+  }
+
+  lista.innerHTML=listaCobros.map(item=>{
+    const cli=clientes.find(x=>x.id===item.id);
+    const pend=cli?pendiente(cli):0;
+    return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);opacity:${item.completado?'0.5':'1'};transition:opacity .2s">
+      <!-- Checkbox -->
+      <button onclick="toggleCobro('${item.id}')" style="width:26px;height:26px;border-radius:50%;border:2px solid ${item.completado?'var(--green)':'var(--border2)'};background:${item.completado?'var(--green)':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;transition:all .2s">
+        ${item.completado?'<i class="ti ti-check" style="font-size:13px"></i>':''}
+      </button>
+      <!-- Info -->
+      <div style="flex:1;min-width:0;cursor:pointer" onclick="closeModal('modal-cobros');verHistCli('${item.id}')">
+        <div style="font-size:13px;font-weight:${item.completado?'400':'700'};text-decoration:${item.completado?'line-through':'none'}">${item.nombre}</div>
+        ${item.whatsapp?`<div style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${item.whatsapp}</div>`:''}
+      </div>
+      <!-- Saldo -->
+      <div style="font-size:13px;font-weight:700;text-align:right;flex-shrink:0">
+        ${cli?fmtSaldo(pend):'—'}
+      </div>
+      <!-- Quitar -->
+      <button onclick="quitarCobro('${item.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;flex-shrink:0">
+        <i class="ti ti-x" style="font-size:14px"></i>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+
+// ── Editar / Eliminar movimientos de caja ──
+function abrirEditMovCaja(id){
+  const mv=(window._movCaja||[]).find(x=>x.id===id);
+  if(!mv)return;
+  const existente=document.getElementById('modal-edit-caja');
+  if(existente)existente.remove();
+  const div=document.createElement('div');
+  div.id='modal-edit-caja';
+  div.className='modal-bg';
+  div.style.display='flex';
+  div.innerHTML=`<div class="modal" style="max-width:420px">
+    <span class="modal-handle"></span>
+    <div class="modal-title">
+      <span>Editar movimiento</span>
+      <button class="close-btn" onclick="document.getElementById('modal-edit-caja').remove()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">Tipo</label>
+      <select id="ecaja-tipo" style="width:100%">
+        <option value="traslado" ${mv.tipo==='traslado'?'selected':''}>Traslado</option>
+        <option value="retiro" ${mv.tipo==='retiro'?'selected':''}>Retiro personal</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">Desde (origen)</label>
+      <select id="ecaja-origen" style="width:100%">
+        ${['Juanito (0660)','Don Martín (6945)','Bancolombia','Nequi','Efectivo'].map(ct=>`<option value="${ct}" ${mv.origen===ct?'selected':''}>${ct}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group" id="ecaja-destino-grp" style="margin-bottom:10px;display:${mv.tipo==='traslado'?'block':'none'}">
+      <label class="form-label">Hacia (destino)</label>
+      <select id="ecaja-destino" style="width:100%">
+        ${['Juanito (0660)','Don Martín (6945)','Bancolombia','Nequi','Efectivo'].map(ct=>`<option value="${ct}" ${mv.destino===ct?'selected':''}>${ct}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-grid" style="margin-bottom:10px">
+      <div class="form-group">
+        <label class="form-label">Valor ($)</label>
+        <input type="number" id="ecaja-valor" value="${mv.valor}" style="font-size:15px;font-weight:700">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha</label>
+        <input type="date" id="ecaja-fecha" value="${mv.fecha||''}">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Nota</label>
+        <input type="text" id="ecaja-nota" value="${mv.nota||''}">
+      </div>
+    </div>
+    <div id="ecaja-msg" style="display:none;margin-bottom:10px;padding:8px 12px;border-radius:var(--radius);font-size:13px"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="guardarEditMovCaja('${mv.id}')">
+      <i class="ti ti-device-floppy"></i> Guardar cambios
+    </button>
+  </div>`;
+  // Toggle destino al cambiar tipo
+  div.querySelector('#ecaja-tipo').addEventListener('change',function(){
+    div.querySelector('#ecaja-destino-grp').style.display=this.value==='traslado'?'block':'none';
+  });
+  div.addEventListener('click',e=>{if(e.target===div)div.remove();});
+  document.body.appendChild(div);
+}
+
+async function guardarEditMovCaja(id){
+  const tipo=document.getElementById('ecaja-tipo').value;
+  const origen=document.getElementById('ecaja-origen').value;
+  const destino=tipo==='traslado'?document.getElementById('ecaja-destino').value:null;
+  const valor=Number(document.getElementById('ecaja-valor').value);
+  const fecha=document.getElementById('ecaja-fecha').value;
+  const nota=document.getElementById('ecaja-nota').value||null;
+  const msg=document.getElementById('ecaja-msg');
+
+  if(!valor||valor<=0){msg.style.display='block';msg.textContent='El valor debe ser mayor a 0';msg.style.background='var(--red-light)';msg.style.color='var(--red-text)';return;}
+  if(tipo==='traslado'&&origen===destino){msg.style.display='block';msg.textContent='Origen y destino no pueden ser iguales';msg.style.background='var(--red-light)';msg.style.color='var(--red-text)';return;}
+
+  try{
+    await api('movimientos_caja?id=eq.'+id,'PATCH',{tipo,origen,destino,valor,fecha,nota});
+    // Actualizar en memoria
+    const mv=(window._movCaja||[]).find(x=>x.id===id);
+    if(mv)Object.assign(mv,{tipo,origen,destino,valor,fecha,nota});
+    document.getElementById('modal-edit-caja')?.remove();
+    renderCaja();renderDash();
+  }catch(e){
+    if(msg){msg.style.display='block';msg.textContent='Error: '+e.message;msg.style.background='var(--red-light)';msg.style.color='var(--red-text)';}
+  }
+}
+
+async function eliminarMovCaja(id){
+  if(!confirm('¿Eliminar este movimiento de caja?'))return;
+  try{
+    await api('movimientos_caja?id=eq.'+id,'DELETE');
+    window._movCaja=(window._movCaja||[]).filter(x=>x.id!==id);
+    renderCaja();renderDash();
+  }catch(e){alert('Error: '+e.message);}
 }
 
 
