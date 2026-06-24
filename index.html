@@ -776,10 +776,18 @@ async function cargarDatos(){try{
     api('clientes_recarga','GET',null,'order=creado_en.desc'),
     api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc')
   ]);
-  // Cargar movimientos de caja (puede no existir la tabla aún)
+  // Cargar movimientos de caja
   try{window._movCaja=await api('movimientos_caja','GET',null,'order=fecha.desc');}
   catch{window._movCaja=[];}
-  renderDash();renderClientes();renderHistorial();renderConfirmaciones();guardarListaCobros();
+  // Cargar recordatorios de cobro
+  try{
+    const recs=await api('recordatorios_cobro','GET',null,'order=creado_en.asc');
+    listaCobros=recs.map(r=>{
+      const cli=clientes.find(x=>x.id===r.cliente_id);
+      return{id:r.cliente_id,recId:r.id,nombre:cli?cli.nombre:'—',whatsapp:cli?cli.nombre_whatsapp||'':'',completado:r.completado};
+    });
+  }catch{listaCobros=[];}
+  renderDash();renderClientes();renderHistorial();renderConfirmaciones();actualizarBadgeCobros();
 }catch(e){console.error(e);}}
 
 // ── Lógica saldos ──
@@ -1924,7 +1932,7 @@ async function recargarMovimientos(){
 
 
 // ── Lista de cobros (temporal, no se guarda en BD) ──
-let listaCobros = JSON.parse(localStorage.getItem('listaCobros')||'[]');
+let listaCobros = []; // Se carga desde Supabase
 
 function abrirListaCobros(){
   renderListaCobros();
@@ -1956,32 +1964,49 @@ function buscarClienteCobro(){
   }).join('');
 }
 
-function agregarCobro(id){
+async function agregarCobro(id){
   const cli=clientes.find(x=>x.id===id);
   if(!cli||listaCobros.find(x=>x.id===id))return;
-  listaCobros.push({id:cli.id,nombre:cli.nombre,whatsapp:cli.nombre_whatsapp||'',completado:false});
-  guardarListaCobros();
+  try{
+    const r=await api('recordatorios_cobro','POST',{cliente_id:cli.id,completado:false});
+    listaCobros.push({id:cli.id,recId:r[0].id,nombre:cli.nombre,whatsapp:cli.nombre_whatsapp||'',completado:false});
+  }catch(e){alert('Error al guardar: '+e.message);return;}
+  actualizarBadgeCobros();
   document.getElementById('cobros-buscar').value='';
   document.getElementById('cobros-resultados').style.display='none';
   renderListaCobros();
 }
 
-function toggleCobro(id){
+async function toggleCobro(id){
   const item=listaCobros.find(x=>x.id===id);
-  if(item)item.completado=!item.completado;
-  guardarListaCobros();
+  if(!item)return;
+  item.completado=!item.completado;
+  try{await api('recordatorios_cobro?id=eq.'+item.recId,'PATCH',{completado:item.completado});}
+  catch(e){item.completado=!item.completado;alert('Error: '+e.message);return;}
+  actualizarBadgeCobros();
   renderListaCobros();
 }
 
-function quitarCobro(id){
+async function quitarCobro(id){
+  const item=listaCobros.find(x=>x.id===id);
+  if(!item)return;
+  try{await api('recordatorios_cobro?id=eq.'+item.recId,'DELETE');}
+  catch(e){alert('Error: '+e.message);return;}
   listaCobros=listaCobros.filter(x=>x.id!==id);
-  guardarListaCobros();
+  actualizarBadgeCobros();
   renderListaCobros();
 }
 
-function limpiarCobrosCompletados(){
+async function limpiarCobrosCompletados(){
+  const completados=listaCobros.filter(x=>x.completado);
+  if(!completados.length)return;
+  try{
+    for(const item of completados){
+      await api('recordatorios_cobro?id=eq.'+item.recId,'DELETE');
+    }
+  }catch(e){alert('Error: '+e.message);return;}
   listaCobros=listaCobros.filter(x=>!x.completado);
-  guardarListaCobros();
+  actualizarBadgeCobros();
   renderListaCobros();
 }
 
@@ -1990,13 +2015,12 @@ function limpiarBusquedaCobro(){
   document.getElementById('cobros-resultados').style.display='none';
 }
 
-function guardarListaCobros(){
-  localStorage.setItem('listaCobros', JSON.stringify(listaCobros));
-  // Actualizar badge del botón topbar
+function actualizarBadgeCobros(){
   const badge=document.getElementById('cobros-badge');
   const pendientes=listaCobros.filter(x=>!x.completado).length;
   if(badge){badge.style.display=listaCobros.length>0?'inline':'none';badge.textContent=pendientes;}
 }
+function guardarListaCobros(){actualizarBadgeCobros();}
 function renderListaCobros(){
   const lista=document.getElementById('cobros-lista');
   const contador=document.getElementById('cobros-contador');
