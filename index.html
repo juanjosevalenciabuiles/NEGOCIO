@@ -351,6 +351,15 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     </div>
     <div class="filter-bar" style="margin-top:-6px">
       <input class="search-inline" id="conf-buscar" placeholder="Buscar cliente o comprobante..." onkeyup="renderConfirmaciones()" style="flex:1">
+      <select id="conf-cuenta-destino" onchange="renderConfirmaciones()" style="padding:6px 10px;font-size:12px;border-radius:var(--radius);border:0.5px solid var(--border2);background:var(--surface);color:var(--text)">
+        <option value="">Todas las cuentas</option>
+        <option value="Juanito (0660)">Juanito (0660)</option>
+        <option value="Don Martín (6945)">Don Martín (6945)</option>
+        <option value="Bancolombia">Bancolombia</option>
+        <option value="Nequi">Nequi</option>
+        <option value="Efectivo">Efectivo</option>
+        <option value="sin_cuenta">Sin especificar</option>
+      </select>
       <button class="chip amber" id="chip-conf-recientes" onclick="setChipConfFecha(this,'recientes')"><i class="ti ti-clock-hour-4"></i> Recientes</button>
       <button class="chip" id="chip-conf-mes" onclick="setChipConfFecha(this,'mes')"><i class="ti ti-calendar-month"></i> Mes</button>
       <button class="chip active" id="chip-conf-todo" onclick="setChipConfFecha(this,'todo')"><i class="ti ti-infinity"></i> Todo</button>
@@ -948,8 +957,9 @@ function renderClientes(){
     const e=estadoCli(c);
     const pagos=movimientos.filter(m=>m.cliente_id===c.id&&m.tipo==='pago');
     const dias=pagos.length?Math.floor((new Date()-new Date(pagos[0].fecha))/86400000):null;
-    const semColor=pend>0?(dias===null?'var(--amber)':dias<=1?'var(--green)':dias<=4?'var(--amber)':'var(--red)'):'var(--green)';
-    const semAnim=pend>0&&(dias===null||dias>4)?';animation:pulse 1s infinite':'';
+    const deudaSinRev=Number(c.deuda_anterior||0)>0&&c.deuda_revisada!=='revisada';
+    const semColor=deudaSinRev?'var(--amber)':'var(--green)';
+    const semAnim=deudaSinRev?';animation:pulse 1.5s infinite':'';
     const ultPago=dias!==null&&pend>0?(dias===0?'Hoy':dias===1?'Ayer':dias+' días'):'—';
     const colUlt=dias!==null&&pend>0?(dias>4?'var(--red)':dias>1?'var(--amber)':'var(--green)'):'var(--text3)';
     return `<tr style="cursor:pointer" onclick="verHistCli('${c.id}')">
@@ -1097,8 +1107,12 @@ function renderConfirmaciones(){
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
           <div style="font-size:15px;font-weight:700;color:var(--green)">${fmt(m.valor)}</div>
           <div style="display:flex;gap:5px">
+            <button class="btn btn-secondary btn-sm" onclick="abrirEditCuentaDestino('${m.id}')" title="Cambiar cuenta"><i class="ti ti-wallet"></i></button>
             <button class="btn btn-secondary btn-sm" onclick="abrirEditMov('${m.id}')" title="Editar"><i class="ti ti-edit"></i></button>
-            ${!m.confirmado?`<button class="btn btn-confirm btn-sm" onclick="confirmarPago('${m.id}')"><i class="ti ti-circle-check"></i> Confirmar</button>`:'<span style="font-size:11px;color:var(--green-text);padding-top:4px"><i class="ti ti-check"></i> Confirmado</span>'}
+            ${!m.confirmado
+              ?`<button class="btn btn-confirm btn-sm" onclick="confirmarPago('${m.id}')"><i class="ti ti-circle-check"></i> Confirmar</button>`
+              :`<button class="btn btn-secondary btn-sm" style="color:var(--amber-text);border-color:var(--amber)" onclick="desconfirmarPago('${m.id}')"><i class="ti ti-rotate-clockwise"></i> Desconfirmar</button>`
+            }
           </div>
         </div>
       </div>`;
@@ -1195,7 +1209,10 @@ async function guardarFabMov(){
   const tipoGuardar = fabTipo==='reversion' ? 'reversion' : fabTipo;
   const payload={cliente_id:fabClienteSeleccionado.id,tipo:tipoGuardar,valor,fecha:document.getElementById('fab-fecha').value||hoy(),codigo_transaccion:document.getElementById('fab-trans').value||null,
     hora_manual:document.getElementById('fab-hora-man').value||null,nota:notaFinal,codigo_cliente:fabClienteSeleccionado.codigo_cliente||null,codigo_cuenta:fabClienteSeleccionado.plataforma==='Juanito'?'032442':'028469',proveedor:fabClienteSeleccionado.proveedor||null,cuenta_destino:fabTipo==='pago'?(fabCuentaDestino||null):null,confirmado,confirmado_en:confirmado?new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T'):null};
-  try{const n=await api('movimientos_recarga','POST',payload);movimientos.unshift(n[0]);mostrarFabMsg(`✓ ${fabTipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${fabClienteSeleccionado.nombre}`,'ok');document.getElementById('fab-valor').value='';document.getElementById('fab-valor-display').value='';const hm=document.getElementById('fab-hora-man');if(hm)hm.value='';document.getElementById('fab-trans').value='';document.getElementById('fab-nota').value='';document.getElementById('fab-confirmado').checked=false;limpiarCliFab();fabCuentaDestino=null;document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));renderDash();renderClientes();renderHistorial();renderConfirmaciones();setTimeout(()=>closeFabModal(),1800);}catch(e){mostrarFabMsg('Error: '+e.message,'error');}
+  try{
+    const n=await api('movimientos_recarga','POST',payload);
+    movimientos.unshift(n[0]);
+    await recargarMovimientos();mostrarFabMsg(`✓ ${fabTipo==='entrega'?'Entrega':'Pago'} de ${fmt(valor)} registrado para ${fabClienteSeleccionado.nombre}`,'ok');document.getElementById('fab-valor').value='';document.getElementById('fab-valor-display').value='';const hm=document.getElementById('fab-hora-man');if(hm)hm.value='';document.getElementById('fab-trans').value='';document.getElementById('fab-nota').value='';document.getElementById('fab-confirmado').checked=false;limpiarCliFab();fabCuentaDestino=null;document.querySelectorAll('#fab-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));renderDash();renderClientes();renderHistorial();renderConfirmaciones();setTimeout(()=>closeFabModal(),1800);}catch(e){mostrarFabMsg('Error: '+e.message,'error');}
 }
 function mostrarFabMsg(txt,tipo){const el=document.getElementById('fab-msg');el.textContent=txt;el.style.display='block';el.style.background=tipo==='ok'?'var(--green-light)':'var(--red-light)';el.style.color=tipo==='ok'?'var(--green-text)':'var(--red-text)';el.style.border=`0.5px solid ${tipo==='ok'?'#4ABEA0':'#E89070'}`;}
 
@@ -1803,6 +1820,65 @@ function renderCaja(){
       </div>`;
     }).join('');
   }
+}
+
+
+// ── Editar cuenta destino desde confirmar ──
+function abrirEditCuentaDestino(id){
+  const m=movimientos.find(x=>x.id===id);
+  if(!m)return;
+  const cli=clientes.find(x=>x.id===m.cliente_id);
+  // Crear modal inline temporal
+  const existente=document.getElementById('modal-cuenta-destino');
+  if(existente)existente.remove();
+  const div=document.createElement('div');
+  div.id='modal-cuenta-destino';
+  div.className='modal-bg';
+  div.style.display='flex';
+  div.innerHTML=`<div class="modal" style="max-width:380px">
+    <span class="modal-handle"></span>
+    <div class="modal-title">
+      <span>Cuenta destino</span>
+      <button class="close-btn" onclick="document.getElementById('modal-cuenta-destino').remove()"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">${cli?cli.nombre:'—'} · ${fmt(m.valor)}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      ${['Juanito (0660)','Don Martín (6945)','Bancolombia','Nequi','Efectivo'].map(ct=>`
+        <button type="button" class="cuenta-btn ${m.cuenta_destino===ct?'selected':''}" onclick="setCuentaDestino('${id}','${ct}',this)">
+          <i class="ti ti-${ct==='Bancolombia'?'credit-card':ct==='Nequi'?'device-mobile':ct==='Efectivo'?'cash':'building-bank'}"></i> ${ct}
+        </button>`).join('')}
+      <button type="button" class="cuenta-btn ${!m.cuenta_destino?'selected':''}" onclick="setCuentaDestino('${id}','',this)" style="grid-column:1/-1">
+        <i class="ti ti-x"></i> Sin especificar
+      </button>
+    </div>
+  </div>`;
+  div.addEventListener('click',e=>{if(e.target===div)div.remove();});
+  document.body.appendChild(div);
+}
+
+async function setCuentaDestino(id, cuenta, btn){
+  try{
+    await api('movimientos_recarga?id=eq.'+id,'PATCH',{cuenta_destino:cuenta||null});
+    await recargarMovimientos();
+    document.getElementById('modal-cuenta-destino')?.remove();
+    renderConfirmaciones();renderDash();
+  }catch(e){alert('Error: '+e.message);}
+}
+
+async function desconfirmarPago(id){
+  if(!confirm('¿Desconfirmar este pago? Volverá a aparecer como pendiente.'))return;
+  try{
+    await api('movimientos_recarga?id=eq.'+id,'PATCH',{confirmado:false,confirmado_en:null});
+    await recargarMovimientos();
+    renderConfirmaciones();renderDash();
+  }catch(e){alert('Error: '+e.message);}
+}
+
+
+async function recargarMovimientos(){
+  const frescos=await api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc');
+  movimientos.length=0;
+  movimientos.push(...frescos);
 }
 
 
