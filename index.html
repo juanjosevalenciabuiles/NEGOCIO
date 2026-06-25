@@ -222,7 +222,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="logo-icon"><i class="ti ti-building-store"></i></div>
-  <div><div class="logo-text">Cartera Negocios</div><div class="logo-sub">Gestión de recargas</div></div>
+  <div><div class="logo-text">Cartera Negocios</div><div class="logo-sub">Gestión de recargas <span style="opacity:.45;font-size:10px">v1.4</span></div></div>
   <button onclick="abrirCaja()" style="background:var(--blue);border:none;color:#fff;border-radius:var(--radius);padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(26,95,168,.3)" title="Caja / Finanzas">
     <i class="ti ti-wallet"></i><span style="display:none" id="caja-badge"></span>
   </button>
@@ -641,16 +641,28 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <div id="caja-resumen-cuentas" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem"></div>
 
   <!-- Tabs internos -->
-  <div style="display:flex;gap:4px;background:var(--bg);border-radius:var(--radius);padding:4px;margin-bottom:1rem">
+  <div style="display:flex;gap:4px;background:var(--bg);border-radius:var(--radius);padding:4px;margin-bottom:10px">
     <button class="chip active" id="ctab-movimientos" onclick="setCajaTab(this,'movimientos')" style="flex:1;justify-content:center">Movimientos</button>
     <button class="chip" id="ctab-pagos" onclick="setCajaTab(this,'pagos')" style="flex:1;justify-content:center">Pagos recibidos</button>
   </div>
 
+  <!-- Buscador -->
+  <div class="filter-search" style="margin-bottom:8px">
+    <i class="ti ti-search" style="color:var(--text3);font-size:15px"></i>
+    <input id="caja-buscar" placeholder="Buscar cliente, cuenta..." oninput="renderCaja()">
+    <button onclick="document.getElementById('caja-buscar').value='';renderCaja()" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:0"><i class="ti ti-x" style="font-size:14px"></i></button>
+  </div>
+
   <!-- Filtro de fechas -->
-  <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+  <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
     <button class="chip active" id="cchip-todo" onclick="setCajaFecha(this,'todo')"><i class="ti ti-infinity"></i> Todo</button>
-    <button class="chip" id="cchip-mes" onclick="setCajaFecha(this,'mes')"><i class="ti ti-calendar-month"></i> Este mes</button>
-    <button class="chip" id="cchip-semana" onclick="setCajaFecha(this,'semana')"><i class="ti ti-calendar-week"></i> Esta semana</button>
+    <button class="chip" id="cchip-mes" onclick="setCajaFecha(this,'mes')"><i class="ti ti-calendar-month"></i> Mes</button>
+    <button class="chip" id="cchip-semana" onclick="setCajaFecha(this,'semana')"><i class="ti ti-calendar-week"></i> Semana</button>
+    <div style="display:flex;gap:4px;align-items:center;margin-left:auto">
+      <input type="date" id="caja-desde" onchange="renderCaja()" style="padding:5px 8px;font-size:11px;border-radius:var(--radius);border:0.5px solid var(--border2);background:var(--surface);color:var(--text)">
+      <span style="font-size:11px;color:var(--text2)">→</span>
+      <input type="date" id="caja-hasta" onchange="renderCaja()" style="padding:5px 8px;font-size:11px;border-radius:var(--radius);border:0.5px solid var(--border2);background:var(--surface);color:var(--text)">
+    </div>
   </div>
 
   <div id="caja-lista"></div>
@@ -1792,10 +1804,18 @@ function setCajaFecha(btn,f){
 }
 
 function filtrarCaja(arr){
-  if(cajaFecha==='todo')return arr;
-  const r=getRango(cajaFecha==='mes'?'mes':cajaFecha==='semana'?'semana':'todo');
-  if(!r)return arr;
-  return arr.filter(x=>(x.fecha||'')>=r.desde&&(x.fecha||'')<=r.hasta);
+  let res=[...arr];
+  // Filtro por chips de fecha
+  if(cajaFecha!=='todo'){
+    const r=getRango(cajaFecha==='mes'?'mes':'semana');
+    if(r)res=res.filter(x=>(x.fecha||'')>=r.desde&&(x.fecha||'')<=r.hasta);
+  }
+  // Filtro por rango de fechas personalizado
+  const desde=document.getElementById('caja-desde')?.value;
+  const hasta=document.getElementById('caja-hasta')?.value;
+  if(desde)res=res.filter(x=>(x.fecha||'')>=desde);
+  if(hasta)res=res.filter(x=>(x.fecha||'')<=hasta);
+  return res;
 }
 
 function renderCaja(){
@@ -1855,34 +1875,67 @@ function renderCaja(){
       </div>`).join('');
 
   } else {
-    // Pagos recibidos confirmados por cuenta
-    const pagos=filtrarCaja(movimientos.filter(m=>m.tipo==='pago'&&m.confirmado));
-    if(!pagos.length){listaEl.innerHTML='<div class="empty"><i class="ti ti-cash"></i><p>Sin pagos confirmados</p></div>';return;}
-    // Agrupar por cuenta_destino
-    const grupos={};
-    pagos.forEach(m=>{const ct=m.cuenta_destino||'Sin especificar';if(!grupos[ct])grupos[ct]=[];grupos[ct].push(m);});
-    listaEl.innerHTML=Object.entries(grupos).sort((a,b)=>{
-      const ta=CUENTAS.indexOf(a[0]),tb=CUENTAS.indexOf(b[0]);
-      return(ta===-1?99:ta)-(tb===-1?99:tb);
-    }).map(([ct,ms])=>{
-      const total=ms.reduce((a,m)=>a+Number(m.valor),0);
-      const icono=CUENTA_ICONOS[ct]||'ti-wallet';
-      return`<div style="margin-bottom:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);border-radius:var(--radius);margin-bottom:4px">
-          <span style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px"><i class="ti ${icono}"></i>${ct}</span>
-          <strong style="color:var(--green)">${fmt(total)} (${ms.length})</strong>
-        </div>
-        ${ms.slice(0,3).map(m=>{
-          const cli=clientes.find(x=>x.id===m.cliente_id);
-          return`<div class="hist-item" style="padding:7px 0">
-            <div class="hist-dot pago" style="width:24px;height:24px;font-size:12px"><i class="ti ti-arrow-down"></i></div>
-            <div class="hist-info"><div style="font-size:12px;font-weight:600">${cli?cli.nombre:'—'}</div><div class="hist-sub">${fmtFecha(m.fecha)}</div></div>
-            <div style="font-size:12px;font-weight:700;color:var(--green)">${fmt(m.valor)}</div>
-          </div>`;
-        }).join('')}
-        ${ms.length>3?`<div style="font-size:11px;color:var(--text2);text-align:right;padding:2px 0">+${ms.length-3} más</div>`:''}
-      </div>`;
-    }).join('');
+    // Pagos recibidos — con buscador y agrupado por día
+    const buscar=(document.getElementById('caja-buscar')?.value||'').toLowerCase().trim();
+    let pagos=filtrarCaja(movimientos.filter(m=>m.tipo==='pago'&&m.confirmado));
+    if(buscar){
+      pagos=pagos.filter(m=>{
+        const cli=clientes.find(x=>x.id===m.cliente_id);
+        return cli&&(cli.nombre.toLowerCase().includes(buscar)||(cli.nombre_whatsapp||'').toLowerCase().includes(buscar)||(m.cuenta_destino||'').toLowerCase().includes(buscar)||(m.codigo_transaccion||'').includes(buscar));
+      });
+    }
+    if(!pagos.length){listaEl.innerHTML='<div class="empty"><i class="ti ti-cash"></i><p>Sin pagos</p></div>';return;}
+
+    // Ordenar por fecha descendente
+    pagos.sort((a,b)=>dtMovimiento(b)-dtMovimiento(a));
+
+    // Agrupar por día
+    const porDia={};
+    pagos.forEach(m=>{
+      const f=m.fecha||'';
+      if(!porDia[f])porDia[f]=[];
+      porDia[f].push(m);
+    });
+    const dias=Object.keys(porDia).sort((a,b)=>b.localeCompare(a));
+    const totalGeneral=pagos.reduce((a,m)=>a+Number(m.valor),0);
+
+    listaEl.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--green-light);border-radius:var(--radius);margin-bottom:10px">
+        <span style="font-size:12px;font-weight:700;color:var(--green-text)"><i class="ti ti-cash"></i> Total: ${pagos.length} pago${pagos.length!==1?'s':''}</span>
+        <strong style="color:var(--green-text);font-size:15px">${fmt(totalGeneral)}</strong>
+      </div>
+      ${dias.map(dia=>{
+        const ms=porDia[dia];
+        const totalDia=ms.reduce((a,m)=>a+Number(m.valor),0);
+        return`<div style="margin-bottom:12px">
+          <!-- Encabezado del día -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--bg);border-radius:var(--radius);margin-bottom:4px;border-left:3px solid var(--green)">
+            <span style="font-size:12px;font-weight:700">${fmtFecha(dia)}</span>
+            <span style="font-size:12px;font-weight:700;color:var(--green)">${fmt(totalDia)} · ${ms.length} pago${ms.length!==1?'s':''}</span>
+          </div>
+          <!-- Pagos del día -->
+          ${ms.map(m=>{
+            const cli=clientes.find(x=>x.id===m.cliente_id);
+            const hora=horaEfectiva(m);
+            const icono=CUENTA_ICONOS[m.cuenta_destino||'']||'ti-wallet';
+            return`<div class="hist-item" style="cursor:pointer" onclick="closeModal('modal-caja');verHistCli('${cli?.id}')">
+              <div class="hist-dot pago"><i class="ti ti-arrow-down"></i></div>
+              <div class="hist-info">
+                <div class="hist-nombre">
+                  ${cli?cli.nombre:'—'}
+                  ${cli?.nombre_whatsapp?`<span style="color:#25D366;font-size:11px;margin-left:5px"><i class="ti ti-brand-whatsapp"></i> ${cli.nombre_whatsapp}</span>`:''}
+                </div>
+                <div class="hist-sub">
+                  ${hora?`<strong>${hora}</strong> · `:''}
+                  ${m.cuenta_destino?`<span class="badge badge-blue" style="font-size:10px"><i class="ti ${icono}"></i> ${m.cuenta_destino}</span>`:'<span style="font-size:11px;color:var(--text3)">Sin cuenta</span>'}
+                  ${m.codigo_transaccion?`<span style="font-family:monospace;font-size:10px">#${m.codigo_transaccion}</span>`:''}
+                </div>
+              </div>
+              <div style="font-size:13px;font-weight:700;color:var(--green);white-space:nowrap">${fmt(m.valor)}</div>
+            </div>`;
+          }).join('')}
+        </div>`;
+      }).join('')}`;
   }
 }
 
