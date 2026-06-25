@@ -580,10 +580,11 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="mover-tipo-btns">
       <button type="button" class="cuenta-btn active" id="mbtn-traslado" onclick="selMoverTipo(this,'traslado')" style="border-color:var(--blue);background:var(--blue);color:#fff"><i class="ti ti-arrows-exchange"></i> Traslado</button>
       <button type="button" class="cuenta-btn" id="mbtn-retiro" onclick="selMoverTipo(this,'retiro')"><i class="ti ti-wallet"></i> Retiro personal</button>
+      <button type="button" class="cuenta-btn" id="mbtn-ingreso" onclick="selMoverTipo(this,'ingreso')" style="grid-column:1/-1"><i class="ti ti-cash"></i> Ingreso externo</button>
     </div>
   </div>
   <div class="form-group" style="margin-bottom:12px">
-    <label class="form-label">Desde (origen) *</label>
+    <label class="form-label" id="mover-origen-label">Desde (origen) *</label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="mover-origen-btns">
       <button type="button" class="cuenta-btn" onclick="selMoverOrigen(this,'Juanito (0660)')"><i class="ti ti-building-bank"></i> Juanito (0660)</button>
       <button type="button" class="cuenta-btn" onclick="selMoverOrigen(this,'Don Martín (6945)')"><i class="ti ti-building-bank"></i> Don Martín (6945)</button>
@@ -1664,15 +1665,20 @@ function abrirModalMover(){
 
 function selMoverTipo(btn,tipo){
   moverTipo=tipo;
-  ['mbtn-traslado','mbtn-retiro'].forEach(id=>{
+  ['mbtn-traslado','mbtn-retiro','mbtn-ingreso'].forEach(id=>{
     const el=document.getElementById(id);
+    if(!el)return;
     el.classList.remove('selected');
     el.style.background=''; el.style.color=''; el.style.borderColor='';
   });
   btn.classList.add('selected');
   btn.style.background='var(--blue)'; btn.style.color='#fff'; btn.style.borderColor='var(--blue)';
+  // Mostrar/ocultar destino
   document.getElementById('mover-destino-grp').style.display=tipo==='traslado'?'block':'none';
-  if(tipo==='retiro'){moverDestino=null;document.querySelectorAll('#mover-destino-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));}
+  // Cambiar label origen
+  const lbl=document.getElementById('mover-origen-label');
+  if(lbl)lbl.textContent=tipo==='ingreso'?'Hacia (destino) *':'Desde (origen) *';
+  if(tipo!=='traslado'){moverDestino=null;document.querySelectorAll('#mover-destino-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));}
 }
 
 function selMoverOrigen(btn,cuenta){
@@ -1692,25 +1698,28 @@ async function guardarMovimiento(){
   if(!moverOrigen)return mostrarMoverMsg('Selecciona la cuenta de origen','error');
   if(!valor||valor<=0)return mostrarMoverMsg('Ingresa un valor válido','error');
   if(moverTipo==='traslado'&&!moverDestino)return mostrarMoverMsg('Selecciona la cuenta de destino','error');
+  if(moverTipo==='ingreso'&&!moverOrigen)return mostrarMoverMsg('Selecciona la cuenta de destino','error');
   if(moverTipo==='traslado'&&moverOrigen===moverDestino)return mostrarMoverMsg('Origen y destino no pueden ser iguales','error');
 
   const nota=document.getElementById('mover-nota').value||null;
   const fecha=document.getElementById('mover-fecha').value||hoy();
   const descripcion=moverTipo==='retiro'
     ?`Retiro desde ${moverOrigen}${nota?' — '+nota:''}`
+    :moverTipo==='ingreso'
+    ?`Ingreso externo → ${moverOrigen}${nota?' — '+nota:''}`
     :`Traslado de ${moverOrigen} → ${moverDestino}${nota?' — '+nota:''}`;
 
   try{
     // Guardar en tabla de movimientos de caja
     await api('movimientos_caja','POST',{
       tipo:moverTipo,
-      origen:moverOrigen,
-      destino:moverTipo==='traslado'?moverDestino:null,
+      origen:moverTipo==='ingreso'?'externo':moverOrigen,
+      destino:moverTipo==='traslado'?moverDestino:moverTipo==='ingreso'?moverOrigen:null,
       valor,fecha,
       nota:descripcion,
       creado_en:new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T')
     });
-    mostrarMoverMsg(`✓ ${moverTipo==='retiro'?'Retiro':'Traslado'} de ${fmt(valor)} registrado`,'ok');
+    mostrarMoverMsg(`✓ ${moverTipo==='retiro'?'Retiro':moverTipo==='ingreso'?'Ingreso':'Traslado'} de ${fmt(valor)} registrado`,'ok');
     setTimeout(()=>{closeModal('modal-mover');renderDash();},1500);
   }catch(e){mostrarMoverMsg('Error: '+e.message,'error');}
 }
@@ -1798,8 +1807,14 @@ function renderCaja(){
     .forEach(m=>saldos[m.cuenta_destino]+=Number(m.valor||0));
   // Aplicar traslados y retiros
   (window._movCaja||[]).forEach(mv=>{
-    if(mv.origen&&saldos.hasOwnProperty(mv.origen))saldos[mv.origen]-=Number(mv.valor||0);
-    if(mv.destino&&saldos.hasOwnProperty(mv.destino))saldos[mv.destino]+=Number(mv.valor||0);
+    if(mv.tipo==='ingreso'){
+      // Ingreso externo: suma al destino
+      if(mv.destino&&saldos.hasOwnProperty(mv.destino))saldos[mv.destino]+=Number(mv.valor||0);
+    } else {
+      // Traslado o retiro: resta del origen, suma al destino
+      if(mv.origen&&saldos.hasOwnProperty(mv.origen))saldos[mv.origen]-=Number(mv.valor||0);
+      if(mv.destino&&saldos.hasOwnProperty(mv.destino))saldos[mv.destino]+=Number(mv.valor||0);
+    }
   });
   // Render cards de saldo
   const resEl=document.getElementById('caja-resumen-cuentas');
@@ -1831,7 +1846,7 @@ function renderCaja(){
           <div class="hist-sub">${fmtFecha(mv.fecha)}${mv.nota?' · '+mv.nota:''}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
-          <div class="hist-val" style="color:var(--red)">-${fmt(mv.valor)}</div>
+          <div class="hist-val" style="color:${mv.tipo==='ingreso'?'var(--green)':'var(--red)'}">${mv.tipo==='ingreso'?'+':'-'}${fmt(mv.valor)}</div>
           <div style="display:flex;gap:4px">
             <button class="btn btn-secondary btn-sm" onclick="abrirEditMovCaja('${mv.id}')" title="Editar"><i class="ti ti-edit"></i></button>
             <button class="btn btn-secondary btn-sm" style="color:var(--red)" onclick="eliminarMovCaja('${mv.id}')" title="Eliminar"><i class="ti ti-trash"></i></button>
