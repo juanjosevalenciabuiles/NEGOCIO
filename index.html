@@ -229,6 +229,9 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
   <button onclick="abrirListaCobros()" style="background:var(--amber);border:none;color:#fff;border-radius:var(--radius);padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(180,120,0,.3)" title="Lista de cobros">
     <i class="ti ti-clipboard-list"></i><span id="cobros-badge" style="display:none;background:rgba(0,0,0,.2);border-radius:10px;padding:0 6px;font-size:11px"></span>
   </button>
+  <button onclick="abrirPrestamos()" style="background:#8B5CF6;border:none;color:#fff;border-radius:var(--radius);padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(139,92,246,.3)" title="Préstamos">
+    <i class="ti ti-pig-money"></i>
+  </button>
   <div class="conn"><span class="dot" id="connDot"></span><span id="connTxt">Sin configurar</span></div>
 </div>
 
@@ -534,6 +537,123 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
       <button class="btn btn-primary" onclick="guardarEditMov()"><i class="ti ti-device-floppy"></i> Guardar</button>
     </div>
   </div>
+</div></div>
+
+<!-- MODAL PRÉSTAMOS -->
+<div class="modal-bg" id="modal-prestamos" style="display:none"><div class="modal" style="max-width:600px">
+  <span class="modal-handle"></span>
+  <div class="modal-title">
+    <span style="display:flex;align-items:center;gap:8px">
+      <span style="width:32px;height:32px;border-radius:50%;background:#8B5CF6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px"><i class="ti ti-pig-money"></i></span>
+      Préstamos
+    </span>
+    <button class="close-btn" onclick="closeModal('modal-prestamos')"><i class="ti ti-x"></i></button>
+  </div>
+  <!-- Resumen -->
+  <div id="prest-resumen" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px"></div>
+  <!-- Tabs prestados / deudas propias -->
+  <div style="display:flex;gap:4px;background:var(--bg);border-radius:var(--radius);padding:4px;margin-bottom:10px">
+    <button class="chip active" id="ptab-prestados" onclick="setPrestTab(this,'prestados')" style="flex:1;justify-content:center"><i class="ti ti-pig-money"></i> Prestados</button>
+    <button class="chip" id="ptab-deudas" onclick="setPrestTab(this,'deudas')" style="flex:1;justify-content:center"><i class="ti ti-credit-card"></i> Deudas propias</button>
+  </div>
+
+  <!-- Filtros (solo para prestados) -->
+  <div id="prest-filtros" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+    <button class="chip active" id="pchip-activos" onclick="setPrestFiltro(this,'activo')">Activos</button>
+    <button class="chip" id="pchip-mora" onclick="setPrestFiltro(this,'mora')">En mora</button>
+    <button class="chip" id="pchip-pagados" onclick="setPrestFiltro(this,'pagado')">Pagados</button>
+    <button class="chip" id="pchip-todos" onclick="setPrestFiltro(this,'todos')">Todos</button>
+    <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="abrirNuevoPrestamo()"><i class="ti ti-plus"></i> Nuevo</button>
+  </div>
+  <div id="prest-lista"></div>
+  <div id="prest-deudas" style="display:none"></div>
+</div></div>
+
+<!-- MODAL NUEVO/EDITAR PRÉSTAMO -->
+<div class="modal-bg" id="modal-prest-form" style="display:none"><div class="modal" style="max-width:420px">
+  <span class="modal-handle"></span>
+  <div class="modal-title">
+    <span id="prest-form-title">Nuevo préstamo</span>
+    <button class="close-btn" onclick="closeModal('modal-prest-form')"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="form-grid">
+    <input type="hidden" id="pf-id">
+    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Nombre *</label><input id="pf-nombre" placeholder="Nombre completo"></div>
+    <div class="form-group"><label class="form-label">Teléfono</label><input id="pf-tel" placeholder="Opcional"></div>
+    <div class="form-group"><label class="form-label">Valor prestado ($) *</label><input id="pf-valor-display" placeholder="0" oninput="formatValor(this,'pf-valor')"><input type="hidden" id="pf-valor"></div>
+    <div class="form-group"><label class="form-label">Interés mensual (%)</label><input type="number" id="pf-interes" placeholder="0" min="0" step="0.1"></div>
+    <div class="form-group"><label class="form-label">Fecha inicio</label><input type="date" id="pf-inicio"></div>
+    <div class="form-group"><label class="form-label">Próximo pago</label><input type="date" id="pf-proximo"></div>
+    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Notas</label><input id="pf-notas" placeholder="Condiciones, acuerdos..."></div>
+    <div class="form-group" style="grid-column:1/-1"><label class="form-label">Estado</label>
+      <select id="pf-estado"><option value="activo">Activo</option><option value="mora">En mora</option><option value="pagado">Pagado</option></select>
+    </div>
+  </div>
+  <div id="pf-msg" style="display:none;margin:10px 0;padding:8px 12px;border-radius:var(--radius);font-size:13px"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+    <button class="btn btn-secondary" onclick="closeModal('modal-prest-form')">Cancelar</button>
+    <button class="btn btn-primary" style="background:#8B5CF6;justify-content:center" onclick="guardarPrestamo()"><i class="ti ti-device-floppy"></i> Guardar</button>
+  </div>
+</div></div>
+
+<!-- MODAL DETALLE PRÉSTAMO -->
+<div class="modal-bg" id="modal-prest-detalle" style="display:none"><div class="modal" style="max-width:520px">
+  <span class="modal-handle"></span>
+  <div class="modal-title">
+    <div style="flex:1;min-width:0">
+      <div id="pd-titulo" style="font-size:16px;font-weight:700"></div>
+      <div id="pd-subtitulo" style="font-size:12px;color:var(--text2);margin-top:2px"></div>
+    </div>
+    <button class="close-btn" onclick="closeModal('modal-prest-detalle')"><i class="ti ti-x"></i></button>
+  </div>
+  <!-- Resumen del préstamo -->
+  <div id="pd-resumen" style="background:var(--bg);border-radius:var(--radius);padding:12px;margin-bottom:12px"></div>
+  <!-- Acciones -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px">
+    <button class="btn btn-sm" style="background:#8B5CF6;color:#fff;justify-content:center;font-size:12px" onclick="abrirPagoInteres(prestActual?.id)"><i class="ti ti-percent"></i> Interés</button>
+    <button class="btn btn-primary btn-sm" style="justify-content:center;font-size:12px" onclick="abrirAbono(prestActual?.id)"><i class="ti ti-cash"></i> Abono</button>
+    <button class="btn btn-secondary btn-sm" style="justify-content:center;font-size:12px" onclick="editarPrestamo(prestActual?.id)"><i class="ti ti-edit"></i> Editar</button>
+  </div>
+  <!-- Historial de pagos -->
+  <div id="pd-historial"></div>
+</div></div>
+
+<!-- MODAL REGISTRAR PAGO PRÉSTAMO -->
+<div class="modal-bg" id="modal-pago-prest" style="display:none"><div class="modal" style="max-width:380px">
+  <span class="modal-handle"></span>
+  <div class="modal-title">
+    <span id="pp-titulo">Registrar pago</span>
+    <button class="close-btn" onclick="closeModal('modal-pago-prest')"><i class="ti ti-x"></i></button>
+  </div>
+  <input type="hidden" id="pp-prest-id">
+  <input type="hidden" id="pp-tipo">
+  <div class="form-group" style="margin-bottom:10px">
+    <label class="form-label">Valor ($) *</label>
+    <div style="position:relative">
+      <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--text2)">$</span>
+      <input id="pp-valor-display" placeholder="0" oninput="formatValor(this,'pp-valor')" style="padding-left:26px;font-size:16px;font-weight:700;text-align:right">
+      <input type="hidden" id="pp-valor">
+    </div>
+    <div id="pp-sugerido" style="font-size:11px;color:var(--text2);margin-top:4px"></div>
+  </div>
+  <div class="form-group" style="margin-bottom:10px">
+    <label class="form-label">Fecha</label>
+    <input type="date" id="pp-fecha">
+  </div>
+  <div class="form-group" style="margin-bottom:10px">
+    <label class="form-label">Cuenta destino</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="pp-cuenta-btns">
+      <button type="button" class="cuenta-btn" onclick="selPpCuenta(this,'Bancolombia')"><i class="ti ti-credit-card"></i> Bancolombia</button>
+      <button type="button" class="cuenta-btn" onclick="selPpCuenta(this,'Nequi')"><i class="ti ti-device-mobile"></i> Nequi</button>
+      <button type="button" class="cuenta-btn" onclick="selPpCuenta(this,'Efectivo')" style="grid-column:1/-1"><i class="ti ti-cash"></i> Efectivo</button>
+    </div>
+  </div>
+  <div class="form-group" style="margin-bottom:12px">
+    <label class="form-label">Nota</label>
+    <input id="pp-nota" placeholder="Opcional">
+  </div>
+  <div id="pp-msg" style="display:none;margin-bottom:10px;padding:8px 12px;border-radius:var(--radius);font-size:13px"></div>
+  <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;background:#8B5CF6" onclick="guardarPagoPrestamo()"><i class="ti ti-device-floppy"></i> Registrar</button>
 </div></div>
 
 <!-- MODAL LISTA DE COBROS -->
@@ -1732,6 +1852,7 @@ async function guardarMovimiento(){
       creado_en:new Date().toLocaleString('sv-SE',{timeZone:'America/Bogota'}).replace(' ','T')
     });
     mostrarMoverMsg(`✓ ${moverTipo==='retiro'?'Retiro':moverTipo==='ingreso'?'Ingreso':'Traslado'} de ${fmt(valor)} registrado`,'ok');
+    try{window._movCaja=await api('movimientos_caja','GET',null,'order=fecha.desc,creado_en.desc');}catch{}
     setTimeout(()=>{closeModal('modal-mover');renderDash();},1500);
   }catch(e){mostrarMoverMsg('Error: '+e.message,'error');}
 }
@@ -1784,7 +1905,9 @@ function verHistorialCuenta(cuenta){
     }).join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin pagos en '+cuenta+'</p></div>'}`;
 }
 
-function abrirCaja(){
+async function abrirCaja(){
+  try{window._movCaja=await api('movimientos_caja','GET',null,'order=fecha.desc,creado_en.desc');}
+  catch{window._movCaja=[];}
   renderCaja();
   openModal('modal-caja');
 }
@@ -2239,6 +2362,609 @@ async function eliminarMovCaja(id){
     window._movCaja=(window._movCaja||[]).filter(x=>x.id!==id);
     renderCaja();renderDash();
   }catch(e){alert('Error: '+e.message);}
+}
+
+
+// ══════════════════════════════════════════════════════
+// PRÉSTAMOS
+// ══════════════════════════════════════════════════════
+let prestamos=[], pagosPrestamo=[], prestFiltro='activo', prestActual=null;
+let ppCuentaSel=null;
+
+// ── Cargar datos ──
+async function cargarPrestamos(){
+  try{
+    [prestamos,pagosPrestamo]=await Promise.all([
+      api('prestamos','GET',null,'order=creado_en.desc'),
+      api('pagos_prestamo','GET',null,'order=fecha.desc,creado_en.desc')
+    ]);
+  }catch(e){prestamos=[];pagosPrestamo=[];}
+}
+
+// ── Abrir ──
+async function abrirPrestamos(){
+  await Promise.all([cargarPrestamos(), cargarDeudas()]);
+  renderPrestamos();
+  openModal('modal-prestamos');
+}
+
+// ── Filtro ──
+function setPrestFiltro(btn,filtro){
+  prestFiltro=filtro;
+  ['pchip-activos','pchip-mora','pchip-pagados','pchip-todos'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.classList.remove('active');
+  });
+  btn.classList.add('active');
+  renderPrestamos();
+}
+
+// ── Calcular saldo de un préstamo ──
+function saldoPrestamo(p){
+  const pagos=pagosPrestamo.filter(x=>x.prestamo_id===p.id);
+  const totalAbonos=pagos.filter(x=>x.tipo==='abono'||x.tipo==='pago_total').reduce((a,x)=>a+Number(x.valor),0);
+  return Math.max(0,Number(p.valor_prestado||0)-totalAbonos);
+}
+
+function interesMensual(p){
+  return Math.round(saldoPrestamo(p)*(Number(p.interes_pct||0)/100));
+}
+
+// ── Render lista ──
+function renderPrestamos(){
+  let lista=prestamos;
+  if(prestFiltro!=='todos')lista=lista.filter(p=>p.estado===prestFiltro);
+
+  // Resumen
+  const activos=prestamos.filter(p=>p.estado==='activo'||p.estado==='mora');
+  const totalPrestado=activos.reduce((a,p)=>a+saldoPrestamo(p),0);
+  const totalInteres=activos.reduce((a,p)=>a+interesMensual(p),0);
+  const enMora=prestamos.filter(p=>p.estado==='mora').length;
+  const resEl=document.getElementById('prest-resumen');
+  if(resEl)resEl.innerHTML=`
+    <div style="background:var(--bg);border-radius:var(--radius);padding:10px;text-align:center">
+      <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px">POR COBRAR</div>
+      <div style="font-size:16px;font-weight:700;color:var(--red)">${fmt(totalPrestado)}</div>
+    </div>
+    <div style="background:var(--bg);border-radius:var(--radius);padding:10px;text-align:center">
+      <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px">INTERÉS/MES</div>
+      <div style="font-size:16px;font-weight:700;color:#8B5CF6">${fmt(totalInteres)}</div>
+    </div>
+    <div style="background:var(--bg);border-radius:var(--radius);padding:10px;text-align:center">
+      <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px">EN MORA</div>
+      <div style="font-size:16px;font-weight:700;color:var(--red)">${enMora}</div>
+    </div>`;
+
+  const listaEl=document.getElementById('prest-lista');
+  if(!listaEl)return;
+  if(!lista.length){listaEl.innerHTML='<div class="empty"><i class="ti ti-pig-money"></i><p>Sin préstamos</p></div>';return;}
+
+  listaEl.innerHTML=lista.map(p=>{
+    const saldo=saldoPrestamo(p);
+    const interes=interesMensual(p);
+    const hoy2=new Date(hoy());
+    const prox=p.fecha_proximo_pago?new Date(p.fecha_proximo_pago):null;
+    const diasProx=prox?Math.ceil((prox-hoy2)/86400000):null;
+    const colorEstado=p.estado==='mora'?'var(--red)':p.estado==='pagado'?'var(--green)':'#8B5CF6';
+    const labelEstado=p.estado==='mora'?'En mora':p.estado==='pagado'?'Pagado':'Activo';
+    return`<div class="hist-item" style="cursor:pointer;border-radius:var(--radius);padding:12px;background:var(--surface);margin-bottom:8px;box-shadow:var(--shadow)" onclick="verDetallePrestamo('${p.id}')">
+      <div class="hist-dot" style="background:${p.estado==='mora'?'var(--red-light)':p.estado==='pagado'?'var(--green-light)':'rgba(139,92,246,.15)'};color:${colorEstado}">
+        <i class="ti ti-pig-money"></i>
+      </div>
+      <div class="hist-info">
+        <div class="hist-nombre">${p.nombre} <span class="badge" style="background:${colorEstado};color:#fff;font-size:9px">${labelEstado}</span></div>
+        <div class="hist-sub">
+          ${p.interes_pct>0?`<span style="color:#8B5CF6;font-size:11px">${p.interes_pct}% mensual · ${fmt(interes)}/mes</span>`:'Sin interés'}
+          ${diasProx!==null?`· <span style="color:${diasProx<0?'var(--red)':diasProx<=3?'var(--amber)':'var(--text2)'}">Próximo: ${diasProx<0?'Vencido hace '+Math.abs(diasProx)+' días':diasProx===0?'Hoy':diasProx===1?'Mañana':'En '+diasProx+' días'}</span>`:''}
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:15px;font-weight:700;color:${saldo>0?'var(--red)':'var(--green)'}">
+          ${saldo>0?fmt(saldo):'Saldado ✓'}
+        </div>
+        <div style="font-size:10px;color:var(--text2)">de ${fmt(p.valor_prestado)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Ver detalle ──
+async function verDetallePrestamo(id){
+  prestActual=prestamos.find(x=>x.id===id);
+  if(!prestActual)return;
+  const p=prestActual;
+  const saldo=saldoPrestamo(p);
+  const interes=interesMensual(p);
+  const pagos=pagosPrestamo.filter(x=>x.prestamo_id===id);
+  const totalPagado=pagos.filter(x=>x.tipo==='abono'||x.tipo==='pago_total').reduce((a,x)=>a+Number(x.valor),0);
+
+  document.getElementById('pd-titulo').textContent=p.nombre;
+  document.getElementById('pd-subtitulo').textContent=`${p.telefono||'Sin teléfono'} · ${p.interes_pct}% mensual`;
+
+  document.getElementById('pd-resumen').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="text-align:center;padding:8px;background:var(--surface);border-radius:var(--radius)">
+        <div style="font-size:10px;color:var(--text2);font-weight:700">PRESTADO</div>
+        <div style="font-size:15px;font-weight:700">${fmt(p.valor_prestado)}</div>
+      </div>
+      <div style="text-align:center;padding:8px;background:var(--surface);border-radius:var(--radius)">
+        <div style="font-size:10px;color:var(--text2);font-weight:700">SALDO</div>
+        <div style="font-size:15px;font-weight:700;color:${saldo>0?'var(--red)':'var(--green)'}">${saldo>0?fmt(saldo):'Saldado ✓'}</div>
+      </div>
+      <div style="text-align:center;padding:8px;background:var(--surface);border-radius:var(--radius)">
+        <div style="font-size:10px;color:var(--text2);font-weight:700">INTERÉS/MES</div>
+        <div style="font-size:15px;font-weight:700;color:#8B5CF6">${fmt(interes)}</div>
+      </div>
+      <div style="text-align:center;padding:8px;background:var(--surface);border-radius:var(--radius)">
+        <div style="font-size:10px;color:var(--text2);font-weight:700">ABONADO</div>
+        <div style="font-size:15px;font-weight:700;color:var(--green)">${fmt(totalPagado)}</div>
+      </div>
+    </div>
+    ${p.fecha_proximo_pago?`<div style="font-size:12px;color:var(--text2)"><i class="ti ti-calendar"></i> Próximo pago: <strong>${fmtFecha(p.fecha_proximo_pago)}</strong></div>`:''}
+    ${p.notas?`<div style="font-size:12px;color:var(--text2);margin-top:4px"><i class="ti ti-notes"></i> ${p.notas}</div>`:''}`;
+
+  // Historial de pagos agrupado por día
+  const histEl=document.getElementById('pd-historial');
+  if(pagos.length){
+    const porDia={};
+    pagos.forEach(pg=>{if(!porDia[pg.fecha])porDia[pg.fecha]=[];porDia[pg.fecha].push(pg);});
+    const dias=Object.keys(porDia).sort((a,b)=>b.localeCompare(a));
+    histEl.innerHTML=dias.map(dia=>{
+      const dps=porDia[dia];
+      const totalDia=dps.reduce((a,x)=>a+Number(x.valor),0);
+      return`<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;padding:5px 10px;background:var(--bg);border-radius:var(--radius);margin-bottom:4px;border-left:3px solid #8B5CF6">
+          <span style="font-size:12px;font-weight:700">${fmtFecha(dia)}</span>
+          <span style="font-size:12px;color:#8B5CF6;font-weight:700">${fmt(totalDia)}</span>
+        </div>
+        ${dps.map(pg=>`<div class="hist-item">
+          <div class="hist-dot" style="background:rgba(139,92,246,.15);color:#8B5CF6;width:28px;height:28px;font-size:12px">
+            <i class="ti ti-${pg.tipo==='interes'?'percent':pg.tipo==='pago_total'?'circle-check':'cash'}"></i>
+          </div>
+          <div class="hist-info">
+            <div class="hist-nombre">${pg.tipo==='interes'?'Pago de interés':pg.tipo==='pago_total'?'Pago total':'Abono al capital'}</div>
+            <div class="hist-sub">${pg.cuenta_destino?`<span class="badge badge-blue" style="font-size:10px">${pg.cuenta_destino}</span> `:''}${pg.nota||''}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <div style="font-size:13px;font-weight:700;color:var(--green)">+${fmt(pg.valor)}</div>
+            <button class="btn btn-secondary btn-sm" onclick="eliminarPagoPrestamo('${pg.id}')" style="color:var(--red)"><i class="ti ti-trash"></i></button>
+          </div>
+        </div>`).join('')}
+      </div>`;
+    }).join('');
+  } else {
+    histEl.innerHTML='<div class="empty"><i class="ti ti-cash"></i><p>Sin pagos registrados</p></div>';
+  }
+  closeModal('modal-prestamos');
+  openModal('modal-prest-detalle');
+}
+
+// ── Nuevo / Editar préstamo ──
+function abrirNuevoPrestamo(){
+  document.getElementById('pf-id').value='';
+  document.getElementById('pf-nombre').value='';
+  document.getElementById('pf-tel').value='';
+  document.getElementById('pf-valor').value='';
+  document.getElementById('pf-valor-display').value='';
+  document.getElementById('pf-interes').value='';
+  document.getElementById('pf-inicio').value=hoy();
+  document.getElementById('pf-proximo').value='';
+  document.getElementById('pf-notas').value='';
+  document.getElementById('pf-estado').value='activo';
+  document.getElementById('prest-form-title').textContent='Nuevo préstamo';
+  document.getElementById('pf-msg').style.display='none';
+  openModal('modal-prest-form');
+}
+
+function editarPrestamo(id){
+  const p=prestamos.find(x=>x.id===id);if(!p)return;
+  document.getElementById('pf-id').value=p.id;
+  document.getElementById('pf-nombre').value=p.nombre||'';
+  document.getElementById('pf-tel').value=p.telefono||'';
+  document.getElementById('pf-valor').value=p.valor_prestado||0;
+  document.getElementById('pf-valor-display').value=Number(p.valor_prestado||0).toLocaleString('es-CO');
+  document.getElementById('pf-interes').value=p.interes_pct||0;
+  document.getElementById('pf-inicio').value=p.fecha_inicio||'';
+  document.getElementById('pf-proximo').value=p.fecha_proximo_pago||'';
+  document.getElementById('pf-notas').value=p.notas||'';
+  document.getElementById('pf-estado').value=p.estado||'activo';
+  document.getElementById('prest-form-title').textContent='Editar préstamo';
+  document.getElementById('pf-msg').style.display='none';
+  closeModal('modal-prest-detalle');
+  openModal('modal-prest-form');
+}
+
+async function guardarPrestamo(){
+  const nombre=document.getElementById('pf-nombre').value.trim();
+  if(!nombre)return mostrarPfMsg('El nombre es obligatorio','error');
+  const valor=Number(document.getElementById('pf-valor').value);
+  if(!valor||valor<=0)return mostrarPfMsg('El valor prestado debe ser mayor a 0','error');
+  const id=document.getElementById('pf-id').value;
+  const data={
+    nombre,
+    telefono:document.getElementById('pf-tel').value||null,
+    valor_prestado:valor,
+    interes_pct:Number(document.getElementById('pf-interes').value)||0,
+    fecha_inicio:document.getElementById('pf-inicio').value||null,
+    fecha_proximo_pago:document.getElementById('pf-proximo').value||null,
+    notas:document.getElementById('pf-notas').value||null,
+    estado:document.getElementById('pf-estado').value
+  };
+  try{
+    if(id){
+      await api('prestamos?id=eq.'+id,'PATCH',data);
+      const i=prestamos.findIndex(x=>x.id===id);
+      if(i>=0)prestamos[i]={...prestamos[i],...data};
+    }else{
+      const n=await api('prestamos','POST',data);
+      prestamos.unshift(n[0]);
+    }
+    closeModal('modal-prest-form');
+    renderPrestamos();
+  }catch(e){mostrarPfMsg('Error: '+e.message,'error');}
+}
+
+function mostrarPfMsg(txt,tipo){
+  const el=document.getElementById('pf-msg');
+  el.textContent=txt;el.style.display='block';
+  el.style.background=tipo==='ok'?'var(--green-light)':'var(--red-light)';
+  el.style.color=tipo==='ok'?'var(--green-text)':'var(--red-text)';
+}
+
+// ── Registrar pago ──
+function selPpCuenta(btn,cuenta){
+  ppCuentaSel=cuenta;
+  document.querySelectorAll('#pp-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function abrirPagoInteres(id){
+  const p=prestamos.find(x=>x.id===id);if(!p)return;
+  const interes=interesMensual(p);
+  document.getElementById('pp-prest-id').value=id;
+  document.getElementById('pp-tipo').value='interes';
+  document.getElementById('pp-titulo').textContent='Pago de interés — '+p.nombre;
+  document.getElementById('pp-valor').value=interes;
+  document.getElementById('pp-valor-display').value=interes.toLocaleString('es-CO');
+  document.getElementById('pp-sugerido').textContent=`Interés mensual sugerido: ${fmt(interes)}`;
+  document.getElementById('pp-fecha').value=hoy();
+  document.getElementById('pp-nota').value='';
+  document.getElementById('pp-msg').style.display='none';
+  ppCuentaSel=null;
+  document.querySelectorAll('#pp-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  openModal('modal-pago-prest');
+}
+
+function abrirAbono(id){
+  const p=prestamos.find(x=>x.id===id);if(!p)return;
+  const saldo=saldoPrestamo(p);
+  document.getElementById('pp-prest-id').value=id;
+  document.getElementById('pp-tipo').value='abono';
+  document.getElementById('pp-titulo').textContent='Abono al capital — '+p.nombre;
+  document.getElementById('pp-valor').value='';
+  document.getElementById('pp-valor-display').value='';
+  document.getElementById('pp-sugerido').textContent=`Saldo pendiente: ${fmt(saldo)}`;
+  document.getElementById('pp-fecha').value=hoy();
+  document.getElementById('pp-nota').value='';
+  document.getElementById('pp-msg').style.display='none';
+  ppCuentaSel=null;
+  document.querySelectorAll('#pp-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  openModal('modal-pago-prest');
+}
+
+async function guardarPagoPrestamo(){
+  const prestId=document.getElementById('pp-prest-id').value;
+  const tipo=document.getElementById('pp-tipo').value;
+  const valor=Number(document.getElementById('pp-valor').value);
+  const fecha=document.getElementById('pp-fecha').value||hoy();
+  const nota=document.getElementById('pp-nota').value||null;
+  const msg=document.getElementById('pp-msg');
+
+  if(!valor||valor<=0){msg.style.display='block';msg.textContent='El valor debe ser mayor a 0';msg.style.background='var(--red-light)';msg.style.color='var(--red-text)';return;}
+
+  // Si abonó todo, marcar como pagado
+  const p=prestamos.find(x=>x.id===prestId);
+  const saldo=saldoPrestamo(p);
+  const tipoFinal=valor>=saldo&&tipo==='abono'?'pago_total':tipo;
+
+  try{
+    const n=await api('pagos_prestamo','POST',{
+      prestamo_id:prestId,tipo:tipoFinal,valor,fecha,
+      cuenta_destino:ppCuentaSel||null,nota
+    });
+    pagosPrestamo.unshift(n[0]);
+    // Si pago total, actualizar estado
+    if(tipoFinal==='pago_total'){
+      await api('prestamos?id=eq.'+prestId,'PATCH',{estado:'pagado'});
+      if(p)p.estado='pagado';
+    }
+    closeModal('modal-pago-prest');
+    await verDetallePrestamo(prestId);
+    renderPrestamos();
+  }catch(e){msg.style.display='block';msg.textContent='Error: '+e.message;msg.style.background='var(--red-light)';msg.style.color='var(--red-text)';}
+}
+
+async function eliminarPagoPrestamo(id){
+  if(!confirm('¿Eliminar este pago?'))return;
+  try{
+    await api('pagos_prestamo?id=eq.'+id,'DELETE');
+    pagosPrestamo=pagosPrestamo.filter(x=>x.id!==id);
+    if(prestActual)await verDetallePrestamo(prestActual.id);
+    renderPrestamos();
+  }catch(e){alert('Error: '+e.message);}
+}
+
+
+// ══════════════════════════════════════════════════════
+// DEUDAS PROPIAS (banco, casa, etc.)
+// ══════════════════════════════════════════════════════
+let deudas=[], pagosDeuda=[], prestTab='prestados';
+
+async function cargarDeudas(){
+  try{
+    [deudas,pagosDeuda]=await Promise.all([
+      api('deudas_propias','GET',null,'order=creado_en.desc'),
+      api('pagos_deuda','GET',null,'order=fecha.desc,creado_en.desc')
+    ]);
+  }catch{deudas=[];pagosDeuda=[];}
+}
+
+function setPrestTab(btn,tab){
+  prestTab=tab;
+  ['ptab-prestados','ptab-deudas'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
+  btn.classList.add('active');
+  const filtros=document.getElementById('prest-filtros');
+  const lista=document.getElementById('prest-lista');
+  const deуdasEl=document.getElementById('prest-deudas');
+  const resEl=document.getElementById('prest-resumen');
+  if(tab==='prestados'){
+    if(filtros)filtros.style.display='flex';
+    if(lista)lista.style.display='block';
+    if(deуdasEl)deуdasEl.style.display='none';
+    renderPrestamos();
+  } else {
+    if(filtros)filtros.style.display='none';
+    if(lista)lista.style.display='none';
+    if(deуdasEl)deуdasEl.style.display='block';
+    renderDeudas();
+    // Resumen deudas
+    const totalDeuda=deudas.filter(d=>d.estado!=='pagada').reduce((a,d)=>a+saldoDeuda(d),0);
+    const cuotasMes=deudas.filter(d=>d.estado!=='pagada').reduce((a,d)=>a+Number(d.cuota_mensual||0),0);
+    if(resEl)resEl.innerHTML=`
+      <div style="background:var(--bg);border-radius:var(--radius);padding:10px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px">TOTAL DEUDA</div>
+        <div style="font-size:16px;font-weight:700;color:var(--red)">${fmt(totalDeuda)}</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius);padding:10px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px">CUOTAS/MES</div>
+        <div style="font-size:16px;font-weight:700;color:var(--amber)">${fmt(cuotasMes)}</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius);padding:10px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px">ACTIVAS</div>
+        <div style="font-size:16px;font-weight:700;color:var(--red)">${deudas.filter(d=>d.estado!=='pagada').length}</div>
+      </div>`;
+  }
+}
+
+function saldoDeuda(d){
+  const pagos=pagosDeuda.filter(x=>x.deuda_id===d.id);
+  const totalAbonos=pagos.reduce((a,x)=>a+Number(x.valor),0);
+  return Math.max(0,Number(d.valor_total||0)-totalAbonos);
+}
+
+function renderDeudas(){
+  const el=document.getElementById('prest-deudas');
+  if(!el)return;
+  if(!deudas.length){
+    el.innerHTML=`<div style="margin-bottom:10px;display:flex;justify-content:flex-end"><button class="btn btn-secondary btn-sm" onclick="abrirNuevaDeuda()"><i class="ti ti-plus"></i> Nueva deuda</button></div><div class="empty"><i class="ti ti-credit-card"></i><p>Sin deudas registradas</p></div>`;
+    return;
+  }
+  el.innerHTML=`<div style="margin-bottom:10px;display:flex;justify-content:flex-end"><button class="btn btn-secondary btn-sm" onclick="abrirNuevaDeuda()"><i class="ti ti-plus"></i> Nueva deuda</button></div>`+
+  deudas.map(d=>{
+    const saldo=saldoDeuda(d);
+    const hoy2=new Date(hoy());
+    const prox=d.proximo_pago?new Date(d.proximo_pago):null;
+    const dias=prox?Math.ceil((prox-hoy2)/86400000):null;
+    const pagado=d.estado==='pagada';
+    return`<div class="hist-item" style="cursor:pointer;border-radius:var(--radius);padding:12px;background:var(--surface);margin-bottom:8px;box-shadow:var(--shadow)" onclick="verDetalleDeuda('${d.id}')">
+      <div class="hist-dot" style="background:${pagado?'var(--green-light)':'var(--red-light)'};color:${pagado?'var(--green-text)':'var(--red-text)'}">
+        <i class="ti ti-${pagado?'circle-check':'credit-card'}"></i>
+      </div>
+      <div class="hist-info">
+        <div class="hist-nombre">${d.nombre} <span class="badge" style="background:${pagado?'var(--green)':'var(--red)'};color:#fff;font-size:9px">${pagado?'Pagada':'Activa'}</span></div>
+        <div class="hist-sub">
+          ${d.cuota_mensual?`<span style="color:var(--amber);font-size:11px">Cuota: ${fmt(d.cuota_mensual)}/mes</span>`:''}
+          ${dias!==null?` · <span style="color:${dias<0?'var(--red)':dias<=3?'var(--amber)':'var(--text2)'}">
+            ${dias<0?'Vencida hace '+Math.abs(dias)+' días':dias===0?'Vence hoy':dias===1?'Vence mañana':'Vence en '+dias+' días'}</span>`:''}
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:15px;font-weight:700;color:${saldo>0?'var(--red)':'var(--green)'}">
+          ${saldo>0?fmt(saldo):'Pagada ✓'}
+        </div>
+        <div style="font-size:10px;color:var(--text2)">de ${fmt(d.valor_total)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let deudaActual=null;
+
+async function verDetalleDeuda(id){
+  deudaActual=deudas.find(x=>x.id===id);
+  if(!deudaActual)return;
+  const d=deudaActual;
+  const saldo=saldoDeuda(d);
+  const pagos=pagosDeuda.filter(x=>x.deuda_id===id);
+  const totalPagado=pagos.reduce((a,x)=>a+Number(x.valor),0);
+
+  // Reusar modal de detalle de préstamo
+  document.getElementById('pd-titulo').textContent=d.nombre;
+  document.getElementById('pd-subtitulo').textContent=d.entidad||'';
+  document.getElementById('pd-resumen').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="text-align:center;padding:8px;background:var(--surface);border-radius:var(--radius)">
+        <div style="font-size:10px;color:var(--text2);font-weight:700">DEUDA TOTAL</div>
+        <div style="font-size:15px;font-weight:700">${fmt(d.valor_total)}</div>
+      </div>
+      <div style="text-align:center;padding:8px;background:var(--surface);border-radius:var(--radius)">
+        <div style="font-size:10px;color:var(--text2);font-weight:700">SALDO</div>
+        <div style="font-size:15px;font-weight:700;color:${saldo>0?'var(--red)':'var(--green)'}">${saldo>0?fmt(saldo):'Pagada ✓'}</div>
+      </div>
+      <div style="text-align:center;padding:8px;background:var(--surface);border-radius:var(--radius)">
+        <div style="font-size:10px;color:var(--text2);font-weight:700">CUOTA/MES</div>
+        <div style="font-size:15px;font-weight:700;color:var(--amber)">${fmt(d.cuota_mensual||0)}</div>
+      </div>
+      <div style="text-align:center;padding:8px;background:var(--surface);border-radius:var(--radius)">
+        <div style="font-size:10px;color:var(--text2);font-weight:700">PAGADO</div>
+        <div style="font-size:15px;font-weight:700;color:var(--green)">${fmt(totalPagado)}</div>
+      </div>
+    </div>
+    ${d.proximo_pago?`<div style="font-size:12px;color:var(--text2)"><i class="ti ti-calendar"></i> Próximo pago: <strong>${fmtFecha(d.proximo_pago)}</strong></div>`:''}
+    ${d.notas?`<div style="font-size:12px;color:var(--text2);margin-top:4px"><i class="ti ti-notes"></i> ${d.notas}</div>`:''}`;
+
+  // Botones de acción (reemplazar)
+  const acciones=document.querySelector('#modal-prest-detalle .modal > div[style*="grid-template-columns:1fr 1fr 1fr"]');
+  if(acciones){
+    acciones.innerHTML=`
+      <button class="btn btn-primary btn-sm" style="justify-content:center;font-size:12px;grid-column:1/-1" onclick="abrirPagoDeuda('${d.id}')"><i class="ti ti-cash"></i> Registrar pago</button>
+      <button class="btn btn-secondary btn-sm" style="justify-content:center;font-size:12px;grid-column:1/-1" onclick="editarDeuda('${d.id}')"><i class="ti ti-edit"></i> Editar</button>`;
+    acciones.style.gridTemplateColumns='1fr';
+  }
+
+  // Historial
+  const histEl=document.getElementById('pd-historial');
+  if(pagos.length){
+    histEl.innerHTML=pagos.map(pg=>`<div class="hist-item">
+      <div class="hist-dot" style="background:var(--green-light);color:var(--green-text);width:28px;height:28px;font-size:12px"><i class="ti ti-cash"></i></div>
+      <div class="hist-info">
+        <div class="hist-nombre">Pago — ${fmtFecha(pg.fecha)}</div>
+        <div class="hist-sub">${pg.cuenta_origen?`<span class="badge badge-blue" style="font-size:10px">${pg.cuenta_origen}</span> `:''}${pg.nota||''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <div style="font-size:13px;font-weight:700;color:var(--green)">-${fmt(pg.valor)}</div>
+        <button class="btn btn-secondary btn-sm" onclick="eliminarPagoDeuda('${pg.id}')" style="color:var(--red)"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`).join('');
+  } else {
+    histEl.innerHTML='<div class="empty"><i class="ti ti-cash"></i><p>Sin pagos registrados</p></div>';
+  }
+
+  closeModal('modal-prestamos');
+  openModal('modal-prest-detalle');
+}
+
+function abrirNuevaDeuda(){
+  const existente=document.getElementById('modal-deuda-form');
+  if(existente)existente.remove();
+  const div=document.createElement('div');
+  div.id='modal-deuda-form';div.className='modal-bg';div.style.display='flex';
+  div.innerHTML=`<div class="modal" style="max-width:420px">
+    <span class="modal-handle"></span>
+    <div class="modal-title"><span id="df-title">Nueva deuda</span><button class="close-btn" onclick="document.getElementById('modal-deuda-form').remove()"><i class="ti ti-x"></i></button></div>
+    <input type="hidden" id="df-id">
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1"><label class="form-label">Nombre *</label><input id="df-nombre" placeholder="Ej: Cuota casa, Banco, Tarjeta..."></div>
+      <div class="form-group" style="grid-column:1/-1"><label class="form-label">Entidad</label><input id="df-entidad" placeholder="Ej: Bancolombia, Davivienda..."></div>
+      <div class="form-group"><label class="form-label">Valor total ($) *</label><input id="df-valor-display" placeholder="0" oninput="formatValor(this,'df-valor')"><input type="hidden" id="df-valor"></div>
+      <div class="form-group"><label class="form-label">Cuota mensual ($)</label><input id="df-cuota-display" placeholder="0" oninput="formatValor(this,'df-cuota')"><input type="hidden" id="df-cuota"></div>
+      <div class="form-group"><label class="form-label">Próximo pago</label><input type="date" id="df-proximo"></div>
+      <div class="form-group"><label class="form-label">Estado</label><select id="df-estado"><option value="activa">Activa</option><option value="pagada">Pagada</option></select></div>
+      <div class="form-group" style="grid-column:1/-1"><label class="form-label">Notas</label><input id="df-notas" placeholder="Opcional"></div>
+    </div>
+    <div id="df-msg" style="display:none;margin:10px 0;padding:8px 12px;border-radius:var(--radius);font-size:13px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-deuda-form').remove()">Cancelar</button>
+      <button class="btn btn-primary" style="justify-content:center" onclick="guardarDeuda()"><i class="ti ti-device-floppy"></i> Guardar</button>
+    </div>
+  </div>`;
+  div.addEventListener('click',e=>{if(e.target===div)div.remove();});
+  document.body.appendChild(div);
+}
+
+function editarDeuda(id){
+  const d=deudas.find(x=>x.id===id);if(!d)return;
+  abrirNuevaDeuda();
+  setTimeout(()=>{
+    document.getElementById('df-id').value=d.id;
+    document.getElementById('df-nombre').value=d.nombre||'';
+    document.getElementById('df-entidad').value=d.entidad||'';
+    document.getElementById('df-valor').value=d.valor_total||0;
+    document.getElementById('df-valor-display').value=Number(d.valor_total||0).toLocaleString('es-CO');
+    document.getElementById('df-cuota').value=d.cuota_mensual||0;
+    document.getElementById('df-cuota-display').value=Number(d.cuota_mensual||0).toLocaleString('es-CO');
+    document.getElementById('df-proximo').value=d.proximo_pago||'';
+    document.getElementById('df-estado').value=d.estado||'activa';
+    document.getElementById('df-notas').value=d.notas||'';
+    document.getElementById('df-title').textContent='Editar deuda';
+  },50);
+  closeModal('modal-prest-detalle');
+}
+
+async function guardarDeuda(){
+  const nombre=document.getElementById('df-nombre').value.trim();
+  if(!nombre){const m=document.getElementById('df-msg');m.style.display='block';m.textContent='El nombre es obligatorio';m.style.background='var(--red-light)';m.style.color='var(--red-text)';return;}
+  const valor=Number(document.getElementById('df-valor').value);
+  if(!valor){const m=document.getElementById('df-msg');m.style.display='block';m.textContent='El valor es obligatorio';m.style.background='var(--red-light)';m.style.color='var(--red-text)';return;}
+  const id=document.getElementById('df-id').value;
+  const data={nombre,entidad:document.getElementById('df-entidad').value||null,valor_total:valor,cuota_mensual:Number(document.getElementById('df-cuota').value)||null,proximo_pago:document.getElementById('df-proximo').value||null,notas:document.getElementById('df-notas').value||null,estado:document.getElementById('df-estado').value};
+  try{
+    if(id){await api('deudas_propias?id=eq.'+id,'PATCH',data);const i=deudas.findIndex(x=>x.id===id);if(i>=0)deudas[i]={...deudas[i],...data};}
+    else{const n=await api('deudas_propias','POST',data);deudas.unshift(n[0]);}
+    document.getElementById('modal-deuda-form')?.remove();
+    renderDeudas();
+  }catch(e){const m=document.getElementById('df-msg');m.style.display='block';m.textContent='Error: '+e.message;m.style.background='var(--red-light)';m.style.color='var(--red-text)';}
+}
+
+function abrirPagoDeuda(id){
+  const d=deudas.find(x=>x.id===id);if(!d)return;
+  const existente=document.getElementById('modal-pago-deuda');if(existente)existente.remove();
+  const div=document.createElement('div');div.id='modal-pago-deuda';div.className='modal-bg';div.style.display='flex';
+  div.innerHTML=`<div class="modal" style="max-width:380px">
+    <span class="modal-handle"></span>
+    <div class="modal-title"><span>Registrar pago — ${d.nombre}</span><button class="close-btn" onclick="document.getElementById('modal-pago-deuda').remove()"><i class="ti ti-x"></i></button></div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">Valor ($) *</label>
+      <div style="position:relative"><span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--text2)">$</span>
+      <input id="dpago-valor-display" placeholder="0" oninput="formatValor(this,'dpago-valor')" style="padding-left:26px;font-size:16px;font-weight:700;text-align:right">
+      <input type="hidden" id="dpago-valor"></div>
+      ${d.cuota_mensual?`<div style="font-size:11px;color:var(--text2);margin-top:4px">Cuota mensual: ${fmt(d.cuota_mensual)}</div>`:''}
+    </div>
+    <div class="form-group" style="margin-bottom:10px"><label class="form-label">Fecha</label><input type="date" id="dpago-fecha" value="${hoy()}"></div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">Pagado desde</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="dpago-cuenta-btns">
+        <button type="button" class="cuenta-btn" onclick="selDpagoCuenta(this,'Bancolombia')"><i class="ti ti-credit-card"></i> Bancolombia</button>
+        <button type="button" class="cuenta-btn" onclick="selDpagoCuenta(this,'Nequi')"><i class="ti ti-device-mobile"></i> Nequi</button>
+        <button type="button" class="cuenta-btn" onclick="selDpagoCuenta(this,'Efectivo')" style="grid-column:1/-1"><i class="ti ti-cash"></i> Efectivo</button>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px"><label class="form-label">Nota</label><input id="dpago-nota" placeholder="Opcional"></div>
+    <div id="dpago-msg" style="display:none;margin-bottom:10px;padding:8px 12px;border-radius:var(--radius);font-size:13px"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="guardarPagoDeuda('${d.id}')"><i class="ti ti-device-floppy"></i> Registrar</button>
+  </div>`;
+  div.addEventListener('click',e=>{if(e.target===div)div.remove();});
+  document.body.appendChild(div);
+  let dpagoCuenta=null;
+  window.selDpagoCuenta=(btn,c)=>{dpagoCuenta=c;document.querySelectorAll('#dpago-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');};
+  window.guardarPagoDeuda=async(deudaId)=>{
+    const valor=Number(document.getElementById('dpago-valor').value);
+    const msg=document.getElementById('dpago-msg');
+    if(!valor){msg.style.display='block';msg.textContent='El valor es obligatorio';msg.style.background='var(--red-light)';msg.style.color='var(--red-text)';return;}
+    try{
+      const n=await api('pagos_deuda','POST',{deuda_id:deudaId,valor,fecha:document.getElementById('dpago-fecha').value||hoy(),cuenta_origen:dpagoCuenta||null,nota:document.getElementById('dpago-nota').value||null});
+      pagosDeuda.unshift(n[0]);
+      const dObj=deudas.find(x=>x.id===deudaId);
+      if(dObj&&saldoDeuda(dObj)<=0){await api('deudas_propias?id=eq.'+deudaId,'PATCH',{estado:'pagada'});dObj.estado='pagada';}
+      document.getElementById('modal-pago-deuda')?.remove();
+      await verDetalleDeuda(deudaId);renderDeudas();
+    }catch(e){msg.style.display='block';msg.textContent='Error: '+e.message;msg.style.background='var(--red-light)';msg.style.color='var(--red-text)';}
+  };
+}
+
+async function eliminarPagoDeuda(id){
+  if(!confirm('¿Eliminar este pago?'))return;
+  try{await api('pagos_deuda?id=eq.'+id,'DELETE');pagosDeuda=pagosDeuda.filter(x=>x.id!==id);if(deudaActual)await verDetalleDeuda(deudaActual.id);renderDeudas();}
+  catch(e){alert('Error: '+e.message);}
 }
 
 
