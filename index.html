@@ -387,6 +387,37 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
       <span id="config-msg" style="font-size:12px;color:var(--green);display:none"><i class="ti ti-check"></i> Guardado</span>
     </div>
   </div>
+
+  <!-- Panel de contexto IA -->
+  <div class="panel">
+    <div class="panel-head" style="justify-content:space-between">
+      <span class="panel-title"><i class="ti ti-robot"></i> Contexto para IA</span>
+      <button class="btn btn-secondary btn-sm" onclick="copiarContextoIA()"><i class="ti ti-copy"></i> Copiar</button>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Pega este texto en cualquier IA (Claude, ChatGPT...) antes de subir los archivos CSV del backup para que los entienda correctamente.</p>
+    <div id="ia-context-box" style="background:var(--bg);border-radius:var(--radius);padding:12px;font-size:11px;color:var(--text2);white-space:pre-wrap;line-height:1.6;max-height:200px;overflow-y:auto;border:0.5px solid var(--border)"></div>
+    <div id="ia-copy-msg" style="display:none;font-size:12px;color:var(--green);margin-top:6px"><i class="ti ti-check"></i> Copiado al portapapeles</div>
+  </div>
+
+  <!-- Panel de Backup -->
+  <div class="panel">
+    <div class="panel-head"><span class="panel-title"><i class="ti ti-database-export"></i> Copia de seguridad</span></div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Descarga todos tus datos en un archivo Excel. Guárdalo en Google Drive o en tu celular como backup.</p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-primary" onclick="descargarBackupCompleto()" style="justify-content:center">
+        <i class="ti ti-file-spreadsheet"></i> Descargar CSVs (uno por tabla)
+      </button>
+      <button class="btn btn-secondary" onclick="descargarBackupJSON()" style="justify-content:center">
+        <i class="ti ti-file-code"></i> Descargar backup JSON
+      </button>
+      <a href="https://drive.google.com/drive/my-drive" target="_blank" class="btn btn-secondary" style="justify-content:center;text-decoration:none">
+        <i class="ti ti-brand-google-drive" style="color:#4285F4"></i> Abrir Google Drive
+      </a>
+    </div>
+    <div id="backup-msg" style="display:none;margin-top:10px;padding:8px 12px;border-radius:var(--radius);font-size:13px"></div>
+    <p style="font-size:11px;color:var(--text3);margin-top:8px"><i class="ti ti-info-circle"></i> Pasos: descarga los archivos → abre Google Drive → arrástralos ahí.</p>
+    <p style="font-size:11px;color:var(--text3);margin-top:4px"><i class="ti ti-clock"></i> Recomendado: una vez por semana.</p>
+  </div>
 </div>
 </div><!-- /app -->
 
@@ -887,6 +918,7 @@ function setChipConfFecha(btn,p){['chip-conf-recientes','chip-conf-mes','chip-co
 
 // ── Navegación ──
 function switchTab(t,btn){
+  if(t==='config')setTimeout(renderContextoIA,100);
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   btn.classList.add('active');document.getElementById('sec-'+t).classList.add('active');
@@ -2965,6 +2997,233 @@ async function eliminarPagoDeuda(id){
   if(!confirm('¿Eliminar este pago?'))return;
   try{await api('pagos_deuda?id=eq.'+id,'DELETE');pagosDeuda=pagosDeuda.filter(x=>x.id!==id);if(deudaActual)await verDetalleDeuda(deudaActual.id);renderDeudas();}
   catch(e){alert('Error: '+e.message);}
+}
+
+
+// ══════════════════════════════════════════════════════
+// BACKUP
+// ══════════════════════════════════════════════════════
+
+function mostrarBackupMsg(txt, tipo){
+  const el=document.getElementById('backup-msg');
+  if(!el)return;
+  el.style.display='block';
+  el.textContent=txt;
+  el.style.background=tipo==='ok'?'var(--green-light)':tipo==='error'?'var(--red-light)':'var(--blue-light)';
+  el.style.color=tipo==='ok'?'var(--green-text)':tipo==='error'?'var(--red-text)':'var(--blue-text)';
+}
+
+async function descargarBackupCompleto(){
+  mostrarBackupMsg('Descargando datos...','info');
+  try{
+    // Cargar todas las tablas
+    const [clis, movs, movCaja, prests, pagosPrest, deudProp, pagosDeudProp, recs] = await Promise.all([
+      api('clientes_recarga','GET',null,'order=nombre'),
+      api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc'),
+      api('movimientos_caja','GET',null,'order=fecha.desc').catch(()=>[]),
+      api('prestamos','GET',null,'order=nombre').catch(()=>[]),
+      api('pagos_prestamo','GET',null,'order=fecha.desc').catch(()=>[]),
+      api('deudas_propias','GET',null,'order=nombre').catch(()=>[]),
+      api('pagos_deuda','GET',null,'order=fecha.desc').catch(()=>[]),
+      api('recordatorios_cobro','GET',null,'order=creado_en').catch(()=>[]),
+    ]);
+
+    // Construir CSV por hoja (simulado como un solo CSV con separadores)
+    const fecha=hoy().replace(/-/g,'');
+    const bom='﻿';
+
+    const toCSV=(rows)=>{
+      if(!rows.length)return 'Sin datos';
+      const keys=Object.keys(rows[0]);
+      const needsQuote=v=>{const s=String(v);return s.includes(',')||s.includes('"')||s.includes('\n');};
+      const lines=[keys.join(','),...rows.map(r=>keys.map(k=>{
+        const v=r[k]===null||r[k]===undefined?'':String(r[k]);
+        return needsQuote(v)?'"'+v.replace(/"/g,'""')+'"':v;
+      }).join(','))];
+      return lines.join('\n');
+    };
+
+    // Crear un zip con múltiples CSVs usando un solo archivo con secciones
+    const secciones=[
+      {nombre:'CLIENTES',datos:clis},
+      {nombre:'MOVIMIENTOS_RECARGA',datos:movs},
+      {nombre:'MOVIMIENTOS_CAJA',datos:movCaja},
+      {nombre:'PRESTAMOS',datos:prests},
+      {nombre:'PAGOS_PRESTAMO',datos:pagosPrest},
+      {nombre:'DEUDAS_PROPIAS',datos:deudProp},
+      {nombre:'PAGOS_DEUDA',datos:pagosDeudProp},
+    ];
+
+    // Un CSV por tabla
+    secciones.forEach(s=>{
+      if(!s.datos.length)return;
+      const csv=bom+toCSV(s.datos);
+      const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download=`CarteraNeg_${s.nombre}_${fecha}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    mostrarBackupMsg(`✅ Backup descargado: ${secciones.filter(s=>s.datos.length).length} archivos CSV (${fecha})`,'ok');
+  }catch(e){
+    mostrarBackupMsg('Error al descargar: '+e.message,'error');
+  }
+}
+
+async function descargarBackupJSON(){
+  mostrarBackupMsg('Preparando backup JSON...','info');
+  try{
+    const [clis, movs, movCaja, prests, pagosPrest, deudProp, pagosDeudProp] = await Promise.all([
+      api('clientes_recarga','GET',null,'order=nombre'),
+      api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc'),
+      api('movimientos_caja','GET',null,'order=fecha.desc').catch(()=>[]),
+      api('prestamos','GET',null,'order=nombre').catch(()=>[]),
+      api('pagos_prestamo','GET',null,'order=fecha.desc').catch(()=>[]),
+      api('deudas_propias','GET',null,'order=nombre').catch(()=>[]),
+      api('pagos_deuda','GET',null,'order=fecha.desc').catch(()=>[]),
+    ]);
+
+    const backup={
+      version:'1.4',
+      fecha:new Date().toLocaleString('es-CO',{timeZone:'America/Bogota'}),
+      tablas:{
+        clientes_recarga:clis,
+        movimientos_recarga:movs,
+        movimientos_caja:movCaja,
+        prestamos:prests,
+        pagos_prestamo:pagosPrest,
+        deudas_propias:deudProp,
+        pagos_deuda:pagosDeudProp,
+      },
+      resumen:{
+        clientes:clis.length,
+        movimientos:movs.length,
+        prestamos:prests.length,
+        deudas:deudProp.length,
+      }
+    };
+
+    const json=JSON.stringify(backup,null,2);
+    const blob=new Blob([json],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=`CarteraNeg_Backup_${hoy().replace(/-/g,'')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    mostrarBackupMsg(`✅ Backup JSON descargado — ${clis.length} clientes, ${movs.length} movimientos`,'ok');
+  }catch(e){
+    mostrarBackupMsg('Error: '+e.message,'error');
+  }
+}
+
+
+// ── Contexto para IA ──
+function generarContextoIA(){
+  const totalClis=clientes.length;
+  const totalMovs=movimientos.length;
+  const hoyStr=new Date().toLocaleDateString('es-CO',{timeZone:'America/Bogota',year:'numeric',month:'long',day:'numeric'});
+  return `CONTEXTO: Cartera Negocios v1.4 — Sistema de gestión de recargas a crédito
+Fecha del backup: ${hoyStr}
+Negocio: Venta de recargas telefónicas a crédito a tenderos en Rionegro, Antioquia.
+Dos cuentas Megared: "Juanito" (032442) y "Don Martín" (028469).
+
+=== ESTRUCTURA DE ARCHIVOS CSV ===
+
+1. CarteraNeg_CLIENTES.csv
+   - id: identificador único del cliente
+   - nombre: nombre completo
+   - nombre_whatsapp: nombre en WhatsApp
+   - telefono: número de contacto
+   - plataforma: "Juanito" o "Don Martin" (cuenta del negocio)
+   - proveedor: "Megared" o "Multiproducto"
+   - codigo_cliente: código asignado por Megared
+   - deuda_anterior: saldo que tenía antes de usar esta app
+   - deuda_revisada: "revisada" (confirmada del cuaderno) o "sin_revisar"
+   - creado_en: fecha de registro
+
+2. CarteraNeg_MOVIMIENTOS_RECARGA.csv
+   - id: identificador único
+   - cliente_id: referencia al cliente
+   - tipo: "entrega" (se le dio saldo), "pago" (pagó), "reversion" (se revirtió)
+   - valor: monto en pesos colombianos
+   - fecha: fecha del movimiento (YYYY-MM-DD)
+   - hora: hora del movimiento del extracto Excel (HH:MM:SS)
+   - hora_manual: hora ingresada manualmente
+   - codigo_transaccion: número de transacción Megared
+   - cuenta_destino: dónde se recibió el pago (Bancolombia, Nequi, Efectivo, etc.)
+   - confirmado: true/false — si el pago fue verificado
+   - confirmado_en: fecha/hora de confirmación
+
+3. CarteraNeg_MOVIMIENTOS_CAJA.csv
+   - tipo: "traslado", "retiro" o "ingreso"
+   - origen: cuenta origen del dinero
+   - destino: cuenta destino (en traslados)
+   - valor: monto
+   - fecha: fecha del movimiento
+   - nota: descripción
+
+4. CarteraNeg_PRESTAMOS.csv
+   - nombre: nombre del prestatario
+   - valor_prestado: capital prestado
+   - interes_pct: porcentaje de interés mensual
+   - fecha_inicio: cuando se hizo el préstamo
+   - fecha_proximo_pago: próxima fecha de cobro
+   - estado: "activo", "mora" o "pagado"
+
+5. CarteraNeg_PAGOS_PRESTAMO.csv
+   - prestamo_id: referencia al préstamo
+   - tipo: "interes" (solo pagó intereses), "abono" (abonó al capital), "pago_total"
+   - valor: monto pagado
+   - cuenta_destino: dónde se recibió (Bancolombia, Nequi, Efectivo)
+
+6. CarteraNeg_DEUDAS_PROPIAS.csv
+   - nombre: nombre de la deuda (ej: Cuota casa, Tarjeta)
+   - entidad: banco o entidad
+   - valor_total: monto total de la deuda
+   - cuota_mensual: cuota mensual
+   - estado: "activa" o "pagada"
+
+7. CarteraNeg_PAGOS_DEUDA.csv
+   - deuda_id: referencia a la deuda
+   - valor: monto pagado
+   - cuenta_origen: desde dónde se pagó
+
+=== RESUMEN ACTUAL ===
+Clientes registrados: ${totalClis}
+Movimientos totales: ${totalMovs}
+Moneda: pesos colombianos (COP)
+Zona horaria: America/Bogota (UTC-5)
+
+Para calcular lo que debe un cliente:
+  Saldo = deuda_anterior + SUM(entregas) - SUM(pagos) - SUM(reversiones)
+
+Para el total por cobrar del negocio:
+  SUM(MAX(0, saldo_por_cliente)) de todos los clientes activos`;
+}
+
+function renderContextoIA(){
+  const box=document.getElementById('ia-context-box');
+  if(box)box.textContent=generarContextoIA();
+}
+
+function copiarContextoIA(){
+  const texto=generarContextoIA();
+  navigator.clipboard.writeText(texto).then(()=>{
+    const msg=document.getElementById('ia-copy-msg');
+    if(msg){msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);}
+  }).catch(()=>{
+    // Fallback
+    const ta=document.createElement('textarea');
+    ta.value=texto;document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');document.body.removeChild(ta);
+    const msg=document.getElementById('ia-copy-msg');
+    if(msg){msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);}
+  });
 }
 
 
