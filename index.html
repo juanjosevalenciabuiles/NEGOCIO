@@ -611,6 +611,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <input type="hidden" id="pf-id">
     <div class="form-group" style="grid-column:1/-1"><label class="form-label">Nombre *</label><input id="pf-nombre" placeholder="Nombre completo"></div>
     <div class="form-group"><label class="form-label">Teléfono</label><input id="pf-tel" placeholder="Opcional"></div>
+    <div class="form-group"><label class="form-label">Nombre WhatsApp</label><input id="pf-wsp" placeholder="Como aparece en WhatsApp"></div>
     <div class="form-group"><label class="form-label">Valor prestado ($) *</label><input id="pf-valor-display" placeholder="0" oninput="formatValor(this,'pf-valor')"><input type="hidden" id="pf-valor"></div>
     <div class="form-group"><label class="form-label">Interés mensual (%)</label><input type="number" id="pf-interes" placeholder="0" min="0" step="0.1"></div>
     <div class="form-group"><label class="form-label">Fecha inicio</label><input type="date" id="pf-inicio"></div>
@@ -2483,7 +2484,10 @@ function renderPrestamos(){
         <i class="ti ti-pig-money"></i>
       </div>
       <div class="hist-info">
-        <div class="hist-nombre">${p.nombre} <span class="badge" style="background:${colorEstado};color:#fff;font-size:9px">${labelEstado}</span></div>
+        <div class="hist-nombre">
+          ${p.nombre} <span class="badge" style="background:${colorEstado};color:#fff;font-size:9px">${labelEstado}</span>
+          ${p.nombre_whatsapp?`<span style="color:#25D366;font-size:11px;margin-left:4px"><i class="ti ti-brand-whatsapp"></i> ${p.nombre_whatsapp}</span>`:''}
+        </div>
         <div class="hist-sub">
           ${p.interes_pct>0?`<span style="color:#8B5CF6;font-size:11px">${p.interes_pct}% mensual · ${fmt(interes)}/mes</span>`:'Sin interés'}
           ${diasProx!==null?`· <span style="color:${diasProx<0?'var(--red)':diasProx<=3?'var(--amber)':'var(--text2)'}">Próximo: ${diasProx<0?'Vencido hace '+Math.abs(diasProx)+' días':diasProx===0?'Hoy':diasProx===1?'Mañana':'En '+diasProx+' días'}</span>`:''}
@@ -2510,7 +2514,7 @@ async function verDetallePrestamo(id){
   const totalPagado=pagos.filter(x=>x.tipo==='abono'||x.tipo==='pago_total').reduce((a,x)=>a+Number(x.valor),0);
 
   document.getElementById('pd-titulo').textContent=p.nombre;
-  document.getElementById('pd-subtitulo').textContent=`${p.telefono||'Sin teléfono'} · ${p.interes_pct}% mensual`;
+  document.getElementById('pd-subtitulo').innerHTML=`${p.telefono||'Sin teléfono'} · ${p.interes_pct}% mensual${p.nombre_whatsapp?` <span style="color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${p.nombre_whatsapp}</span>`:''}`;
 
   document.getElementById('pd-resumen').innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
@@ -2575,6 +2579,7 @@ function abrirNuevoPrestamo(){
   document.getElementById('pf-id').value='';
   document.getElementById('pf-nombre').value='';
   document.getElementById('pf-tel').value='';
+  document.getElementById('pf-wsp').value='';
   document.getElementById('pf-valor').value='';
   document.getElementById('pf-valor-display').value='';
   document.getElementById('pf-interes').value='';
@@ -2592,6 +2597,7 @@ function editarPrestamo(id){
   document.getElementById('pf-id').value=p.id;
   document.getElementById('pf-nombre').value=p.nombre||'';
   document.getElementById('pf-tel').value=p.telefono||'';
+  document.getElementById('pf-wsp').value=p.nombre_whatsapp||'';
   document.getElementById('pf-valor').value=p.valor_prestado||0;
   document.getElementById('pf-valor-display').value=Number(p.valor_prestado||0).toLocaleString('es-CO');
   document.getElementById('pf-interes').value=p.interes_pct||0;
@@ -2614,6 +2620,7 @@ async function guardarPrestamo(){
   const data={
     nombre,
     telefono:document.getElementById('pf-tel').value||null,
+    nombre_whatsapp:document.getElementById('pf-wsp').value||null,
     valor_prestado:valor,
     interes_pct:Number(document.getElementById('pf-interes').value)||0,
     fecha_inicio:document.getElementById('pf-inicio').value||null,
