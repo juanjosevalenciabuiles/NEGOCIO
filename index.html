@@ -1854,7 +1854,16 @@ function renderCaja(){
 
   if(cajaTab==='movimientos'){
     // Traslados y retiros
-    const movs=filtrarCaja(window._movCaja||[]);
+    const buscarMov=(document.getElementById('caja-buscar')?.value||'').toLowerCase().trim();
+    let movs=filtrarCaja(window._movCaja||[]);
+    if(buscarMov){
+      movs=movs.filter(mv=>
+        (mv.nota||'').toLowerCase().includes(buscarMov)||
+        (mv.origen||'').toLowerCase().includes(buscarMov)||
+        (mv.destino||'').toLowerCase().includes(buscarMov)||
+        (mv.tipo||'').toLowerCase().includes(buscarMov)
+      );
+    }
     if(!movs.length){listaEl.innerHTML='<div class="empty"><i class="ti ti-transfer"></i><p>Sin movimientos de caja</p></div>';return;}
     listaEl.innerHTML=movs.map(mv=>`
       <div class="hist-item">
