@@ -519,6 +519,36 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     <div class="form-group"><label class="form-label">Nombre WhatsApp</label><input id="cli-wsp" placeholder="Como aparece en WhatsApp"></div>
     <div class="form-group"><label class="form-label">Teléfono</label><input id="cli-tel" type="tel" placeholder="3001234567"></div>
     <div class="form-group"><label class="form-label">Código cliente</label><input id="cli-codigo" placeholder="Ej: 029804"></div>
+    <div class="form-group" style="grid-column:1/-1">
+      <label class="form-label">Ciudad / Vereda</label>
+      <input id="cli-ciudad" placeholder="Ej: Rionegro, El Carmen, La Ceja..." list="ciudades-sugeridas" autocomplete="off">
+      <datalist id="ciudades-sugeridas">
+        <option value="Rionegro"></option>
+        <option value="El Carmen de Viboral"></option>
+        <option value="La Ceja"></option>
+        <option value="Marinilla"></option>
+        <option value="Guarne"></option>
+        <option value="San Vicente"></option>
+        <option value="El Santuario"></option>
+        <option value="La Unión"></option>
+        <option value="El Retiro"></option>
+        <option value="Carmen de Viboral - Vereda"></option>
+      </datalist>
+    </div>
+    <div class="form-group" style="grid-column:1/-1">
+      <label class="form-label">Ubicación GPS</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button type="button" class="btn btn-secondary" onclick="capturarUbicacionCliente()" style="flex:1;justify-content:center">
+          <i class="ti ti-map-pin"></i> Guardar mi ubicación actual
+        </button>
+        <button type="button" id="btn-ver-mapa-cli" class="btn btn-secondary" onclick="verUbicacionCliente()" style="display:none" title="Ver en mapa">
+          <i class="ti ti-map"></i>
+        </button>
+      </div>
+      <div id="cli-ubicacion-msg" style="font-size:11px;color:var(--text2);margin-top:5px"></div>
+      <input type="hidden" id="cli-lat">
+      <input type="hidden" id="cli-lng">
+    </div>
     <div class="form-group"><label class="form-label">Cuenta *</label><select id="cli-cuenta"><option value="Juanito">Juanito (0660)</option><option value="Don Martin">Don Martín (6945)</option></select></div>
     <div class="form-group"><label class="form-label">Proveedor *</label><select id="cli-prov"><option value="Megared">Megared</option><option value="Multiproducto">Multiproducto</option></select></div>
     <div class="form-group"><label class="form-label">Deuda anterior ($)</label><input id="cli-deuda" type="number" placeholder="0" min="0"></div>
@@ -1100,6 +1130,7 @@ function renderDash(){
 
 // ── Clientes ──
 function renderClientes(){
+  poblarFiltroCiudades();
   const cuenta=document.getElementById('f-cuenta').value;
   const prov=document.getElementById('f-prov').value;
   const est=document.getElementById('f-est').value;
@@ -1136,6 +1167,11 @@ function renderClientes(){
   else if(extra==='deuda_sinrev')lista=lista.filter(c=>!c.deuda_revisada||c.deuda_revisada!=='revisada');
   else if(extra==='con_codigo')lista=lista.filter(c=>c.codigo_cliente);
   else if(extra==='sin_codigo')lista=lista.filter(c=>!c.codigo_cliente);
+  else if(extra==='con_ubicacion')lista=lista.filter(c=>c.latitud&&c.longitud);
+  else if(extra==='sin_ubicacion')lista=lista.filter(c=>!c.latitud||!c.longitud);
+  // Filtro por ciudad
+  const ciudadFiltro=document.getElementById('f-ciudad')?.value||'';
+  if(ciudadFiltro)lista=lista.filter(c=>c.ciudad===ciudadFiltro);
 
   // Orden
   if(ordenCli==='alfa')lista.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
@@ -1177,6 +1213,7 @@ function renderClientes(){
           <span class="semaforo" style="background:${semColor}${semAnim}"></span>
           <div>
             <strong>${c.nombre}</strong>
+            ${c.ciudad?`<span style="font-size:10px;color:var(--text2);margin-left:5px"><i class="ti ti-map-pin"></i> ${c.ciudad}</span>`:''}
             ${c.nombre_whatsapp?`<br><span style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${c.nombre_whatsapp}</span>`:''}
           </div>
         </div>
@@ -1190,6 +1227,7 @@ function renderClientes(){
         <div class="row-actions">
           <button class="btn btn-secondary btn-sm" onclick="verHistCli('${c.id}')" title="Historial"><i class="ti ti-history"></i></button>
           <button class="btn btn-secondary btn-sm" onclick="abrirEditCliente('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button>
+          ${c.latitud&&c.longitud?`<button class="btn btn-secondary btn-sm" onclick="abrirMapaCliente('${c.id}')" title="Ver en mapa" style="color:var(--blue)"><i class="ti ti-map-pin"></i></button>`:''}
         </div>
       </td>
     </tr>`;
@@ -1506,18 +1544,35 @@ function abrirModalCliente(){
   document.getElementById('cli-id').value='';document.getElementById('btn-eliminar-cli').style.display='none';
   ['cli-nombre','cli-wsp','cli-tel','cli-codigo'].forEach(i=>document.getElementById(i).value='');const dr0=document.getElementById('cli-deuda-rev');if(dr0)dr0.value='sin_revisar';
   document.getElementById('cli-deuda').value=0;
+  const ciudadEl0=document.getElementById('cli-ciudad');if(ciudadEl0)ciudadEl0.value='';
+  document.getElementById('cli-lat').value='';
+  document.getElementById('cli-lng').value='';
+  const msgEl0=document.getElementById('cli-ubicacion-msg');if(msgEl0)msgEl0.textContent='';
+  const btnVer0=document.getElementById('btn-ver-mapa-cli');if(btnVer0)btnVer0.style.display='none';
   openModal('modal-cliente');
 }
 function abrirEditCliente(id){
   const c=clientes.find(x=>x.id===id);
   document.getElementById('modal-cli-title').innerHTML='Editar cliente <button class="close-btn" onclick="closeModal(\'modal-cliente\')"><i class="ti ti-x"></i></button>';
-  document.getElementById('cli-id').value=c.id;document.getElementById('cli-nombre').value=c.nombre||'';document.getElementById('cli-wsp').value=c.nombre_whatsapp||'';document.getElementById('cli-tel').value=c.telefono||'';document.getElementById('cli-codigo').value=c.codigo_cliente||'';document.getElementById('cli-cuenta').value=c.plataforma||'Juanito';document.getElementById('cli-prov').value=c.proveedor||'Megared';document.getElementById('cli-deuda').value=c.deuda_anterior||0;const dr=document.getElementById('cli-deuda-rev');if(dr)dr.value=c.deuda_revisada||'sin_revisar';document.getElementById('btn-eliminar-cli').style.display='inline-flex';
+  document.getElementById('cli-id').value=c.id;document.getElementById('cli-nombre').value=c.nombre||'';document.getElementById('cli-wsp').value=c.nombre_whatsapp||'';document.getElementById('cli-tel').value=c.telefono||'';document.getElementById('cli-codigo').value=c.codigo_cliente||'';document.getElementById('cli-cuenta').value=c.plataforma||'Juanito';document.getElementById('cli-prov').value=c.proveedor||'Megared';document.getElementById('cli-deuda').value=c.deuda_anterior||0;const dr=document.getElementById('cli-deuda-rev');if(dr)dr.value=c.deuda_revisada||'sin_revisar';
+  const ciudadEl=document.getElementById('cli-ciudad');if(ciudadEl)ciudadEl.value=c.ciudad||'';
+  document.getElementById('cli-lat').value=c.latitud||'';
+  document.getElementById('cli-lng').value=c.longitud||'';
+  const msgEl=document.getElementById('cli-ubicacion-msg');
+  const btnVer=document.getElementById('btn-ver-mapa-cli');
+  if(c.latitud&&c.longitud){
+    if(msgEl){msgEl.innerHTML='✓ Ubicación guardada';msgEl.style.color='var(--green)';}
+    if(btnVer)btnVer.style.display='inline-flex';
+  } else {
+    if(msgEl){msgEl.textContent='Sin ubicación guardada';msgEl.style.color='var(--text2)';}
+    if(btnVer)btnVer.style.display='none';
+  }document.getElementById('btn-eliminar-cli').style.display='inline-flex';
   openModal('modal-cliente');
 }
 async function guardarCliente(){
   const nombre=document.getElementById('cli-nombre').value.trim();if(!nombre)return alert('El nombre es obligatorio');
   const id=document.getElementById('cli-id').value;
-  const data={nombre,nombre_whatsapp:document.getElementById('cli-wsp').value||null,telefono:document.getElementById('cli-tel').value||null,plataforma:document.getElementById('cli-cuenta').value,proveedor:document.getElementById('cli-prov').value,codigo_cliente:document.getElementById('cli-codigo').value||null,deuda_anterior:Number(document.getElementById('cli-deuda').value)||0,deuda_revisada:document.getElementById('cli-deuda-rev')?.value||'sin_revisar'};
+  const data={nombre,nombre_whatsapp:document.getElementById('cli-wsp').value||null,telefono:document.getElementById('cli-tel').value||null,plataforma:document.getElementById('cli-cuenta').value,proveedor:document.getElementById('cli-prov').value,codigo_cliente:document.getElementById('cli-codigo').value||null,deuda_anterior:Number(document.getElementById('cli-deuda').value)||0,deuda_revisada:document.getElementById('cli-deuda-rev')?.value||'sin_revisar',ciudad:document.getElementById('cli-ciudad')?.value||null,latitud:document.getElementById('cli-lat')?.value?Number(document.getElementById('cli-lat').value):null,longitud:document.getElementById('cli-lng')?.value?Number(document.getElementById('cli-lng').value):null};
   try{
     if(id){
       await api('clientes_recarga?id=eq.'+id,'PATCH',data);
@@ -1905,45 +1960,62 @@ const CUENTAS=['Juanito (0660)','Don Martín (6945)','Bancolombia','Nequi','Efec
 const CUENTA_ICONOS={'Juanito (0660)':'ti-building-bank','Don Martín (6945)':'ti-building-bank','Bancolombia':'ti-credit-card','Nequi':'ti-device-mobile','Efectivo':'ti-cash'};
 
 function verHistorialCuenta(cuenta){
-  // Cambiar a tab de pagos y filtrar por cuenta
   cajaTab='pagos';
-  // Activar tab pagos
   document.getElementById('ctab-movimientos')?.classList.remove('active');
   document.getElementById('ctab-pagos')?.classList.add('active');
-  // Cambiar select de cuenta en confirmar y abrir caja
-  renderCaja();
-  // Mostrar historial filtrado de esa cuenta
+
   const listaEl=document.getElementById('caja-lista');
   if(!listaEl)return;
-  const pagos=(cajaFecha==='todo'?movimientos:filtrarCaja(movimientos))
-    .filter(m=>m.tipo==='pago'&&m.confirmado&&m.cuenta_destino===cuenta);
+
+  let pagos=filtrarCaja(movimientos.filter(m=>m.tipo==='pago'&&m.confirmado&&m.cuenta_destino===cuenta));
+  const buscar=(document.getElementById('caja-buscar')?.value||'').toLowerCase().trim();
+  if(buscar){
+    pagos=pagos.filter(m=>{const cli=clientes.find(x=>x.id===m.cliente_id);return cli&&(cli.nombre.toLowerCase().includes(buscar)||(cli.nombre_whatsapp||'').toLowerCase().includes(buscar));});
+  }
+  pagos.sort((a,b)=>dtMovimiento(b)-dtMovimiento(a));
+
   const total=pagos.reduce((a,m)=>a+Number(m.valor),0);
   const icono=CUENTA_ICONOS[cuenta]||'ti-wallet';
-  listaEl.innerHTML=`
-    <div style="background:var(--bg);border-radius:var(--radius);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
-      <span style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px"><i class="ti ${icono}"></i>${cuenta}</span>
-      <strong style="color:var(--green);font-size:16px">${fmt(total)}</strong>
-    </div>
-    ${pagos.length?pagos.map(m=>{
-      const cli=clientes.find(x=>x.id===m.cliente_id);
-      const hora=horaEfectiva(m);
-      return`<div class="hist-item" style="cursor:pointer" onclick="closeModal('modal-caja');verHistCli('${cli?.id}')">
-        <div class="hist-dot pago"><i class="ti ti-arrow-down"></i></div>
-        <div class="hist-info">
-          <div class="hist-nombre">${cli?cli.nombre:'—'}${cli?.nombre_whatsapp?'<span style=\"color:#25D366;font-size:11px;margin-left:5px\"><i class=\"ti ti-brand-whatsapp\"></i> '+cli.nombre_whatsapp+'</span>':''}</div>
-          <div class="hist-sub"><strong>${fmtFecha(m.fecha)}</strong>${hora?' · <strong>'+hora+'</strong>':''}${m.codigo_transaccion?' · #'+m.codigo_transaccion:''}</div>
-        </div>
-        <div class="hist-val" style="color:var(--green)">${fmt(m.valor)}</div>
-      </div>`;
-    }).join(''):'<div class="empty"><i class="ti ti-inbox"></i><p>Sin pagos en '+cuenta+'</p></div>'}`;
+
+  // Agrupar por día
+  const porDia={};
+  pagos.forEach(m=>{const f=m.fecha||'';if(!porDia[f])porDia[f]=[];porDia[f].push(m);});
+  const diasList=Object.keys(porDia).sort((a,b)=>b.localeCompare(a));
+
+  let html=`<div style="background:var(--bg);border-radius:var(--radius);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="renderCaja()">
+    <span style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px"><i class="ti ${icono}"></i>${cuenta} <span style="font-size:11px;color:var(--text2);font-weight:400">${pagos.length} pago${pagos.length!==1?'s':''}</span></span>
+    <strong style="color:var(--green);font-size:16px">${fmt(total)}</strong>
+  </div>`;
+
+  if(!pagos.length){
+    html+='<div class="empty"><i class="ti ti-inbox"></i><p>Sin pagos en '+cuenta+'</p></div>';
+  } else {
+    diasList.forEach(dia=>{
+      const ms=porDia[dia];
+      const totalDia=ms.reduce((a,m)=>a+Number(m.valor),0);
+      html+=`<div style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--bg);border-radius:var(--radius);margin-bottom:4px;border-left:3px solid var(--green)">
+          <span style="font-size:12px;font-weight:700">${fmtFecha(dia)}</span>
+          <span style="font-size:12px;font-weight:700;color:var(--green)">${fmt(totalDia)} · ${ms.length} pago${ms.length!==1?'s':''}</span>
+        </div>`;
+      ms.forEach(m=>{
+        const cli=clientes.find(x=>x.id===m.cliente_id);
+        const hora=horaEfectiva(m);
+        html+=`<div class="hist-item" style="cursor:pointer" onclick="closeModal('modal-caja');verHistCli('${cli?cli.id:''}')">
+          <div class="hist-dot pago"><i class="ti ti-arrow-down"></i></div>
+          <div class="hist-info">
+            <div class="hist-nombre">${cli?cli.nombre:'—'}${cli&&cli.nombre_whatsapp?'<span style="color:#25D366;font-size:11px;margin-left:5px"><i class="ti ti-brand-whatsapp"></i> '+cli.nombre_whatsapp+'</span>':''}</div>
+            <div class="hist-sub">${hora?'<strong>'+hora+'</strong> · ':''}${m.codigo_transaccion?'<span style="font-family:monospace;font-size:10px">#'+m.codigo_transaccion+'</span>':''}</div>
+          </div>
+          <div style="font-size:13px;font-weight:700;color:var(--green);white-space:nowrap">${fmt(m.valor)}</div>
+        </div>`;
+      });
+      html+='</div>';
+    });
+  }
+  listaEl.innerHTML=html;
 }
 
-async function abrirCaja(){
-  try{window._movCaja=await api('movimientos_caja','GET',null,'order=fecha.desc,creado_en.desc');}
-  catch{window._movCaja=[];}
-  renderCaja();
-  openModal('modal-caja');
-}
 
 function setCajaTab(btn,tab){
   cajaTab=tab;
@@ -3233,6 +3305,60 @@ function copiarContextoIA(){
   });
 }
 
+
+// ══════════════════════════════════════════════════════
+// UBICACIÓN GPS DE CLIENTES
+// ══════════════════════════════════════════════════════
+
+function capturarUbicacionCliente(){
+  const msg=document.getElementById('cli-ubicacion-msg');
+  if(!navigator.geolocation){
+    msg.textContent='Tu navegador no soporta geolocalización';
+    msg.style.color='var(--red)';
+    return;
+  }
+  msg.textContent='Obteniendo ubicación...';
+  msg.style.color='var(--text2)';
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      const lat=pos.coords.latitude;
+      const lng=pos.coords.longitude;
+      document.getElementById('cli-lat').value=lat;
+      document.getElementById('cli-lng').value=lng;
+      msg.innerHTML=`✓ Ubicación guardada (precisión: ${Math.round(pos.coords.accuracy)}m)`;
+      msg.style.color='var(--green)';
+      document.getElementById('btn-ver-mapa-cli').style.display='inline-flex';
+    },
+    err=>{
+      msg.textContent='No se pudo obtener la ubicación: '+(err.message||'permiso denegado');
+      msg.style.color='var(--red)';
+    },
+    {enableHighAccuracy:true,timeout:10000}
+  );
+}
+
+function verUbicacionCliente(){
+  const lat=document.getElementById('cli-lat').value;
+  const lng=document.getElementById('cli-lng').value;
+  if(!lat||!lng)return;
+  window.open(`https://www.google.com/maps?q=${lat},${lng}`,'_blank');
+}
+
+function abrirMapaCliente(id){
+  const c=clientes.find(x=>x.id===id);
+  if(!c||!c.latitud||!c.longitud){alert('Este cliente no tiene ubicación guardada');return;}
+  window.open(`https://www.google.com/maps?q=${c.latitud},${c.longitud}`,'_blank');
+}
+
+
+function poblarFiltroCiudades(){
+  const sel=document.getElementById('f-ciudad');
+  if(!sel)return;
+  const ciudadesUnicas=[...new Set(clientes.map(c=>c.ciudad).filter(Boolean))].sort();
+  const actual=sel.value;
+  sel.innerHTML='<option value="">Todas las ciudades</option>'+ciudadesUnicas.map(ct=>`<option value="${ct}">${ct}</option>`).join('');
+  sel.value=actual;
+}
 
 sbUrl=localStorage.getItem('sb_url')||'';sbKey=localStorage.getItem('sb_key')||'';
 if(sbUrl&&sbKey){document.getElementById('sb-url').value=sbUrl;document.getElementById('sb-key').value=sbKey;probarConexion();}
