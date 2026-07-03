@@ -1959,6 +1959,13 @@ let cajaTab='movimientos', cajaFecha='todo';
 const CUENTAS=['Juanito (0660)','Don Martín (6945)','Bancolombia','Nequi','Efectivo'];
 const CUENTA_ICONOS={'Juanito (0660)':'ti-building-bank','Don Martín (6945)':'ti-building-bank','Bancolombia':'ti-credit-card','Nequi':'ti-device-mobile','Efectivo':'ti-cash'};
 
+async function abrirCaja(){
+  try{window._movCaja=await api('movimientos_caja','GET',null,'order=fecha.desc,creado_en.desc');}
+  catch{window._movCaja=[];}
+  renderCaja();
+  openModal('modal-caja');
+}
+
 function verHistorialCuenta(cuenta){
   cajaTab='pagos';
   document.getElementById('ctab-movimientos')?.classList.remove('active');
