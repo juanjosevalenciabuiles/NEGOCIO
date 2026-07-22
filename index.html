@@ -222,7 +222,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="logo-icon"><i class="ti ti-building-store"></i></div>
-  <div><div class="logo-text">Cartera Negocios</div><div class="logo-sub">Gestión de recargas <span style="opacity:.45;font-size:10px">v1.4</span></div></div>
+  <div><div class="logo-text">Cartera Negocios</div><div class="logo-sub">Gestión de recargas <span style="opacity:.45;font-size:10px">v2.0</span></div></div>
   <button onclick="abrirCaja()" style="background:var(--blue);border:none;color:#fff;border-radius:var(--radius);padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(26,95,168,.3)" title="Caja / Finanzas">
     <i class="ti ti-wallet"></i><span style="display:none" id="caja-badge"></span>
   </button>
@@ -966,11 +966,50 @@ document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>
 function guardarConfig(){sbUrl=document.getElementById('sb-url').value.trim().replace(/\/+$/,'');sbKey=document.getElementById('sb-key').value.trim();if(!sbUrl||!sbKey){alert('Ingresa la URL y la clave');return;}localStorage.setItem('sb_url',sbUrl);localStorage.setItem('sb_key',sbKey);const msg=document.getElementById('config-msg');msg.style.display='inline';setTimeout(()=>msg.style.display='none',3000);probarConexion();}
 async function probarConexion(){if(!sbUrl||!sbKey){setConn(false,'Sin configurar');return;}try{const r=await fetch(sbUrl+'/rest/v1/clientes_recarga?select=id&limit=1',{headers:{apikey:sbKey,Authorization:'Bearer '+sbKey}});if(r.ok){setConn(true,'Conectado');cargarDatos();}else setConn(false,'Error de conexión');}catch{setConn(false,'Sin conexión');}}
 function setConn(ok,txt){document.getElementById('connDot').className='dot'+(ok?' on':'');document.getElementById('connTxt').textContent=txt;}
-async function api(tabla,method='GET',body=null,qs=''){const url=sbUrl+'/rest/v1/'+tabla+(qs?'?'+qs:'');const h={apikey:sbKey,Authorization:'Bearer '+sbKey,'Content-Type':'application/json',Prefer:'return=representation'};const r=await fetch(url,{method,headers:h,body:body?JSON.stringify(body):null});if(!r.ok)throw new Error(await r.text());const txt=await r.text();return txt?JSON.parse(txt):[];}
+async function api(tabla,method='GET',body=null,qs=''){
+  const url=sbUrl+'/rest/v1/'+tabla+(qs?'?'+qs:'');
+  const h={apikey:sbKey,Authorization:'Bearer '+sbKey,'Content-Type':'application/json',Prefer:'return=representation'};
+  if(method==='GET'){h['Range-Unit']='items';h['Range']='0-9999';}
+  const r=await fetch(url,{method,headers:h,body:body?JSON.stringify(body):null});
+  if(!r.ok)throw new Error(await r.text());
+  const txt=await r.text();
+  return txt?JSON.parse(txt):[];
+}
+async function apiTodos(tabla,qs=''){
+  const pageSize=1000;
+  let todos=[];
+  let offset=0;
+  // Primero obtener el total de registros
+  const urlCount=sbUrl+'/rest/v1/'+tabla+(qs?'?'+qs:'');
+  const hCount={apikey:sbKey,Authorization:'Bearer '+sbKey,'Content-Type':'application/json','Range-Unit':'items','Range':'0-0',Prefer:'count=exact'};
+  const rCount=await fetch(urlCount,{headers:hCount});
+  const contentRange=rCount.headers.get('content-range')||'';
+  const total=parseInt(contentRange.split('/')[1])||0;
+  if(total===0)return [];
+  // Cargar en páginas
+  const paginas=Math.ceil(total/pageSize);
+  const promesas=[];
+  for(let i=0;i<paginas;i++){
+    const desde=i*pageSize;
+    const hasta=Math.min((i+1)*pageSize-1,total-1);
+    promesas.push((async()=>{
+      const url=sbUrl+'/rest/v1/'+tabla+(qs?'?'+qs:'');
+      const h={apikey:sbKey,Authorization:'Bearer '+sbKey,'Content-Type':'application/json','Range-Unit':'items','Range':desde+'-'+hasta};
+      const r=await fetch(url,{headers:h});
+      if(!r.ok)throw new Error(await r.text());
+      const txt=await r.text();
+      return txt?JSON.parse(txt):[];
+    })());
+  }
+  const resultados=await Promise.all(promesas);
+  resultados.forEach(r=>todos=todos.concat(r));
+  return todos;
+}
+
 async function cargarDatos(){try{
   [clientes,movimientos]=await Promise.all([
-    api('clientes_recarga','GET',null,'order=creado_en.desc'),
-    api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc')
+    apiTodos('clientes_recarga','order=creado_en.desc'),
+    apiTodos('movimientos_recarga','order=fecha.desc,creado_en.desc')
   ]);
   // Cargar movimientos de caja
   try{window._movCaja=await api('movimientos_caja','GET',null,'order=fecha.desc');}
@@ -2237,7 +2276,7 @@ async function desconfirmarPago(id){
 
 
 async function recargarMovimientos(){
-  const frescos=await api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc');
+  const frescos=await apiTodos('movimientos_recarga','order=fecha.desc,creado_en.desc');
   movimientos.length=0;
   movimientos.push(...frescos);
 }
@@ -3105,7 +3144,7 @@ async function descargarBackupCompleto(){
     // Cargar todas las tablas
     const [clis, movs, movCaja, prests, pagosPrest, deudProp, pagosDeudProp, recs] = await Promise.all([
       api('clientes_recarga','GET',null,'order=nombre'),
-      api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc'),
+      apiTodos('movimientos_recarga','order=fecha.desc,creado_en.desc'),
       api('movimientos_caja','GET',null,'order=fecha.desc').catch(()=>[]),
       api('prestamos','GET',null,'order=nombre').catch(()=>[]),
       api('pagos_prestamo','GET',null,'order=fecha.desc').catch(()=>[]),
@@ -3164,7 +3203,7 @@ async function descargarBackupJSON(){
   try{
     const [clis, movs, movCaja, prests, pagosPrest, deudProp, pagosDeudProp] = await Promise.all([
       api('clientes_recarga','GET',null,'order=nombre'),
-      api('movimientos_recarga','GET',null,'order=fecha.desc,creado_en.desc'),
+      apiTodos('movimientos_recarga','order=fecha.desc,creado_en.desc'),
       api('movimientos_caja','GET',null,'order=fecha.desc').catch(()=>[]),
       api('prestamos','GET',null,'order=nombre').catch(()=>[]),
       api('pagos_prestamo','GET',null,'order=fecha.desc').catch(()=>[]),
@@ -3213,7 +3252,7 @@ function generarContextoIA(){
   const totalClis=clientes.length;
   const totalMovs=movimientos.length;
   const hoyStr=new Date().toLocaleDateString('es-CO',{timeZone:'America/Bogota',year:'numeric',month:'long',day:'numeric'});
-  return `CONTEXTO: Cartera Negocios v1.4 — Sistema de gestión de recargas a crédito
+  return `CONTEXTO: Cartera Negocios v2.0 — Sistema de gestión de recargas a crédito
 Fecha del backup: ${hoyStr}
 Negocio: Venta de recargas telefónicas a crédito a tenderos en Rionegro, Antioquia.
 Dos cuentas Megared: "Juanito" (032442) y "Don Martín" (028469).
