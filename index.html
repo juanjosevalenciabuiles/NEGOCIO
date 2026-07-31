@@ -1720,8 +1720,8 @@ function verHistCli(id){
         </div>
         <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px">
           <div class="hist-val" style="color:${eP?'var(--green)':'var(--red)'}">${eP?'+':'-'}${fmt(m.valor)}</div>
-          <div style="font-size:11px;color:${saldoDespues<0?'var(--blue)':saldoDespues===0?'var(--green)':'var(--text2)'}">
-            ${eP||esRevC?'Queda: ':'Debe: '}${saldoDespues<0?'A favor '+fmt(Math.abs(saldoDespues)):saldoDespues===0?'Saldado ✓':fmt(saldoDespues)}
+          <div style="font-size:11px;font-weight:600;color:${saldoDespues<0?'var(--blue)':saldoDespues===0?'var(--green)':'var(--text2)'}">
+            Saldo: ${saldoDespues<0?'A favor '+fmt(Math.abs(saldoDespues)):saldoDespues===0?'Saldado ✓':fmt(saldoDespues)}
           </div>
           <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-hist-cli');abrirEditMov('${m.id}')"><i class="ti ti-edit"></i></button>
         </div>
@@ -2383,28 +2383,31 @@ function renderListaCobros(){
   const lista=document.getElementById('cobros-lista');
   const contador=document.getElementById('cobros-contador');
   const badge=document.getElementById('cobros-badge');
-  const btnBadge=document.getElementById('cobros-badge');
-
   const pendientes=listaCobros.filter(x=>!x.completado).length;
   const completados=listaCobros.filter(x=>x.completado).length;
-
-  // Actualizar badge del botón
-  if(badge){
-    if(listaCobros.length>0){badge.style.display='inline';badge.textContent=pendientes;}
-    else{badge.style.display='none';}
-  }
+  if(badge){badge.style.display=listaCobros.length>0?'inline':'none';badge.textContent=pendientes;}
   if(contador)contador.textContent=`${pendientes} pendiente${pendientes!==1?'s':''}${completados?', '+completados+' completado'+(completados>1?'s':''):''}`;
-
   if(!lista)return;
   if(!listaCobros.length){
     lista.innerHTML='<div class="empty" style="padding:1.5rem 0"><i class="ti ti-clipboard-list"></i><p>Agrega clientes para ir a cobrar</p></div>';
     return;
   }
-
-  lista.innerHTML=listaCobros.map(item=>{
+  lista.innerHTML=listaCobros.map((item,idx)=>{
     const cli=clientes.find(x=>x.id===item.id);
     const pend=cli?pendiente(cli):0;
-    return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);opacity:${item.completado?'0.5':'1'};transition:opacity .2s">
+    return`<div id="cobro-item-${item.id}" draggable="true"
+      ondragstart="dragStart(event,'${item.id}')"
+      ondragover="dragOver(event)"
+      ondrop="dragDrop(event,'${item.id}')"
+      ondragend="dragEnd(event)"
+      style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);opacity:${item.completado?'0.5':'1'};transition:all .2s;cursor:grab">
+      <!-- Handle de arrastre -->
+      <span style="color:var(--text3);font-size:16px;cursor:grab;flex-shrink:0;touch-action:none" 
+        ontouchstart="touchStart(event,'${item.id}')"
+        ontouchmove="touchMove(event)"
+        ontouchend="touchEnd(event,'${item.id}')">
+        <i class="ti ti-grip-vertical"></i>
+      </span>
       <!-- Checkbox -->
       <button onclick="toggleCobro('${item.id}')" style="width:26px;height:26px;border-radius:50%;border:2px solid ${item.completado?'var(--green)':'var(--border2)'};background:${item.completado?'var(--green)':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;transition:all .2s">
         ${item.completado?'<i class="ti ti-check" style="font-size:13px"></i>':''}
@@ -2415,9 +2418,7 @@ function renderListaCobros(){
         ${item.whatsapp?`<div style="font-size:11px;color:#25D366"><i class="ti ti-brand-whatsapp"></i> ${item.whatsapp}</div>`:''}
       </div>
       <!-- Saldo -->
-      <div style="font-size:13px;font-weight:700;text-align:right;flex-shrink:0">
-        ${cli?fmtSaldo(pend):'—'}
-      </div>
+      <div style="font-size:13px;font-weight:700;text-align:right;flex-shrink:0">${cli?fmtSaldo(pend):'—'}</div>
       <!-- Quitar -->
       <button onclick="quitarCobro('${item.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;flex-shrink:0">
         <i class="ti ti-x" style="font-size:14px"></i>
@@ -2427,7 +2428,6 @@ function renderListaCobros(){
 }
 
 
-// ── Editar / Eliminar movimientos de caja ──
 function abrirEditMovCaja(id){
   const mv=(window._movCaja||[]).find(x=>x.id===id);
   if(!mv)return;
@@ -3507,6 +3507,103 @@ function imprimirExtracto(clienteId){
   a.click();
   document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+
+
+// ── Drag & Drop para reordenar cobros ──
+let dragSrcId=null;
+let touchSrcId=null;
+let touchStartY=0;
+
+function dragStart(e, id){
+  dragSrcId=id;
+  e.dataTransfer.effectAllowed='move';
+  e.target.closest('[draggable]').style.opacity='0.4';
+}
+
+function dragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  // Highlight del destino
+  const el=e.currentTarget;
+  el.style.borderTop='2px solid var(--green)';
+}
+
+function dragDrop(e, targetId){
+  e.preventDefault();
+  if(dragSrcId===targetId)return;
+  const srcIdx=listaCobros.findIndex(x=>x.id===dragSrcId);
+  const tgtIdx=listaCobros.findIndex(x=>x.id===targetId);
+  if(srcIdx===-1||tgtIdx===-1)return;
+  // Mover elemento
+  const [item]=listaCobros.splice(srcIdx,1);
+  listaCobros.splice(tgtIdx,0,item);
+  guardarListaCobros();
+  renderListaCobros();
+}
+
+function dragEnd(e){
+  dragSrcId=null;
+  // Limpiar estilos
+  document.querySelectorAll('#cobros-lista [draggable]').forEach(el=>{
+    el.style.opacity='';
+    el.style.borderTop='';
+  });
+}
+
+// ── Touch para móvil ──
+let touchItem=null;
+let touchClone=null;
+
+function touchStart(e, id){
+  touchSrcId=id;
+  touchStartY=e.touches[0].clientY;
+  touchItem=document.getElementById('cobro-item-'+id);
+  // Crear clon visual
+  touchClone=touchItem.cloneNode(true);
+  touchClone.style.cssText=`position:fixed;left:${touchItem.getBoundingClientRect().left}px;top:${touchItem.getBoundingClientRect().top}px;width:${touchItem.offsetWidth}px;opacity:0.8;background:var(--surface);border-radius:var(--radius);z-index:9999;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.2)`;
+  document.body.appendChild(touchClone);
+  touchItem.style.opacity='0.3';
+  e.preventDefault();
+}
+
+function touchMove(e){
+  if(!touchClone||!touchSrcId)return;
+  e.preventDefault();
+  const y=e.touches[0].clientY;
+  touchClone.style.top=(y-20)+'px';
+  // Encontrar el elemento debajo
+  touchClone.style.display='none';
+  const below=document.elementFromPoint(e.touches[0].clientX,y);
+  touchClone.style.display='';
+  const target=below?.closest('[draggable]');
+  document.querySelectorAll('#cobros-lista [draggable]').forEach(el=>el.style.borderTop='');
+  if(target&&target.id!=='cobro-item-'+touchSrcId)target.style.borderTop='2px solid var(--green)';
+}
+
+function touchEnd(e, id){
+  if(!touchClone||!touchSrcId)return;
+  const y=e.changedTouches[0].clientY;
+  touchClone.remove();touchClone=null;
+  if(touchItem)touchItem.style.opacity='';
+  // Encontrar destino
+  const below=document.elementFromPoint(e.changedTouches[0].clientX,y);
+  const target=below?.closest('[draggable]');
+  document.querySelectorAll('#cobros-lista [draggable]').forEach(el=>el.style.borderTop='');
+  if(target){
+    const targetId=target.id.replace('cobro-item-','');
+    if(targetId&&targetId!==touchSrcId){
+      const srcIdx=listaCobros.findIndex(x=>x.id===touchSrcId);
+      const tgtIdx=listaCobros.findIndex(x=>x.id===targetId);
+      if(srcIdx!==-1&&tgtIdx!==-1){
+        const [item]=listaCobros.splice(srcIdx,1);
+        listaCobros.splice(tgtIdx,0,item);
+        guardarListaCobros();
+        renderListaCobros();
+      }
+    }
+  }
+  touchSrcId=null;touchItem=null;
 }
 
 
