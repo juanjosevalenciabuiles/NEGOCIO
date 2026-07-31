@@ -1694,17 +1694,24 @@ function verHistCli(id){
   ms.sort((a,b)=>dtMovimiento(b)-dtMovimiento(a));
   // Ordenar por dtMovimiento para que el saldo acumulado sea correcto
   ms.sort((a,b)=>dtMovimiento(a)-dtMovimiento(b));
+  // Primero calcular saldo acumulado en orden cronológico (antiguo→reciente)
+  const msConSaldo=ms.map(m=>{
+    const eP=m.tipo==='pago';const esRevC=m.tipo==='reversion';
+    if(eP||esRevC)saldo-=Number(m.valor);else saldo+=Number(m.valor);
+    return{...m,saldoDespues:saldo};
+  });
+
+  // Agrupar por fecha y mostrar reciente→antiguo
   const grupos={};
-  ms.forEach(m=>{if(!grupos[m.fecha])grupos[m.fecha]=[];grupos[m.fecha].push(m);});
+  msConSaldo.forEach(m=>{if(!grupos[m.fecha])grupos[m.fecha]=[];grupos[m.fecha].push(m);});
   const fechas=Object.keys(grupos).sort((a,b)=>b.localeCompare(a));
   let itemsHtml='';
   fechas.forEach(fecha=>{
     itemsHtml+=`<div class="fecha-grupo">${fmtFecha(fecha)}</div>`;
-    grupos[fecha].forEach(m=>{
+    // Dentro de cada día mostrar reciente→antiguo
+    [...grupos[fecha]].reverse().forEach(m=>{
       const eP=m.tipo==='pago';const esRevC=m.tipo==='reversion';
-      const saldoAntes=saldo; // saldo ANTES de este movimiento
-      if(eP||esRevC)saldo-=Number(m.valor);else saldo+=Number(m.valor);
-      const saldoDespues=saldo; // saldo DESPUÉS
+      const saldoDespues=m.saldoDespues; // ya calculado
       const nc=eP&&!m.confirmado?'<span class="badge badge-purple">Sin confirmar</span>':'';
       const revBadgeC=esRevC?'<span class="badge badge-red"><i class="ti ti-arrow-back-up"></i> Reversión</span>':'';
       const cdBadge=m.cuenta_destino?`<span class="badge badge-blue"><i class="ti ti-arrow-narrow-right"></i>${m.cuenta_destino}</span>`:'';
