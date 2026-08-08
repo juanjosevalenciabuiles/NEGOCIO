@@ -292,7 +292,8 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
       <span class="panel-title"><i class="ti ti-users"></i> Clientes (<span id="clientes-count">0</span>)</span>
       <button class="btn btn-primary btn-sm" onclick="abrirModalCliente()"><i class="ti ti-plus"></i> Nuevo</button>
     </div>
-    <div class="filter-bar">
+    <div class="filter-bar" style="margin-bottom:4px">
+      <button class="btn btn-secondary btn-sm" onclick="generarResumenCartera()" style="white-space:nowrap"><i class="ti ti-file-text"></i> PDF cartera</button>
       <input class="search-inline" id="f-buscar" placeholder="Buscar por nombre, código o WhatsApp..." onkeyup="renderClientes()">
     </div>
     <div class="filter-bar" style="margin-top:-6px">
