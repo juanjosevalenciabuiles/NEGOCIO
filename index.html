@@ -3614,6 +3614,95 @@ function touchEnd(e, id){
 }
 
 
+// ── PDF Resumen de cartera ──
+function generarResumenCartera(){
+  const fechaHoy=new Date().toLocaleDateString('es-CO',{timeZone:'America/Bogota',year:'numeric',month:'long',day:'numeric'});
+
+  // Solo clientes con saldo pendiente, ordenados por mayor deuda
+  const lista=clientes
+    .map(c=>({...c, saldo:pendiente(c)}))
+    .filter(c=>c.saldo>0)
+    .sort((a,b)=>b.saldo-a.saldo);
+
+  const totalGeneral=lista.reduce((a,c)=>a+c.saldo,0);
+
+  // Separar por cuenta
+  const juanito=lista.filter(c=>c.plataforma==='Juanito');
+  const martin=lista.filter(c=>c.plataforma==='Don Martin');
+  const totalJuanito=juanito.reduce((a,c)=>a+c.saldo,0);
+  const totalMartin=martin.reduce((a,c)=>a+c.saldo,0);
+
+  const fmtCOP=v=>'$'+Number(v).toLocaleString('es-CO');
+
+  const filasCli=(arr)=>arr.map((c,i)=>`
+    <tr>
+      <td style="text-align:center;color:#888">${i+1}</td>
+      <td><strong>${c.nombre}</strong>${c.nombre_whatsapp?`<br><span style="font-size:11px;color:#25D366">● ${c.nombre_whatsapp}</span>`:''}</td>
+      <td>${c.telefono||'—'}</td>
+      <td>${c.ciudad||'—'}</td>
+      <td>${c.proveedor||'—'}</td>
+      <td style="text-align:right;font-weight:700;color:#c62828">${fmtCOP(c.saldo)}</td>
+    </tr>`).join('');
+
+  const seccion=(titulo,arr,total,color)=>arr.length?`
+    <div class="seccion">
+      <div class="seccion-titulo" style="background:${color}">${titulo} — ${arr.length} clientes</div>
+      <table>
+        <thead><tr><th>#</th><th>Cliente</th><th>Teléfono</th><th>Ciudad</th><th>Proveedor</th><th style="text-align:right">Debe</th></tr></thead>
+        <tbody>${filasCli(arr)}</tbody>
+        <tfoot><tr>
+          <td colspan="5" style="text-align:right;font-weight:700;padding:8px 10px">Total ${titulo}:</td>
+          <td style="text-align:right;font-weight:700;font-size:14px;color:#c62828;padding:8px 10px">${fmtCOP(total)}</td>
+        </tr></tfoot>
+      </table>
+    </div>`:'';
+
+  const html=`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <title>Resumen Cartera — ${fechaHoy}</title>
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:Arial,sans-serif;font-size:13px;color:#222;padding:24px}
+      h1{font-size:22px;font-weight:700;margin-bottom:2px}
+      .subtitulo{color:#666;font-size:12px;margin-bottom:20px}
+      .resumen-total{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+      .card{background:#f5f5f5;border-radius:8px;padding:14px 20px;min-width:160px}
+      .card label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px}
+      .card span{font-size:18px;font-weight:700}
+      .seccion{margin-bottom:28px}
+      .seccion-titulo{color:#fff;padding:8px 14px;border-radius:6px 6px 0 0;font-weight:700;font-size:13px}
+      table{width:100%;border-collapse:collapse;font-size:12px}
+      th{background:#1a1a2e;color:#fff;padding:7px 10px;text-align:left;font-size:11px;text-transform:uppercase}
+      td{padding:7px 10px;border-bottom:0.5px solid #eee}
+      tr:nth-child(even) td{background:#fafafa}
+      tfoot td{background:#f0f0f0!important;border-top:1px solid #ddd}
+      .footer{margin-top:20px;font-size:11px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:12px}
+      @media print{body{padding:10px}button{display:none}}
+    </style>
+  </head><body>
+    <h1>Resumen de Cartera</h1>
+    <div class="subtitulo">Cartera Negocios v2.0 — ${fechaHoy}</div>
+    <div class="resumen-total">
+      <div class="card"><label>Total por cobrar</label><span style="color:#c62828">${fmtCOP(totalGeneral)}</span></div>
+      <div class="card"><label>Juanito (0660)</label><span style="color:#1a5fb4">${fmtCOP(totalJuanito)}</span></div>
+      <div class="card"><label>Don Martín (6945)</label><span style="color:#1a5fb4">${fmtCOP(totalMartin)}</span></div>
+      <div class="card"><label>Clientes con deuda</label><span>${lista.length}</span></div>
+    </div>
+    ${seccion('Juanito (0660)',juanito,totalJuanito,'#1a5fb4')}
+    ${seccion('Don Martín (6945)',martin,totalMartin,'#1e6f50')}
+    <div class="footer">Generado por Cartera Negocios v2.0 — ${fechaHoy}</div>
+  </body></html>`;
+
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.target='_blank';a.rel='noopener';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+
+
 sbUrl=localStorage.getItem('sb_url')||'';sbKey=localStorage.getItem('sb_key')||'';
 if(sbUrl&&sbKey){document.getElementById('sb-url').value=sbUrl;document.getElementById('sb-key').value=sbKey;probarConexion();}
 </script>
