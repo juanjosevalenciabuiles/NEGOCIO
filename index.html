@@ -56,7 +56,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .tab.active{background:var(--green);color:#fff;box-shadow:0 2px 8px rgba(26,158,110,.3)}
 .tab:hover:not(.active){background:var(--bg)}
 .tab-config{flex:0;min-width:40px;width:40px}
-.section{display:none}.section.active{display:block}
+.section{display:none}.section.active{display:block;padding-bottom:100px}
 
 /* ── Cards métricas ── */
 .cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1rem}
@@ -3501,6 +3501,23 @@ function imprimirExtracto(clienteId){
         </td>
       </tr></tfoot>
     </table>
+    ${aPaz.length?`
+    <div class="seccion">
+      <div class="seccion-titulo" style="background:#2e7d32">A paz y salvo — ${aPaz.length} clientes</div>
+      <table>
+        <thead><tr><th>#</th><th>Cliente</th><th>Teléfono</th><th>Ciudad</th><th>Proveedor</th><th style="text-align:right">Estado</th></tr></thead>
+        <tbody>${aPaz.map((c,i)=>`
+          <tr>
+            <td style="text-align:center;color:#888">${i+1}</td>
+            <td><strong>${c.nombre}</strong>${c.nombre_whatsapp?`<br><span style="font-size:11px;color:#25D366">● ${c.nombre_whatsapp}</span>`:''}</td>
+            <td>${c.telefono||'—'}</td>
+            <td>${c.ciudad||'—'}</td>
+            <td>${c.proveedor||'—'}</td>
+            <td style="text-align:right;color:#2e7d32;font-weight:700">${c.saldo<0?'A favor '+fmtCOP(Math.abs(c.saldo)):'✓ Saldado'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`:''}
     <div class="footer">Generado por Cartera Negocios v2.0 — ${fechaHoy}</div>
   </body></html>`;
 
@@ -3619,17 +3636,19 @@ function touchEnd(e, id){
 function generarResumenCartera(){
   const fechaHoy=new Date().toLocaleDateString('es-CO',{timeZone:'America/Bogota',year:'numeric',month:'long',day:'numeric'});
 
-  // Solo clientes con saldo pendiente, ordenados por mayor deuda
-  const lista=clientes
+  // Todos los clientes con su saldo
+  const todosConSaldo=clientes
     .map(c=>({...c, saldo:pendiente(c)}))
-    .filter(c=>c.saldo>0)
     .sort((a,b)=>b.saldo-a.saldo);
 
-  const totalGeneral=lista.reduce((a,c)=>a+c.saldo,0);
+  const conDeuda=todosConSaldo.filter(c=>c.saldo>0);
+  const aPaz=todosConSaldo.filter(c=>c.saldo<=0).sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  const lista=conDeuda; // para compatibilidad
+  const totalGeneral=conDeuda.reduce((a,c)=>a+c.saldo,0);
 
   // Separar por cuenta
-  const juanito=lista.filter(c=>c.plataforma==='Juanito');
-  const martin=lista.filter(c=>c.plataforma==='Don Martin');
+  const juanito=conDeuda.filter(c=>c.plataforma==='Juanito');
+  const martin=conDeuda.filter(c=>c.plataforma==='Don Martin');
   const totalJuanito=juanito.reduce((a,c)=>a+c.saldo,0);
   const totalMartin=martin.reduce((a,c)=>a+c.saldo,0);
 
@@ -3687,10 +3706,28 @@ function generarResumenCartera(){
       <div class="card"><label>Total por cobrar</label><span style="color:#c62828">${fmtCOP(totalGeneral)}</span></div>
       <div class="card"><label>Juanito (0660)</label><span style="color:#1a5fb4">${fmtCOP(totalJuanito)}</span></div>
       <div class="card"><label>Don Martín (6945)</label><span style="color:#1a5fb4">${fmtCOP(totalMartin)}</span></div>
-      <div class="card"><label>Clientes con deuda</label><span>${lista.length}</span></div>
+      <div class="card"><label>Con deuda</label><span>${conDeuda.length}</span></div>
+      <div class="card"><label>A paz y salvo</label><span style="color:#2e7d32">${aPaz.length}</span></div>
     </div>
     ${seccion('Juanito (0660)',juanito,totalJuanito,'#1a5fb4')}
     ${seccion('Don Martín (6945)',martin,totalMartin,'#1e6f50')}
+    ${aPaz.length?`
+    <div class="seccion">
+      <div class="seccion-titulo" style="background:#2e7d32">A paz y salvo — ${aPaz.length} clientes</div>
+      <table>
+        <thead><tr><th>#</th><th>Cliente</th><th>Teléfono</th><th>Ciudad</th><th>Proveedor</th><th style="text-align:right">Estado</th></tr></thead>
+        <tbody>${aPaz.map((c,i)=>`
+          <tr>
+            <td style="text-align:center;color:#888">${i+1}</td>
+            <td><strong>${c.nombre}</strong>${c.nombre_whatsapp?`<br><span style="font-size:11px;color:#25D366">● ${c.nombre_whatsapp}</span>`:''}</td>
+            <td>${c.telefono||'—'}</td>
+            <td>${c.ciudad||'—'}</td>
+            <td>${c.proveedor||'—'}</td>
+            <td style="text-align:right;color:#2e7d32;font-weight:700">${c.saldo<0?'A favor '+fmtCOP(Math.abs(c.saldo)):'✓ Saldado'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`:''}
     <div class="footer">Generado por Cartera Negocios v2.0 — ${fechaHoy}</div>
   </body></html>`;
 
