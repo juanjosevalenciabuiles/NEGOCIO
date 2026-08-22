@@ -215,6 +215,7 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 /* ── Code ── */
 .code-block{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;font-family:'Courier New',monospace;font-size:11px;white-space:pre;overflow-x:auto;line-height:1.6}
 </style>
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
 <div class="app">
@@ -349,7 +350,8 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 <!-- ═══ CONFIRMAR ═══ -->
 <div class="section" id="sec-confirmaciones">
   <div class="panel">
-    <div class="panel-head"><span class="panel-title"><i class="ti ti-circle-check"></i> Pagos bancarios</span></div>
+    <div class="panel-head"><span class="panel-title"><i class="ti ti-circle-check"></i> Pagos bancarios</span>
+      <button class="btn btn-secondary btn-sm" onclick="abrirReportePagos()"><i class="ti ti-file-download"></i> Reporte</button></div>
     <div class="filter-bar">
       <span class="filter-label">Ver</span>
       <button class="chip active" id="cchip-pendientes" onclick="setChipConf(this,'pendientes')"><i class="ti ti-clock"></i> Pendientes</button>
@@ -850,9 +852,14 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 
   <div id="caja-lista"></div>
 
-  <button class="btn" style="width:100%;justify-content:center;margin-top:12px;background:var(--blue);color:#fff;padding:11px" onclick="closeModal('modal-caja');abrirModalMover()">
-    <i class="ti ti-transfer"></i> Nuevo movimiento de caja
-  </button>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+    <button class="btn btn-secondary" style="justify-content:center;padding:11px" onclick="abrirReportePagos()">
+      <i class="ti ti-file-download"></i> Reporte pagos
+    </button>
+    <button class="btn" style="justify-content:center;padding:11px;background:var(--blue);color:#fff" onclick="closeModal('modal-caja');abrirModalMover()">
+      <i class="ti ti-transfer"></i> Mover dinero
+    </button>
+  </div>
 </div></div>
 
 <!-- MODAL CONFIRMAR ELIMINACIÓN -->
@@ -3738,6 +3745,234 @@ function generarResumenCartera(){
   document.body.appendChild(a);a.click();
   document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+
+
+// ── Reporte de pagos por cuenta y período ──
+function abrirReportePagos(){
+  const existente=document.getElementById('modal-reporte-pagos');
+  if(existente)existente.remove();
+  const div=document.createElement('div');
+  div.id='modal-reporte-pagos';
+  div.className='modal-bg';
+  div.style.display='flex';
+  div.innerHTML=`<div class="modal" style="max-width:420px">
+    <span class="modal-handle"></span>
+    <div class="modal-title">
+      <span style="display:flex;align-items:center;gap:8px">
+        <span style="width:32px;height:32px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;color:#fff"><i class="ti ti-file-download"></i></span>
+        Reporte de pagos
+      </span>
+      <button class="close-btn" onclick="document.getElementById('modal-reporte-pagos').remove()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Cuenta destino</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="rp-cuenta-btns">
+        <button type="button" class="cuenta-btn" onclick="selRpCuenta(this,'Todos')"><i class="ti ti-infinity"></i> Todos</button>
+        <button type="button" class="cuenta-btn" onclick="selRpCuenta(this,'Efectivo')"><i class="ti ti-cash"></i> Efectivo</button>
+        <button type="button" class="cuenta-btn" onclick="selRpCuenta(this,'Bancolombia')"><i class="ti ti-credit-card"></i> Bancolombia</button>
+        <button type="button" class="cuenta-btn" onclick="selRpCuenta(this,'Nequi')"><i class="ti ti-device-mobile"></i> Nequi</button>
+        <button type="button" class="cuenta-btn" onclick="selRpCuenta(this,'Juanito (0660)')"><i class="ti ti-building-bank"></i> Juanito</button>
+        <button type="button" class="cuenta-btn" onclick="selRpCuenta(this,'Don Martín (6945)')"><i class="ti ti-building-bank"></i> Don Martín</button>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Período</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="rp-periodo-btns">
+        <button type="button" class="cuenta-btn" onclick="selRpPeriodo(this,'hoy')"><i class="ti ti-calendar-event"></i> Hoy</button>
+        <button type="button" class="cuenta-btn" onclick="selRpPeriodo(this,'semana')"><i class="ti ti-calendar-week"></i> Esta semana</button>
+        <button type="button" class="cuenta-btn" onclick="selRpPeriodo(this,'mes')"><i class="ti ti-calendar-month"></i> Este mes</button>
+        <button type="button" class="cuenta-btn" onclick="selRpPeriodo(this,'personalizado')"><i class="ti ti-calendar-plus"></i> Personalizado</button>
+      </div>
+    </div>
+    <div id="rp-fechas" style="display:none;gap:8px;margin-bottom:12px">
+      <div class="form-group">
+        <label class="form-label">Desde</label>
+        <input type="date" id="rp-desde">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hasta</label>
+        <input type="date" id="rp-hasta" value="${hoy()}">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Solo pagos confirmados</label>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="cuenta-btn active" id="rp-conf-si" onclick="selRpConf(this,true)" style="flex:1;justify-content:center">✓ Solo confirmados</button>
+        <button type="button" class="cuenta-btn" id="rp-conf-no" onclick="selRpConf(this,false)" style="flex:1;justify-content:center">Todos</button>
+      </div>
+    </div>
+    <div id="rp-preview" style="background:var(--bg);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-size:13px;display:none"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn btn-secondary" onclick="previewReporte()" style="justify-content:center"><i class="ti ti-eye"></i> Vista previa</button>
+      <button class="btn btn-primary" onclick="descargarReportePagos()" style="justify-content:center"><i class="ti ti-file-download"></i> Descargar PDF</button>
+    </div>
+  </div>`;
+  div.addEventListener('click',e=>{if(e.target===div)div.remove();});
+  document.body.appendChild(div);
+  // Defaults
+  rpCuenta='Efectivo'; rpPeriodo='mes'; rpSoloConf=true;
+  selRpCuenta(div.querySelector('[onclick*="Efectivo"]'),'Efectivo');
+  selRpPeriodo(div.querySelector('[onclick*="mes"]'),'mes');
+  previewReporte();
+}
+
+let rpCuenta='Efectivo', rpPeriodo='mes', rpSoloConf=true;
+
+function selRpCuenta(btn,v){
+  rpCuenta=v;
+  document.querySelectorAll('#rp-cuenta-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  previewReporte();
+}
+function selRpPeriodo(btn,v){
+  rpPeriodo=v;
+  document.querySelectorAll('#rp-periodo-btns .cuenta-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const fechas=document.getElementById('rp-fechas');
+  if(fechas)fechas.style.display=v==='personalizado'?'grid':'none';
+  previewReporte();
+}
+function selRpConf(btn,v){
+  rpSoloConf=v;
+  ['rp-conf-si','rp-conf-no'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
+  btn.classList.add('active');
+  previewReporte();
+}
+
+function obtenerPagosReporte(){
+  let ms=movimientos.filter(m=>m.tipo==='pago');
+  if(rpSoloConf)ms=ms.filter(m=>m.confirmado);
+  if(rpCuenta!=='Todos')ms=ms.filter(m=>m.cuenta_destino===rpCuenta);
+  // Filtrar por período
+  const hoyStr=hoy();
+  if(rpPeriodo==='hoy'){
+    ms=ms.filter(m=>m.fecha===hoyStr);
+  } else if(rpPeriodo==='semana'){
+    const r=getRango('semana');
+    if(r)ms=filtrarF(ms,r);
+  } else if(rpPeriodo==='mes'){
+    const r=getRango('mes');
+    if(r)ms=filtrarF(ms,r);
+  } else if(rpPeriodo==='personalizado'){
+    const desde=document.getElementById('rp-desde')?.value;
+    const hasta=document.getElementById('rp-hasta')?.value;
+    if(desde)ms=ms.filter(m=>m.fecha>=desde);
+    if(hasta)ms=ms.filter(m=>m.fecha<=hasta);
+  }
+  return ms.sort((a,b)=>dtMovimiento(b)-dtMovimiento(a));
+}
+
+function previewReporte(){
+  const el=document.getElementById('rp-preview');
+  if(!el)return;
+  const ms=obtenerPagosReporte();
+  const total=ms.reduce((a,m)=>a+Number(m.valor),0);
+  el.style.display='block';
+  el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center">
+    <span style="color:var(--text2)">${ms.length} pago${ms.length!==1?'s':''} encontrados</span>
+    <strong style="color:var(--green);font-size:16px">$${Number(total).toLocaleString('es-CO')}</strong>
+  </div>`;
+}
+
+function descargarReportePagos(){
+  const ms=obtenerPagosReporte();
+  if(!ms.length){alert('No hay pagos con los filtros seleccionados');return;}
+
+  const fechaHoy=new Date().toLocaleDateString('es-CO',{timeZone:'America/Bogota',year:'numeric',month:'long',day:'numeric'});
+  const periodoLabel={'hoy':'Hoy','semana':'Esta semana','mes':'Este mes','personalizado':'Período personalizado'}[rpPeriodo]||rpPeriodo;
+  const cuentaLabel=rpCuenta==='Todos'?'Todas las cuentas':rpCuenta;
+  const total=ms.reduce((a,m)=>a+Number(m.valor),0);
+  const fmtCOP=v=>'$'+Number(v).toLocaleString('es-CO');
+
+  // Agrupar por día
+  const porDia={};
+  ms.forEach(m=>{if(!porDia[m.fecha])porDia[m.fecha]=[];porDia[m.fecha].push(m);});
+  const dias=Object.keys(porDia).sort((a,b)=>b.localeCompare(a));
+
+  let filasHTML='';
+  dias.forEach(dia=>{
+    const dms=porDia[dia];
+    const totalDia=dms.reduce((a,m)=>a+Number(m.valor),0);
+    filasHTML+=`<tr style="background:#e8f5e9"><td colspan="4" style="font-weight:700;padding:8px 10px;border-left:3px solid #2e7d32">${fmtFecha(dia)}</td><td style="text-align:right;font-weight:700;color:#2e7d32;padding:8px 10px">${fmtCOP(totalDia)}</td></tr>`;
+    dms.forEach(m=>{
+      const cli=clientes.find(x=>x.id===m.cliente_id);
+      filasHTML+=`<tr>
+        <td style="padding-left:20px">${cli?cli.nombre:'—'}</td>
+        <td>${cli?.nombre_whatsapp?`<span style="color:#25D366">● ${cli.nombre_whatsapp}</span>`:cli?.telefono||'—'}</td>
+        <td style="font-family:monospace;font-size:11px">${m.codigo_transaccion||'—'}</td>
+        <td>${horaEfectiva(m)||'—'}</td>
+        <td style="text-align:right;font-weight:700;color:#1b5e20">${fmtCOP(m.valor)}</td>
+      </tr>`;
+    });
+  });
+
+  const html=`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <title>Reporte ${cuentaLabel} — ${periodoLabel}</title>
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:Arial,sans-serif;font-size:13px;color:#222;padding:24px}
+      h1{font-size:20px;font-weight:700;margin-bottom:2px}
+      .sub{color:#666;font-size:12px;margin-bottom:16px}
+      .resumen{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+      .card{background:#f5f5f5;border-radius:8px;padding:12px 18px;min-width:140px}
+      .card label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px}
+      .card span{font-size:18px;font-weight:700}
+      table{width:100%;border-collapse:collapse;font-size:12px}
+      th{background:#1a1a2e;color:#fff;padding:7px 10px;text-align:left;font-size:11px;text-transform:uppercase}
+      td{padding:6px 10px;border-bottom:0.5px solid #eee}
+      tr:hover td{background:#f9f9f9}
+      tfoot td{background:#e8f5e9!important;font-weight:700;border-top:2px solid #2e7d32}
+      .footer{margin-top:20px;font-size:11px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:10px}
+      @media print{body{padding:10px}}
+    </style>
+  </head><body>
+    <h1>Reporte de pagos — ${cuentaLabel}</h1>
+    <div class="sub">${periodoLabel} · ${rpSoloConf?'Solo confirmados':'Todos los pagos'} · ${fechaHoy}</div>
+    <div class="resumen">
+      <div class="card"><label>Total</label><span style="color:#1b5e20">${fmtCOP(total)}</span></div>
+      <div class="card"><label>Pagos</label><span>${ms.length}</span></div>
+      <div class="card"><label>Cuenta</label><span style="font-size:13px">${cuentaLabel}</span></div>
+    </div>
+    <table>
+      <thead><tr><th>Cliente</th><th>WhatsApp / Tel</th><th>Transacción</th><th>Hora</th><th style="text-align:right">Valor</th></tr></thead>
+      <tbody>${filasHTML}</tbody>
+      <tfoot><tr>
+        <td colspan="4" style="text-align:right">TOTAL ${periodoLabel.toUpperCase()}</td>
+        <td style="text-align:right;font-size:15px;color:#1b5e20">${fmtCOP(total)}</td>
+      </tr></tfoot>
+    </table>
+    <div class="footer">Cartera Negocios v2.0 — ${fechaHoy}</div>
+  </body></html>`;
+
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.target='_blank';a.rel='noopener';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+
+
+// ── Service Worker (modo offline + actualización automática) ──
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(reg=>{
+    reg.addEventListener('updatefound',()=>{
+      const newWorker=reg.installing;
+      newWorker.addEventListener('statechange',()=>{
+        if(newWorker.state==='installed'&&navigator.serviceWorker.controller){
+          // Hay una versión nueva disponible
+          const banner=document.createElement('div');
+          banner.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:9999;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.3)';
+          banner.innerHTML='<i class="ti ti-refresh"></i> Nueva versión disponible <button onclick="location.reload()" style="background:var(--green);color:#fff;border:none;border-radius:10px;padding:4px 12px;cursor:pointer;font-size:12px">Actualizar</button>';
+          document.body.appendChild(banner);
+          setTimeout(()=>banner.remove(),10000);
+        }
+      });
+    });
+  }).catch(()=>{});
 }
 
 
