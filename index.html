@@ -814,12 +814,16 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
 <!-- MODAL CAJA / FINANZAS -->
 <div class="modal-bg" id="modal-caja" style="display:none"><div class="modal" style="max-width:600px">
   <span class="modal-handle"></span>
-  <div class="modal-title">
+  <div class="modal-title" style="flex-wrap:wrap;gap:8px">
     <span style="display:flex;align-items:center;gap:8px">
       <span style="width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px"><i class="ti ti-wallet"></i></span>
       Caja y finanzas
     </span>
-    <button class="close-btn" onclick="closeModal('modal-caja')"><i class="ti ti-x"></i></button>
+    <div style="display:flex;gap:6px;margin-left:auto">
+      <button class="btn btn-secondary btn-sm" onclick="abrirReportePagos()" title="Reporte de pagos"><i class="ti ti-file-download"></i> Reporte</button>
+      <button class="btn btn-sm" style="background:var(--blue);color:#fff" onclick="closeModal('modal-caja');abrirModalMover()" title="Mover dinero"><i class="ti ti-transfer"></i> Mover</button>
+      <button class="close-btn" onclick="closeModal('modal-caja')"><i class="ti ti-x"></i></button>
+    </div>
   </div>
 
   <!-- Resumen de saldos por cuenta -->
@@ -850,16 +854,9 @@ input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0
     </div>
   </div>
 
-  <div id="caja-lista"></div>
+  <div id="caja-lista" style="max-height:50vh;overflow-y:auto;padding-right:2px"></div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
-    <button class="btn btn-secondary" style="justify-content:center;padding:11px" onclick="abrirReportePagos()">
-      <i class="ti ti-file-download"></i> Reporte pagos
-    </button>
-    <button class="btn" style="justify-content:center;padding:11px;background:var(--blue);color:#fff" onclick="closeModal('modal-caja');abrirModalMover()">
-      <i class="ti ti-transfer"></i> Mover dinero
-    </button>
-  </div>
+
 </div></div>
 
 <!-- MODAL CONFIRMAR ELIMINACIÓN -->
